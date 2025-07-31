@@ -9,35 +9,54 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
+from .. import env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+PRODUCTION = env.bool("PRODUCTION", False)
+USE_MEMORY_DATABASE = env.bool("USE_MEMORY_DATABASE", True)
+USING_MANAGED_STORAGE = env.bool("USING_MANAGED_STORAGE", False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cbu$=!&(o-kbl#d@($!(s--mpdoeoy#ht^__ejmjt@cq5q=n&#'
-
+SECRET_KEY = env.str(
+    "DJANGO_SECRET_KEY", 'django-insecure-cbu$=!&(o-kbl#d@($!(s--mpdoeoy#ht^__ejmjt@cq5q=n&#'
+)
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "*",
+    ],
+)
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "unfold",
+    "unfold.contrib.filters",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "drf_spectacular",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
 ]
+
+CORE_APPS = [
+    "core.account.apps.AccountConfig",
+]
+
+INSTALLED_APPS += CORE_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -49,7 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'main.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -66,18 +85,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'main.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -110,13 +119,31 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+API_VERSION = env.int("API_VERSION", default=1)
+
+
+# Schema Spectacular Generator
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Balanced-Plate API",
+    "DESCRIPTION": "AI platform for healthy feeding",
+    "VERSION": f"V{API_VERSION}",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
+
+UNFOLD = {
+    "SITE_TITLE": "Balanced-Plate Backend",
+    "SITE_DESCRIPTION": "AI platform for healthy feeding",
+    "SITE_HEADER": "Balanced-Plate",
+    "SHOW_HISTORY": True,
+    "SIDEBAR": {
+        "show_search": True,
+        "show-all_applications": True,
+        "navigation": []
+    }
+}
