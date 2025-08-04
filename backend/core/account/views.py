@@ -13,7 +13,7 @@ from core.account.serializers import UserSerializer
 from utils.permissions import IsGuestUser
 
 
-class CreateUser(views.APIView):
+class UserListCreate(views.APIView):
     http_method_names = ['get', 'post']
     permission_classes = [IsGuestUser, ]
     parser_classes = [JSONParser, ]
@@ -33,5 +33,21 @@ class CreateUser(views.APIView):
         serializer = UserSerializer.Create(data=request.data)
         serializer.is_valid(raise_exception=True)
         account = serializer.save()
+        logger.info(f"created user with email {account.email}")
+
+        auth_token = account.retrieve_auth_token()
+        logger.info(f"\n\nUser Auth\n{auth_token}")
+
+        logger.info("CREATING SESSION FOR THE NEW USER")
+        UserSession.objects.create(
+            user=account,
+            refresh=auth_token["refresh"],
+            access=auth_token["access"],
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            is_active=True,
+        )
+
         serializer = UserSerializer.Retrieve(instance=account)
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+        response_data = {"user": serializer.data, "token": auth_token}
+        return response.Response(response_data, status=status.HTTP_201_CREATED)

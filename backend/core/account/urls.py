@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
-    CreateUser
+    UserListCreate
 )
 
 urlpatterns = [
-    path("accounts/", CreateUser.as_view(), name="create-account"),
+    path("accounts/", UserListCreate.as_view(), name="create-account"),
 ]
