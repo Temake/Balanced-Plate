@@ -60,6 +60,13 @@ class Login(views.APIView):
     permission_classes = [IsGuestUser, ]
     parser_classes = [JSONParser, ]
 
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for user login",
+        request=AuthSerializer.Login,
+        responses={200: UserSerializer.Retrieve},
+    )
     def post(self, request):
         serializer = AuthSerializer.Login(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -86,17 +93,86 @@ class Login(views.APIView):
             except Exception as e:
                 raise exceptions.CustomException(message="unable to blacklist token")
             session.delete()
-        else:
-            logger.info("CREATING NEW SESSION")
-            UserSession.objects.create(
-                user=account,
-                refresh=auth_token["refresh"],
-                access=auth_token["access"],
-                ip_address=request.META.get("REMOTE_ADDR"),
-                user_agent=request.META.get("HTTP_USER_AGENT"),
-                is_active=True,
-            )
+            logger.info("OLD SESSION DELETED")
+
+        logger.info("CREATING NEW SESSION")
+        UserSession.objects.create(
+            user=account,
+            refresh=auth_token["refresh"],
+            access=auth_token["access"],
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            is_active=True,
+        )
         logger.info(f"User {account.email} logged in successfully")
 
         response_data = {"user": UserSerializer.Retrieve(instance=account).data, "token": auth_token}
         return response.Response(response_data, status=status.HTTP_200_OK)
+    
+
+class Logout(views.APIView):
+    http_method_names = ['post']
+    permission_classes = [IsAuthenticated, ]
+
+
+    @extend_schema(
+        description="endpoint for user logout",
+        request=None,
+        responses={200: None},
+    )
+    def post(self, request):
+        try:
+            session = UserSession.objects.filter(user=request.user).first()
+            if session:
+                token = RefreshToken(session.refresh)
+                token.blacklist()
+                session.delete()
+                logger.info(f"User {request.user.email} logged out successfully")
+                return response.Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="this user is not authenticated"
+            )
+        except TokenError as err:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=str(err),
+                errors=["refresh token error"],
+            )
+        
+
+class TokenRefresh(views.APIView):
+    http_method_names = ['post']
+    permission_classes = []
+    parser_classes = [JSONParser, ]
+
+
+    @extend_schema(
+        description="endpoint for refreshing user access token after it expires",
+        request=AuthSerializer.TokenRefresh,
+        responses={200: None}
+    )
+    def post(self, request):
+        serializer = AuthSerializer.TokenRefresh(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        refresh_token = serializer.validated_data["refresh"]
+        try:
+            session = UserSession.objects.get(refresh=refresh_token)
+            RefreshToken(refresh_token).blacklist()
+
+            token = session.user.retrieve_auth_token()
+            session.access = token["access"]
+            session.refresh = token["refresh"]
+            session.save()
+            return response.Response(status=status.HTTP_200_OK, data=token)
+
+        except TokenError as err:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=str(err),
+                errors=["refresh token error"],
+            )
+        except UserSession.DoesNotExist:
+            raise exceptions.CustomException(
+                message="Session not found.",
+            )

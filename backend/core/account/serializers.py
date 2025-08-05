@@ -87,5 +87,8 @@ class AuthSerializer:
             write_only=True, required=True, style={"input_type": "password"}, help_text=_("Password")
         )
 
-    # class Logout(serializers.Serializer):
-    #     refresh = serializers.CharField(required=True, help_text=_("Refresh Token"))
+    class TokenRefresh(serializers.Serializer):
+        refresh = serializers.CharField(
+            required=True,
+            help_text=_("This is the 'refresh' key in account AccessToken"),
+        )
