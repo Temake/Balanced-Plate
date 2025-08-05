@@ -78,3 +78,14 @@ class UserSerializer:
         def create(self, validated_data):
             validated_data["password"] = make_password(validated_data["password"])
             return super().create(validated_data)
+        
+
+class AuthSerializer:
+    class Login(serializers.Serializer):
+        email = serializers.EmailField(required=True, help_text=_("Email"))
+        password = serializers.CharField(
+            write_only=True, required=True, style={"input_type": "password"}, help_text=_("Password")
+        )
+
+    # class Logout(serializers.Serializer):
+    #     refresh = serializers.CharField(required=True, help_text=_("Refresh Token"))

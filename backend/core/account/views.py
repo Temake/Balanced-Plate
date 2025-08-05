@@ -1,5 +1,6 @@
 from loguru import logger
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from rest_framework import status, response, views
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -9,7 +10,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 
 from core.account.models import Account, UserSession
-from core.account.serializers import UserSerializer
+from core.account.serializers import UserSerializer, AuthSerializer
+from core.utils import exceptions
 from utils.permissions import IsGuestUser
 
 
@@ -51,3 +53,50 @@ class UserListCreate(views.APIView):
         serializer = UserSerializer.Retrieve(instance=account)
         response_data = {"user": serializer.data, "token": auth_token}
         return response.Response(response_data, status=status.HTTP_201_CREATED)
+    
+
+class Login(views.APIView):
+    http_method_names = ['post']
+    permission_classes = [IsGuestUser, ]
+    parser_classes = [JSONParser, ]
+
+    def post(self, request):
+        serializer = AuthSerializer.Login(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email=serializer.validated_data["email"]
+        password=serializer.validated_data["password"]
+        account = authenticate(request, email=email, password=password)
+
+        if not account:
+            logger.error("Authentication failed")
+            raise exceptions.CustomException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                message="Invalid credentials"
+            )
+
+        auth_token = account.retrieve_auth_token()
+        logger.info(f"\n\nUser Auth\n{auth_token}")
+        session = UserSession.objects.filter(user=account).first()
+
+        if session:
+            logger.info("SESSION EXISTS")
+            try:
+                token = RefreshToken(session.refresh)
+                token.blacklist()
+            except Exception as e:
+                raise exceptions.CustomException(message="unable to blacklist token")
+            session.delete()
+        else:
+            logger.info("CREATING NEW SESSION")
+            UserSession.objects.create(
+                user=account,
+                refresh=auth_token["refresh"],
+                access=auth_token["access"],
+                ip_address=request.META.get("REMOTE_ADDR"),
+                user_agent=request.META.get("HTTP_USER_AGENT"),
+                is_active=True,
+            )
+        logger.info(f"User {account.email} logged in successfully")
+
+        response_data = {"user": UserSerializer.Retrieve(instance=account).data, "token": auth_token}
+        return response.Response(response_data, status=status.HTTP_200_OK)
