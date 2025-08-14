@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated
 
 from core.account.models import Account, UserSession
@@ -15,15 +16,10 @@ from core.utils import exceptions
 from utils.permissions import IsGuestUser
 
 
-class UserListCreate(views.APIView):
-    http_method_names = ['get', 'post']
+class CreateUser(views.APIView):
+    http_method_names = ['post']
     permission_classes = [IsGuestUser, ]
     parser_classes = [JSONParser, ]
-
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [IsAuthenticated()]
-        return super().get_permissions()
 
     @extend_schema(
         auth=[],
@@ -53,6 +49,37 @@ class UserListCreate(views.APIView):
         serializer = UserSerializer.Retrieve(instance=account)
         response_data = {"user": serializer.data, "token": auth_token}
         return response.Response(response_data, status=status.HTTP_201_CREATED)
+    
+
+class RetrieveUpdateUser(views.APIView):
+    http_method_names = ["get", "patch"]
+    permission_classes = [IsAuthenticated, ]
+    renderer_classes = [JSONRenderer, ]
+
+
+    @extend_schema(
+        description="endpoint for retrieving details of the authenticated user",
+        request=None,
+        responses={200: UserSerializer.Retrieve},
+    )
+    def get(self, request):
+        serializer = UserSerializer.Retrieve(request.user)
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @extend_schema(
+        description="endpoint for updating details of the authenticated user",
+        request=UserSerializer.Update, 
+        responses={200: UserSerializer.Retrieve},
+    )
+    def patch(self, request):
+        serializer = UserSerializer.Update(
+            instance=request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        account = serializer.save()
+        serializer = UserSerializer.Retrieve(instance=account)
+        response_data = {"message": "details successfully updated", "data": serializer.data}
+        return response.Response(data=response_data, status=status.HTTP_200_OK)
     
 
 class Login(views.APIView):
