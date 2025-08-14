@@ -1,3 +1,178 @@
-from django.shortcuts import render
+from loguru import logger
+from django.conf import settings
+from django.contrib.auth import authenticate
 
-# Create your views here.
+from rest_framework import status, response, views
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
+
+from core.account.models import Account, UserSession
+from core.account.serializers import UserSerializer, AuthSerializer
+from core.utils import exceptions
+from utils.permissions import IsGuestUser
+
+
+class UserListCreate(views.APIView):
+    http_method_names = ['get', 'post']
+    permission_classes = [IsGuestUser, ]
+    parser_classes = [JSONParser, ]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for user creation",
+        request=UserSerializer.Create,
+        responses={201: UserSerializer.Retrieve},
+    )
+    def post(self, request):
+        serializer = UserSerializer.Create(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        account = serializer.save()
+        logger.info(f"created user with email {account.email}")
+
+        auth_token = account.retrieve_auth_token()
+        logger.info(f"\n\nUser Auth\n{auth_token}")
+
+        logger.info("CREATING SESSION FOR THE NEW USER")
+        UserSession.objects.create(
+            user=account,
+            refresh=auth_token["refresh"],
+            access=auth_token["access"],
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            is_active=True,
+        )
+
+        serializer = UserSerializer.Retrieve(instance=account)
+        response_data = {"user": serializer.data, "token": auth_token}
+        return response.Response(response_data, status=status.HTTP_201_CREATED)
+    
+
+class Login(views.APIView):
+    http_method_names = ['post']
+    permission_classes = [IsGuestUser, ]
+    parser_classes = [JSONParser, ]
+
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for user login",
+        request=AuthSerializer.Login,
+        responses={200: UserSerializer.Retrieve},
+    )
+    def post(self, request):
+        serializer = AuthSerializer.Login(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email=serializer.validated_data["email"]
+        password=serializer.validated_data["password"]
+        account = authenticate(request, email=email, password=password)
+
+        if not account:
+            logger.error("Authentication failed")
+            raise exceptions.CustomException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                message="Invalid credentials"
+            )
+
+        auth_token = account.retrieve_auth_token()
+        logger.info(f"\n\nUser Auth\n{auth_token}")
+        session = UserSession.objects.filter(user=account).first()
+
+        if session:
+            logger.info("SESSION EXISTS")
+            try:
+                token = RefreshToken(session.refresh)
+                token.blacklist()
+            except Exception as e:
+                raise exceptions.CustomException(message="unable to blacklist token")
+            session.delete()
+            logger.info("OLD SESSION DELETED")
+
+        logger.info("CREATING NEW SESSION")
+        UserSession.objects.create(
+            user=account,
+            refresh=auth_token["refresh"],
+            access=auth_token["access"],
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT"),
+            is_active=True,
+        )
+        logger.info(f"User {account.email} logged in successfully")
+
+        response_data = {"user": UserSerializer.Retrieve(instance=account).data, "token": auth_token}
+        return response.Response(response_data, status=status.HTTP_200_OK)
+    
+
+class Logout(views.APIView):
+    http_method_names = ['post']
+    permission_classes = [IsAuthenticated, ]
+
+
+    @extend_schema(
+        description="endpoint for user logout",
+        request=None,
+        responses={200: None},
+    )
+    def post(self, request):
+        try:
+            session = UserSession.objects.filter(user=request.user).first()
+            if session:
+                token = RefreshToken(session.refresh)
+                token.blacklist()
+                session.delete()
+                logger.info(f"User {request.user.email} logged out successfully")
+                return response.Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="this user is not authenticated"
+            )
+        except TokenError as err:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=str(err),
+                errors=["refresh token error"],
+            )
+        
+
+class TokenRefresh(views.APIView):
+    http_method_names = ['post']
+    permission_classes = []
+    parser_classes = [JSONParser, ]
+
+
+    @extend_schema(
+        description="endpoint for refreshing user access token after it expires",
+        request=AuthSerializer.TokenRefresh,
+        responses={200: None}
+    )
+    def post(self, request):
+        serializer = AuthSerializer.TokenRefresh(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        refresh_token = serializer.validated_data["refresh"]
+        try:
+            session = UserSession.objects.get(refresh=refresh_token)
+            RefreshToken(refresh_token).blacklist()
+
+            token = session.user.retrieve_auth_token()
+            session.access = token["access"]
+            session.refresh = token["refresh"]
+            session.save()
+            return response.Response(status=status.HTTP_200_OK, data=token)
+
+        except TokenError as err:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=str(err),
+                errors=["refresh token error"],
+            )
+        except UserSession.DoesNotExist:
+            raise exceptions.CustomException(
+                message="Session not found.",
+            )
