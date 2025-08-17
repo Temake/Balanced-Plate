@@ -92,7 +92,6 @@ class UserSerializer:
                 "is_phone_number_verified",
                 "is_email_verified",
                 "gender",
-                "dob",
                 "is_banned",
                 "country",
                 "state",
@@ -126,4 +125,30 @@ class AuthSerializer:
         refresh = serializers.CharField(
             required=True,
             help_text=_("This is the 'refresh' key in account AccessToken"),
+        )
+
+
+class PasswordResetSerializer:
+    class VerifyEmail(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+
+    class VerifyOTP(serializers.Serializer):
+        otp = serializers.IntegerField(
+            required=True, 
+            write_only=True, 
+            help_text=_("OTP sent to user's email")
+        )
+
+    class ResetPassword(serializers.Serializer):
+        password = serializers.CharField(
+            write_only=True,
+            required=True,
+            style={"input_type": "password"},
+            help_text=_("New Password")
+        )
+        confirm_password = serializers.CharField(
+            write_only=True,
+            required=True,
+            style={"input_type": "password"},
+            help_text=_("Confirm New Password")
         )

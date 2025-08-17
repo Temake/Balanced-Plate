@@ -14,6 +14,7 @@ from pathlib import Path
 from django.utils.timezone import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from core.utils import enums
 
 from .. import env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,7 +81,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['core/utils/helpers/email/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -154,9 +155,9 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
         # "core.utils.permissions.EnforceAccountBan",
     ),
-    # "DEFAULT_PARSER_CLASSES": [
-    #     "rest_framework.parsers.JSONParser",
-    # ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
@@ -172,6 +173,10 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "AI platform for healthy feeding",
     "VERSION": f"V{API_VERSION}",
     "SERVE_INCLUDE_SCHEMA": False,
+        "ENUM_NAME_OVERRIDES": {
+        "AccountTypeEnum": enums.UserAccountType.choices(),
+        "GenderTypeEnum": enums.UserGenderType.choices(),
+    }
 }
 
 
@@ -205,7 +210,7 @@ UNFOLD = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -229,3 +234,25 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(days=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
+
+CELERY_BROKER = env.str("CELERY_BROKER")
+CELERY_BROKER_URL = CELERY_BROKER
+CELERY_RESULT_BACKEND = env.str("CELERY_BACKEND")
+CELERY_TIMEZONE = env.str("CELERY_TIMEZONE", default="UTC")
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+# CELERYD_PREFETCH_MULTIPLIER = 1
+
+
+# Email settings
+EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="***")
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", True)
+EMAIL_USE_TSL = env.bool("EMAIL_USE_TSL", False)
+EMAIL_HOST = env.str("EMAIL_HOST", default="***")
+EMAIL_PORT = env.int("EMAIL_PORT", 465)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="***")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="***")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

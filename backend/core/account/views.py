@@ -1,25 +1,38 @@
 from loguru import logger
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.core.cache import cache
+from django.contrib.auth.hashers import make_password
 
 from rest_framework import status, response, views
+from rest_framework.decorators import (
+    api_view, 
+    permission_classes, 
+    parser_classes, 
+    renderer_classes, 
+    authentication_classes
+)
+from rest_framework.generics import UpdateAPIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated
 
 from core.account.models import Account, UserSession
-from core.account.serializers import UserSerializer, AuthSerializer
+from core.account.serializers import (
+    UserSerializer, 
+    AuthSerializer,
+    PasswordResetSerializer
+)
 from core.utils import exceptions
-from utils.permissions import IsGuestUser
+from core.utils.permissions import IsGuestUser, IsOTPVerified
+from core.utils.helpers import email as email_client, authenticators
 
 
+@extend_schema(tags=["Account"])
 class CreateUser(views.APIView):
     http_method_names = ['post']
     permission_classes = [IsGuestUser, ]
-    parser_classes = [JSONParser, ]
 
     @extend_schema(
         auth=[],
@@ -51,10 +64,9 @@ class CreateUser(views.APIView):
         return response.Response(response_data, status=status.HTTP_201_CREATED)
     
 
+@extend_schema(tags=["Account"])
 class RetrieveUpdateUser(views.APIView):
     http_method_names = ["get", "patch"]
-    permission_classes = [IsAuthenticated, ]
-    renderer_classes = [JSONRenderer, ]
 
 
     @extend_schema(
@@ -65,7 +77,8 @@ class RetrieveUpdateUser(views.APIView):
     def get(self, request):
         serializer = UserSerializer.Retrieve(request.user)
         return response.Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
     @extend_schema(
         description="endpoint for updating details of the authenticated user",
         request=UserSerializer.Update, 
@@ -82,10 +95,10 @@ class RetrieveUpdateUser(views.APIView):
         return response.Response(data=response_data, status=status.HTTP_200_OK)
     
 
+@extend_schema(tags=["Auth"])
 class Login(views.APIView):
     http_method_names = ['post']
     permission_classes = [IsGuestUser, ]
-    parser_classes = [JSONParser, ]
 
 
     @extend_schema(
@@ -117,8 +130,8 @@ class Login(views.APIView):
             try:
                 token = RefreshToken(session.refresh)
                 token.blacklist()
-            except Exception as e:
-                raise exceptions.CustomException(message="unable to blacklist token")
+            except TokenError:
+                pass  # Ignore if token has already expired
             session.delete()
             logger.info("OLD SESSION DELETED")
 
@@ -137,6 +150,7 @@ class Login(views.APIView):
         return response.Response(response_data, status=status.HTTP_200_OK)
     
 
+@extend_schema(tags=["Auth"])
 class Logout(views.APIView):
     http_method_names = ['post']
     permission_classes = [IsAuthenticated, ]
@@ -153,28 +167,27 @@ class Logout(views.APIView):
             if session:
                 token = RefreshToken(session.refresh)
                 token.blacklist()
-                session.delete()
-                logger.info(f"User {request.user.email} logged out successfully")
-                return response.Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        except TokenError:
+            pass  # Ignore if token has already expired
+        except UserSession.DoesNotExist:
             raise exceptions.CustomException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message="this user is not authenticated"
+                message="user does not have an active session"
             )
-        except TokenError as err:
-            raise exceptions.CustomException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=str(err),
-                errors=["refresh token error"],
-            )
+        else:
+            session.delete()
+            logger.info(f"User {request.user.email} logged out successfully")
+            return response.Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         
 
+@extend_schema(tags=["Auth"])
 class TokenRefresh(views.APIView):
     http_method_names = ['post']
-    permission_classes = []
-    parser_classes = [JSONParser, ]
+    permission_classes = [IsGuestUser, ]
 
 
     @extend_schema(
+        auth=[],
         description="endpoint for refreshing user access token after it expires",
         request=AuthSerializer.TokenRefresh,
         responses={200: None}
@@ -203,3 +216,138 @@ class TokenRefresh(views.APIView):
             raise exceptions.CustomException(
                 message="Session not found.",
             )
+        
+
+@extend_schema(
+    tags=["Auth"],
+    auth=[],
+    methods=["POST"],
+    description="endpoint for verifying user email before sending otp",
+    request=PasswordResetSerializer.VerifyEmail,
+    responses={200: None},
+)
+@api_view(["POST", ])
+@permission_classes([IsGuestUser, ])
+def verify_email(request):
+    serializer = PasswordResetSerializer.VerifyEmail(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data["email"]
+    try:
+        user = Account.objects.get(email=email)
+        otp = authenticators.generate_otp(email)
+        client = email_client.PasswordResetEmail(user, otp)
+        client.send_mail()
+        return response.Response(
+            data={"message": "otp sent to your email"}, status=status.HTTP_200_OK 
+        )
+    except Account.DoesNotExist:
+        raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid credentials"
+            )
+
+
+@extend_schema(
+    tags=["Auth"],
+    auth=[],
+    methods=["POST"],
+    parameters=[
+        OpenApiParameter(
+            name="email",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="email of the user to verify otp for",
+            required=True,
+        ),
+    ],
+    description="endpoint that verifies if the inputed otp is the same as the generated otp",
+    request=PasswordResetSerializer.VerifyOTP,
+    responses={200: None},
+)
+@api_view(["POST", ])
+@permission_classes([IsGuestUser, ])
+def verify_otp(request):
+    serializer = PasswordResetSerializer.VerifyOTP(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    otp = serializer.validated_data["otp"]
+    email = request.query_params.get("email")
+    try:
+        user = Account.objects.get(email=email)
+        cached_otp = cache.get(f"{email}_otp")
+        if cached_otp and cached_otp == otp:
+            cache.delete(f"{email}_otp")
+            cache.set(f"{email}_otp_verified", True, 300)
+            return response.Response(
+                data={"message": "otp verified"}, status=status.HTTP_200_OK
+            )
+        else:
+            raise exceptions.CustomException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    message="invalid otp"
+                )
+    except Account.DoesNotExist:
+        raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid credentials"
+            )
+    
+
+@extend_schema(tags=["Account"])
+class ChangePassword(UpdateAPIView):
+    authentication_classes = ([])
+    permission_classes = ([IsOTPVerified, ])
+    serializer_class = PasswordResetSerializer.ResetPassword
+    model = Account
+
+    def get_object(self, queryset=None): 
+        email = self.request.query_params.get('email')
+        if not email:
+            raise exceptions.CustomException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    message="please add user's email"
+                )
+        else:
+            try:
+                obj = Account.objects.get(email=email)
+                return obj 
+            except Account.DoesNotExist:
+                raise exceptions.CustomException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    message="invalid credentials"
+            )
+
+    @extend_schema(
+        auth=[],
+        parameters=[
+            OpenApiParameter(
+                name="email",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="email of the user resetting password",
+                required=True,
+            ),
+        ],
+        description="endpoint that verifies if the inputed otp is the same as the generated otp",
+        request=serializer_class,
+        responses={200: None},
+    )
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        new_password = serializer.validated_data['password']
+        confirm_password = serializer.validated_data['confirm_password']
+
+        if confirm_password != new_password:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="passwords do not match"
+            )
+        
+        user.password = make_password(new_password)
+        user.save()
+        return response.Response({
+            'message': 'password changed successfully!'}, 
+            status=status.HTTP_200_OK
+        )
