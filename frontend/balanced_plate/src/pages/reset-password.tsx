@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 
 const resetPasswordSchema = z.object({
   password: z
@@ -32,6 +33,9 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const ResetPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { resetPassword, error, clearError } = useAuth();
+  const [email, setEmail] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -43,13 +47,12 @@ const ResetPassword = () => {
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsSubmitting(true);
+    setSuccessMessage("");
     try {
-      // TODO: Implement password reset logic here
-      console.log(data);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      // TODO: Add success notification and redirect
-    } catch (error) {
-      console.error("Error resetting password:", error);
+      const msg = await resetPassword(email, data.password, data.confirmPassword);
+      setSuccessMessage(msg);
+    } catch (err) {
+      console.error("Error resetting password:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -107,7 +110,24 @@ const ResetPassword = () => {
           </p>
 
           <Form {...form}>
+            {successMessage && (
+              <div className="p-3 rounded bg-green-50 text-green-700 text-sm mb-2">{successMessage}</div>
+            )}
+            {error && (
+              <div className="p-3 rounded bg-red-50 text-red-700 text-sm mb-2">{error}</div>
+            )}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
+                <Input
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); if (error) clearError(); }}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:bg-white dark:hover:bg-gray-600"
+                  disabled={isSubmitting}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="password"
@@ -124,7 +144,7 @@ const ResetPassword = () => {
                       />
                     </FormControl>
                     <FormMessage />
-                    <ul className="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                    {/* <ul className="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-1">
                       <li className={field.value?.length >= 8 ? "text-green-500" : ""}>
                         • At least 8 characters long
                       </li>
@@ -137,7 +157,7 @@ const ResetPassword = () => {
                       <li className={/[0-9]/.test(field.value || "") ? "text-green-500" : ""}>
                         • Contains a number
                       </li>
-                    </ul>
+                    </ul> */}
                   </FormItem>
                 )}
               />

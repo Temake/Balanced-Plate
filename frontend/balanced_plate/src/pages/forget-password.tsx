@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuth } from "@/hooks/useAuth";
 
 const forgetPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -16,6 +16,8 @@ type ForgetPasswordFormValues = z.infer<typeof forgetPasswordSchema>;
 
 const ForgetPasswordPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { forgetPassword, error, clearError } = useAuth();
+  const [successMessage, setSuccessMessage] = useState("");
 
   const form = useForm<ForgetPasswordFormValues>({
     resolver: zodResolver(forgetPasswordSchema),
@@ -26,17 +28,12 @@ const ForgetPasswordPage = () => {
 
   const onSubmit = async (data: ForgetPasswordFormValues) => {
     setIsSubmitting(true);
+    setSuccessMessage("");
     try {
-      // TODO: Implement your API call here
-      console.log(data);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Redirect to OTP page
-      // TODO: Add your navigation logic here
-      console.log("Redirecting to OTP page...");
-    } catch (error) {
-      console.error("Error:", error);
+      const msg = await forgetPassword(data.email);
+      setSuccessMessage(msg);
+    } catch (err) {
+      console.error("Error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +95,16 @@ const ForgetPasswordPage = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {successMessage && (
+                <div className="p-3 rounded bg-green-50 text-green-700 text-sm">
+                  {successMessage}
+                </div>
+              )}
+              {error && (
+                <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="email"
@@ -111,6 +118,10 @@ const ForgetPasswordPage = () => {
                         placeholder="you@example.com"
                         className="w-full px-4 py-3 bg-gray-50 hover:bg-white transition-all duration-200"
                         disabled={isSubmitting}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (error) clearError();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

@@ -3,7 +3,7 @@ from .handlers import *
 
 
 TOKEN = env("TELEGRAM_TOKEN")
-WEBHOOK_URL = f"https://BalancedPlate.pythonanywhere.com/{TOKEN}"
+WEBHOOK_URL = f"https://bot-fvdjbwbtcugcgxfc.francecentral-01.azurewebsites.net/{TOKEN}"
 
 telegram_app = Application.builder().token(TOKEN).build()
 

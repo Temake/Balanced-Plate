@@ -15,7 +15,7 @@ interface DataType{
     detail?:string
 
 }
-interface Error{
+interface DjangoError{
    readonly response: DataType,
 
 
@@ -62,10 +62,11 @@ api.interceptors.response.use(
         console.log("Response success:", response.config.url)
         return response
     },
-    async (error:Error) => {
+    async (error) => {
         console.error("Response error status:", error.response?.status)
         console.error("Response error data:", error.response?.data?.detail)
-        
+        console.error("Full error object:", error)
+        console.error("djj:", error.response.message)
 
         if (error.response?.status === 403) {
             

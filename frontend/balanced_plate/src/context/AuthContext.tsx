@@ -1,263 +1,247 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-// import { User } from "@/lib/types";
-// import { toast } from "sonner";
+import React, { createContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import api from "../api/axios";
+import type { User,LoginCredentials,LoginResponse,AuthContextType,SignupCredentials,SignupResponse} from '../api/types'
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkSession = async () => {
-      setIsLoading(true);
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem(ACCESS_TOKEN);
       
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data.session) {
-          const { 
-            user: { id, email,phone, user_metadata }
-          } = data.session;
+      if (token) {
+        try {
+          const response = await api.get('/accounts/me/');
+          setUser(response.data);
           
-          setUser({
-            id,
-            name: user_metadata.name || email?.split('@')[0] || 'User',
-            email: email || '',
-            phone: phone || ''
-          });
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          localStorage.removeItem(ACCESS_TOKEN);
+          localStorage.removeItem(REFRESH_TOKEN);
+          setIsLoading(false);
         }
-      } catch (err: any) {
-        console.error('Error checking auth session:', err);
-        setError(err.message);
-        setUser(null);
-        setIsAuthenticated(false);
-      } finally {
+      } else {
         setIsLoading(false);
       }
     };
-    
-    checkSession();
-    
-    // Check if the current URL has a confirmation hash for email verification
-    const handleEmailConfirmation = async () => {
-      if (window.location.hash.includes('#access_token')) {
-        // Handle the redirect from email confirmation
-        const { data, error } = await supabase.auth.getUser();
-        if (data?.user) {
-          toast.success("Email confirmed successfully! Please log in.");
-          navigate('/login');
-        }
-        if (error) {
-          toast.error("Failed to confirm email. Please try again.");
-        }
-      }
-    };
-    
-    handleEmailConfirmation();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state change event:", event);
-        
-        if (session) {
-          const { 
-            user: { id, email, user_metadata,phone }
-          } = session;
-          
-          setUser({
-            id,
-            name: user_metadata.name || email?.split('@')[0] || 'User',
-            email: email || '',
-            phone: phone || ''
-          });
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-        setIsLoading(false);
-      }
-    );
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
 
-  const login = async (email: string, password: string) => {
+    checkAuthStatus();
+  }, []);
+
+  const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) {
-        throw error;
+    
+      const response = await api.post<LoginResponse>('/auth/login/', credentials);
+      if (response.status == 200){
+        const { user: userData, token } = response.data;
+
+     
+      localStorage.setItem(ACCESS_TOKEN, token.access);
+      localStorage.setItem(REFRESH_TOKEN, token.refresh);
+
+      setUser(userData);
+     
+      }
+      else {
+        const message = response.message
+        console.log(response.status)
+        setError(message)
+
       }
       
-      if (data.user) {
-        toast.success("Welcome back!");
-        navigate('/dashboard');
+       return response.data;
+    } catch (error:any) {
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
       }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message);
-      toast.error(err.message || "Failed to log in");
+      
+      setError(errorMessage);
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signup = async (name: string, email: string, password: string,phone:string) => {
-    setIsLoading(true);
-    setError(null);
+const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
+  setIsLoading(true);
+  setError(null);
 
-    try {
-        // First attempt to sign up the user
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { data: { name:name}},
-        });
+  try {
+  console.log(credential);
+  const response = await api.post<SignupResponse>('/accounts/', credential);
+  if (response.status == 201){
+    const { user: userData, token } = response.data;
 
-        if (error) {
-            // If the error indicates the user already exists
-            if (error.message.includes('User already registered')) {
-                setError("This email is already registered. Please log in instead.");
-                toast.error("This email is already registered. Please log in instead.");
-                navigate("/login?email-exists=true");
-                return null;
-            }
-            throw error;
-        }
+    localStorage.setItem(ACCESS_TOKEN, token.access);
+    localStorage.setItem(REFRESH_TOKEN, token.refresh);
 
-        if (data?.user) {
-            // Insert user ID and phone number into profiles table
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: data.user.id,
-                phone: phone
-              });
-
-            if (insertError) {
-              throw insertError;
-            }
-
-            toast.success("Please check your email for a confirmation link to complete your registration.");
-            return { isNewAccount: true };
-        }
-
-        return null;
-    } catch (err: any) {
-        console.error("Signup error:", err);
-        setError(err?.message || "An unexpected error occurred");
-        toast.error(err?.message || "Failed to sign up");
-        return null;
-    } finally {
-        setIsLoading(false);
+    setUser(userData);
+      console.log('SignUp successful:', userData);
+    return response.data;
     }
+
+
+  else {
+    setError(response.message|| "Signup Failed")
+    console.error('SignUp failed:', response.message);
+    throw new Error('SignUp failed');
+  }
+    
+  
+  } catch (error: unknown) {
+    let errorMessage = 'SignUp failed. Please try again.';
+
+    if (typeof error === 'object' && error && 'response' in error) {
+      const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+      errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+    }
+
+    setError(errorMessage);
+    console.error('SignUp error:', error);
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+}
+
+const forgetPassword = async (email: string): Promise<string> => {
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const response = await api.post('/auth/email/verify/', { email });
+    if (response.status == 200){
+       const msg: string =  'OTP sent to your email.';
+      
+    return msg;
+    }
+   
+
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to send password reset email. Please try again.';
+
+    if (typeof error === 'object' && error && 'response' in error) {
+      const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+      errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+    }
+
+    setError(errorMessage);
+    console.error('Forgot Password error:', error);
+    throw new Error(errorMessage);
+  } finally {
+    setIsLoading(false);
+  }
+};
+const otpVerify = async (email: string, otpCode: string): Promise<string> => {
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const response = await api.post(`/auth/otp/verify/?email=${encodeURIComponent(email)}`, { otp: Number(otpCode) });
+    if (response.status == 200){
+       let msg: string = response.data?.message || 'OTP verified.';
+       return msg;
+    }
+    return response.data?.message || 'OTP verified.';
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to verify OTP. Please try again.';
+
+    if (typeof error === 'object' && error && 'response' in error) {
+      const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+      errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+    }
+
+    setError(errorMessage);
+    console.error('OTP verification error:', error);
+    throw new Error(errorMessage);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const resetPassword = async (email: string, password: string, confirmPassword: string): Promise<string> => {
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const response = await api.patch(`/accounts/password/reset/?email=${encodeURIComponent(email)}`, {
+      password,
+      confirm_password: confirmPassword,
+    });
+    const msg: string = response.data?.message || 'Password changed successfully';
+    return msg;
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to reset password. Please try again.';
+    if (typeof error === 'object' && error && 'response' in error) {
+      const resp = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+      errorMessage = resp?.data?.message || resp?.data?.detail || errorMessage;
+    }
+    setError(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    setIsLoading(false);
+  }
 };
 
   const logout = async () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signOut();
+      await api.post('/auth/logout/');
+    } catch (error) {
+      console.error('Logout error:', error);
       
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("You've been logged out");
-      navigate('/login');
-    } catch (err: any) {
-      console.error('Logout error:', err);
-      toast.error(err.message || "Failed to log out");
-    } finally {
-      setIsLoading(false);
     }
+
+    // Clear local storage
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
+  
+    setUser(null);
+    setIsLoading(false);
   };
 
-  const resetPassword = async (email: string) => {
-    setIsLoading(true);
+  // Clear error function
+  const clearError = () => {
     setError(null);
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("Password reset Link have been sent to your email");
-    } catch (err: any) {
-      console.error('Reset password error:', err);
-      setError(err.message);
-      toast.error(err.message || "Failed to send reset instructions");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
-  const updatePassword = async (password: string) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast.success("Password has been updated successfully");
-      navigate('/login');
-    } catch (err: any) {
-      console.error('Update password error:', err);
-      setError(err.message);
-      toast.error(err.message || "Failed to update password");
-    } finally {
-      setIsLoading(false);
-    }
+
+  const isAuthenticated = !!user && !!localStorage.getItem(ACCESS_TOKEN);
+
+  const value: AuthContextType = {
+    user,
+    forgetPassword,
+    otpVerify,
+  resetPassword,
+    SignUp,
+    isLoading,
+    isAuthenticated,
+    login,
+    logout,
+    error,
+    clearError,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        isLoading,
-        error,
-        login,
-        signup,
-        logout,
-        resetPassword,
-        updatePassword
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthContext;
