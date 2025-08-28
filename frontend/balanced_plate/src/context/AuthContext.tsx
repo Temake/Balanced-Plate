@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
       
        return response.data;
-    } catch (error:any) {
+    } catch (error:unknown) {
       let errorMessage = 'Login failed. Please try again.';
       
       if (typeof error === 'object' && error && 'response' in error) {
@@ -128,12 +128,8 @@ const forgetPassword = async (email: string): Promise<string> => {
 
   try {
     const response = await api.post('/auth/email/verify/', { email });
-    if (response.status == 200){
-       const msg: string =  'OTP sent to your email.';
-      
-    return msg;
-    }
-   
+       const msg: string =response.data?.message ||'OTP sent to your email.';
+       return msg;
 
   } catch (error: unknown) {
     let errorMessage = 'Failed to send password reset email. Please try again.';
@@ -156,11 +152,8 @@ const otpVerify = async (email: string, otpCode: string): Promise<string> => {
 
   try {
     const response = await api.post(`/auth/otp/verify/?email=${encodeURIComponent(email)}`, { otp: Number(otpCode) });
-    if (response.status == 200){
-       let msg: string = response.data?.message || 'OTP verified.';
+       const msg: string = response.data?.message || 'OTP verified.';
        return msg;
-    }
-    return response.data?.message || 'OTP verified.';
   } catch (error: unknown) {
     let errorMessage = 'Failed to verify OTP. Please try again.';
 

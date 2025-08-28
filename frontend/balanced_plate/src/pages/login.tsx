@@ -131,10 +131,13 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              <div className="flex flex-row justify-end items-end-safe mt-0.5 my-2 text-sm text-gray-600 dark:text-gray-400">
+                <a href="/forget-password" className="text-black dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 font-medium transition-colors">Forgot your password?</a>
+              </div>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -154,7 +157,7 @@ export default function LoginPage() {
           {/* Signup Link */}
           <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
             Don't have an account?{" "}
-            <a href="/signup" className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium transition-colors">
+            <a href="/signup" className="text-black  hover:text-gray-500  font-medium transition-colors">
               Sign up for free
             </a>
           </p>

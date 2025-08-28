@@ -20,20 +20,22 @@ const Otp = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const e = params.get("email");
-    if (!e) {
+    const state = location.state as { email?: string };
+    const emailFromState = state?.email;
+
+    if (!emailFromState) {
       navigate("/login");
       return;
     }
-    setEmail(e);
-  }, [location.search, navigate]);
+    setEmail(emailFromState);
+  }, [location.state, navigate]);
 
   const onVerify = async () => {
     clearError();
     try {
       const msg = await otpVerify(email, otp);
       setSuccessMessage(msg);
+      navigate("/reset-password", {state: { email }});
     } catch (err) {
       console.error(err);
     }
@@ -47,14 +49,22 @@ const Otp = () => {
             <CheckCircle2 className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
+            Balanced Plate
+            <span className="text-green-600 dark:text-green-500">.AI</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Enter the verification code</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Enter the verification code
+          </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">Verify your email</h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-6">We sent a 6-digit code to <span className="font-medium">{email || "your email"}</span></p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">
+            Verify your email
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+            We sent a 6-digit code to{" "}
+            <span className="font-medium">{email || "your email"}</span>
+          </p>
 
           {successMessage && (
             <Alert variant="default" className="mb-4">
@@ -70,7 +80,12 @@ const Otp = () => {
           )}
 
           <div className="flex justify-center mb-4">
-            <InputOTP maxLength={6} className="gap-2 sm:gap-4" value={otp} onChange={setOtp}>
+            <InputOTP
+              maxLength={6}
+              className="gap-2 sm:gap-4"
+              value={otp}
+              onChange={setOtp}
+            >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
@@ -85,31 +100,23 @@ const Otp = () => {
             </InputOTP>
           </div>
 
-          <Button onClick={onVerify} className="w-full" disabled={!otp || otp.length < 6}>
+          <Button
+            onClick={onVerify}
+            className="w-full bg-green-600"
+            disabled={!otp || otp.length < 6}
+          >
             Verify OTP
           </Button>
 
           <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-            Need help? <a href="/login" className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium">Sign in instead</a>
+            Need help?{" "}
+            <a
+              href="/login"
+              className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium"
+            >
+              Sign in instead
+            </a>
           </p>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Join thousands who are already eating smarter</p>
-          <div className="flex justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📸</span>
-              <span>Photo Analysis</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">🧠</span>
-              <span>AI Recommendations</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📊</span>
-              <span>Progress Tracking</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+
+import { useNavigate,useLocation } from "react-router-dom";
 
 const resetPasswordSchema = z.object({
   password: z
@@ -33,8 +35,10 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const ResetPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { resetPassword, error, clearError } = useAuth();
+  const { resetPassword, error } = useAuth();
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [successMessage, setSuccessMessage] = useState("");
   
   const form = useForm<ResetPasswordFormValues>({
@@ -44,13 +48,23 @@ const ResetPassword = () => {
       confirmPassword: "",
     },
   });
+ useEffect(() => {
+  const state = location.state as { email: string };
+  if (state?.email) {
+    setEmail(state.email);
+  }
+  else{
+    navigate("/forget-password");
+  }
+ }, [location.state,navigate]);
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsSubmitting(true);
     setSuccessMessage("");
     try {
-      const msg = await resetPassword(email, data.password, data.confirmPassword);
-      setSuccessMessage(msg);
+      await resetPassword(email, data.password, data.confirmPassword);
+      setSuccessMessage("Password Changed Successfully");
+      navigate("/login");
     } catch (err) {
       console.error("Error resetting password:", err);
     } finally {
@@ -117,17 +131,7 @@ const ResetPassword = () => {
               <div className="p-3 rounded bg-red-50 text-red-700 text-sm mb-2">{error}</div>
             )}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
-                <Input
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); if (error) clearError(); }}
-                  type="email"
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:bg-white dark:hover:bg-gray-600"
-                  disabled={isSubmitting}
-                />
-              </div>
+    
               <FormField
                 control={form.control}
                 name="password"
