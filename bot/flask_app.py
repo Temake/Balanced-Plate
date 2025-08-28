@@ -3,7 +3,7 @@ import asyncio
 import logging
 import threading
 from telegram import Update
-from .core.main import telegram_app
+from core.main import telegram_app
 
 telegram_loop = None
 telegram_thread = None
