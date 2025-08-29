@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  foodbot:
+    build: .
+    container_name: fodbot
+    restart: always
+    env_file:
+      - core/.env
