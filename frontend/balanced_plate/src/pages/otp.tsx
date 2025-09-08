@@ -102,7 +102,7 @@ const Otp = () => {
 
           <Button
             onClick={onVerify}
-            className="w-full bg-green-600"
+            className="w-full bg-green-400"
             disabled={!otp || otp.length < 6}
           >
             Verify OTP

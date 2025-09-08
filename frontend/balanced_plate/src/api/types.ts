@@ -41,10 +41,22 @@ export interface SignupResponse{
     access: string;
     refresh: string;
   };
-  message?:string
+  message?:{
+    phone_number:string,
+    password:string
+  }
+
+}
+
+export interface ResponseError{
+  status:number
+    message:{
+      phone_number?:string,
+      password?:string
 
 
-
+    }
+  
 }
 export interface AuthContextType {
   user: User | null;

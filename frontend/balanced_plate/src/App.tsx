@@ -16,7 +16,7 @@ import Profile from "./pages/Profile";
 import Recipes from "./pages/Recipes";
 function App() {
   return (
-   <ThemeProvider defaultTheme="dark">
+   <ThemeProvider defaultTheme="light">
    <BrowserRouter>
    <Routes>
 

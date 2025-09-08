@@ -68,7 +68,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       
       if (typeof error === 'object' && error && 'response' in error) {
         const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        
         errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
       }
       
@@ -85,7 +84,6 @@ const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
   setError(null);
 
   try {
-  console.log(credential);
   const response = await api.post<SignupResponse>('/accounts/', credential);
   if (response.status == 201){
     const { user: userData, token } = response.data;
@@ -94,13 +92,12 @@ const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
     localStorage.setItem(REFRESH_TOKEN, token.refresh);
 
     setUser(userData);
-      console.log('SignUp successful:', userData);
     return response.data;
     }
 
 
   else {
-    setError(response.message|| "Signup Failed")
+    setError(response.message || "Signup Failed")
     console.error('SignUp failed:', response.message);
     throw new Error('SignUp failed');
   }
@@ -110,12 +107,11 @@ const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
     let errorMessage = 'SignUp failed. Please try again.';
 
     if (typeof error === 'object' && error && 'response' in error) {
-      const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-      errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      const response = (error as { response?: { data?: { detail?: string; message?: {phone_number:string,password:string} } } }).response;
+      errorMessage = response?.data?.message?.phone_number || response?.data?.message?.password || errorMessage;
+      errorMessage = errorMessage[0]
     }
-
-    setError(errorMessage);
-    console.error('SignUp error:', error);
+   setError(errorMessage) 
     throw error;
   } finally {
     setIsLoading(false);
@@ -158,8 +154,8 @@ const otpVerify = async (email: string, otpCode: string): Promise<string> => {
     let errorMessage = 'Failed to verify OTP. Please try again.';
 
     if (typeof error === 'object' && error && 'response' in error) {
-      const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-      errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      const response = (error as { response?: { data?: { message?: string } } }).response;
+      errorMessage = response?.data?.message || errorMessage;
     }
 
     setError(errorMessage);
