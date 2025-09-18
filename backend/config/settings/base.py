@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 
 CORE_APPS = [
     "core.account.apps.AccountConfig",
+    "core.file_storage.apps.FileStorageConfig",
     "core.utils.apps.UtilsConfig",
 ]
 

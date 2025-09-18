@@ -16,7 +16,7 @@ class IsGuestUser(BasePermission):
     
 
 class IsOTPVerified(BasePermission):
-    message  = "Permissio Denied. Try again"
+    message  = "Permission Denied. Try again"
 
 
     def has_permission(self, request, view):
