@@ -206,6 +206,17 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("File Storage"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Files"),
+                        "icon": "folder",
+                        "link": reverse_lazy("admin:file_storage_filemodel_changelist"),
+                    },
+                ]
+            }
         ]
     }
 }
@@ -257,3 +268,35 @@ EMAIL_PORT = env.int("EMAIL_PORT", 465)
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="***")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="***")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# managed storage configurations
+if USING_MANAGED_STORAGE:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    AWS_ACCESS_KEY_ID = env.str("DJANGO_AWS_ACCESS_KEY_ID", "*****")
+    AWS_SECRET_ACCESS_KEY = env.str("DJANGO_AWS_SECRET_ACCESS_KEY", "*****")
+    AWS_STORAGE_BUCKET_NAME = env.str("DJANGO_AWS_STORAGE_BUCKET_NAME", "*****")
+
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_REGION_NAME = env.str("DJANGO_AWS_S3_REGION_NAME", "nyc3")
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_DEFAULT_ACL = None
+    AWS_S3_ADDRESSING_STYLE = "virtual"
+    AWS_S3_ENDPOINT_URL = ""
+    AWS_S3_CUSTOM_DOMAIN = f""
+    AWS_QUERYSTRING_AUTH = True
+
+    # DO_SPACE_URL_TIMEOUT_SECS = env.int(
+    #     "DJANGO_AWS_S3_CACHE_CONTROL_TIMEOUT_SECS", 3600
+    # )
+    # AWS_S3_OBJECT_PARAMETERS = {"CacheControl": f"max-age={DO_SPACE_URL_TIMEOUT_SECS}"}
+
+    PUBLIC_MEDIA_LOCATION = "media"
+    MEDIA_URL = f""
