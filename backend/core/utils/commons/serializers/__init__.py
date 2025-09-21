@@ -8,5 +8,5 @@ class Serializers:
     def create(serializer_class, data) -> dict:
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return serializer.data
+        instance = serializer.save()
+        return instance, serializer.data

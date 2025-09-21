@@ -10,7 +10,7 @@ class BaseFileSerializer(serializers.ModelSerializer):
         
 
 class FileSerializer:
-    class Create(serializers.ModelSerializer):
+    class CreateFile(serializers.ModelSerializer):
         id = serializers.CharField(
             allow_null=True, allow_blank=True, max_length=100, required=False
         )

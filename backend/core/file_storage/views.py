@@ -3,17 +3,19 @@ import mimetypes
 import threading
 
 from drf_spectacular.utils import extend_schema
+from loguru import logger
 from rest_framework import exceptions, response, status, views
 from rest_framework.parsers import MultiPartParser
 
 from core.utils import enums
 from core.utils.helpers.decorators import RequestDataManipulationsDecorators
+from core.utils.mixins import PaginationMixin
 
 from . import models, serializers
 
 
 @extend_schema(tags=["Files"])
-class ListCreateFile(views.APIView):
+class ListCreateFile(PaginationMixin, views.APIView):
     http_method_names = ["get", "post"]
     parser_classes = [MultiPartParser, ]
     
@@ -26,8 +28,8 @@ class ListCreateFile(views.APIView):
 
     @extend_schema(
         description="endpoint to upload a file",
-        request=serializers.FileSerializer.Create,
-        responses={202: None}
+        request=serializers.FileSerializer.CreateFile,
+        responses={201: serializers.FileSerializer.ListRetrieve}
     )
     @RequestDataManipulationsDecorators.update_request_data_with_owner_data("owner")
     @RequestDataManipulationsDecorators.mutable_request_data
@@ -36,12 +38,11 @@ class ListCreateFile(views.APIView):
         if file:
             request.data["mime_type"] = self.get_file_mimetype(file)
 
-        # TODO: call background file upload task
-        response_data= {
-            "status": "Uploading",
-            "message": "file upload in progress"
-        }
-        response.Response(data=response_data, status=status.HTTP_202_ACCEPTED)
+        serializer = serializers.FileSerializer.CreateFile(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = serializer.save()
+        serializer = serializers.FileSerializer.ListRetrieve(instance=file)
+        return response.Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
     @extend_schema(
@@ -51,5 +52,11 @@ class ListCreateFile(views.APIView):
     )
     def get(self, request, *args, **kwargs):
         images = models.FileModel.objects.filter(owner=request.user, purpose=enums.FilePurposeType.FOOD_IMAGE.value)
+        paginated_queryset = self.paginate_queryset(images)
+        if paginated_queryset is not None:
+            serializer = serializers.FileSerializer.ListRetrieve(paginated_queryset, many=True)
+            return self.get_paginated_response(serializer.data)
+        
         serializer = serializers.FileSerializer.ListRetrieve(images, many=True)
-        response.Response(data=serializer.data, status=status.HTTP_200_OK)
+        logger.info("Pagination class not set, returning unpaginated queryset!")
+        return response.Response(data=serializer.data, status=status.HTTP_200_OK)
