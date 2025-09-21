@@ -217,6 +217,17 @@ UNFOLD = {
                         "link": reverse_lazy("admin:file_storage_filemodel_changelist"),
                     },
                 ]
+            },
+            {
+                "title": _("Results"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Nutrition Result"),
+                        "icon": "report",
+                        "link": reverse_lazy("admin:results_nutritionresult_changelist"),
+                    },
+                ]
             }
         ]
     }
