@@ -4,12 +4,15 @@ import threading
 
 from drf_spectacular.utils import extend_schema
 from loguru import logger
-from rest_framework import exceptions, response, status, views
+from rest_framework import response, status, views
 from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 
 from core.utils import enums
 from core.utils.helpers.decorators import RequestDataManipulationsDecorators
 from core.utils.mixins import PaginationMixin
+from core.utils.exceptions import exceptions
+from core.utils.permissions import IsObjectOwner
 
 from . import models, serializers
 
@@ -41,6 +44,7 @@ class ListCreateFile(PaginationMixin, views.APIView):
         serializer = serializers.FileSerializer.CreateFile(data=request.data)
         serializer.is_valid(raise_exception=True)
         file = serializer.save()
+        logger.success(f"successfully created file with id {file.id}")
         serializer = serializers.FileSerializer.ListRetrieve(instance=file)
         return response.Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
@@ -60,3 +64,28 @@ class ListCreateFile(PaginationMixin, views.APIView):
         serializer = serializers.FileSerializer.ListRetrieve(images, many=True)
         logger.info("Pagination class not set, returning unpaginated queryset!")
         return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+    
+
+@extend_schema(tags=["Files"])
+class RetrieveFile(views.APIView):
+    http_method_names = ["get", ]
+    permission_classes = [IsAuthenticated, IsObjectOwner]
+
+
+    @extend_schema(
+        description="endpoint for retrieving a specific file",
+        request=None,
+        responses={200: serializers.FileSerializer.ListRetrieve},
+    )
+    def get(self, request, pk):
+        try: 
+            file = models.FileModel.objects.get(id=pk)   
+            self.check_object_permissions(request, file)       
+            serializer = serializers.FileSerializer.ListRetrieve(instance=file)
+            logger.info(f"Retrieved file with ID: {pk}")
+            return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+        except models.FileModel.DoesNotExist:
+            raise exceptions.CustomException(
+                nessage="File not found", 
+                status_code=status.HTTP_404_NOT_FOUND
+            )
