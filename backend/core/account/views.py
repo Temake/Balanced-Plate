@@ -48,7 +48,6 @@ class CreateUser(views.APIView):
         logger.info(f"created user with email {account.email}")
 
         auth_token = account.retrieve_auth_token()
-        logger.info(f"\n\nUser Auth\n{auth_token}")
 
         logger.info("CREATING SESSION FOR THE NEW USER")
         UserSession.objects.create(
@@ -123,7 +122,6 @@ class Login(views.APIView):
             )
 
         auth_token = account.retrieve_auth_token()
-        logger.info(f"\n\nUser Auth\n{auth_token}")
 
         logger.info("CREATING NEW SESSION")
         UserSession.objects.create(
