@@ -148,7 +148,12 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
 
 
 class UserSession(BaseModelMixin):
-    user = models.OneToOneField(Account, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        Account, 
+        on_delete=models.CASCADE,
+        related_name="sessions",
+        null=False
+    )
     refresh = models.CharField(max_length=255, unique=True, null=True, blank=True)
     access = models.CharField(max_length=255, unique=True, null=True, blank=True)
     ip_address = models.CharField(max_length=255, null=True, blank=True)

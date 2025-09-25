@@ -21,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from core.account.models import Account, UserSession
 from core.account.serializers import (
     UserSerializer, 
+    TokenSerializer,
     AuthSerializer,
     PasswordResetSerializer
 )
@@ -38,7 +39,7 @@ class CreateUser(views.APIView):
         auth=[],
         description="endpoint for user creation",
         request=UserSerializer.Create,
-        responses={201: UserSerializer.Retrieve},
+        responses={201: AuthSerializer.AccountRetrieve},
     )
     def post(self, request):
         serializer = UserSerializer.Create(data=request.data)
@@ -60,7 +61,7 @@ class CreateUser(views.APIView):
         )
 
         serializer = UserSerializer.Retrieve(instance=account)
-        response_data = {"user": serializer.data, "token": auth_token}
+        response_data = {"user": serializer.data,  "token": auth_token}
         return response.Response(response_data, status=status.HTTP_201_CREATED)
     
 
@@ -105,7 +106,7 @@ class Login(views.APIView):
         auth=[],
         description="endpoint for user login",
         request=AuthSerializer.Login,
-        responses={200: UserSerializer.Retrieve},
+        responses={200: AuthSerializer.AccountRetrieve},
     )
     def post(self, request):
         serializer = AuthSerializer.Login(data=request.data)
@@ -123,17 +124,6 @@ class Login(views.APIView):
 
         auth_token = account.retrieve_auth_token()
         logger.info(f"\n\nUser Auth\n{auth_token}")
-        session = UserSession.objects.filter(user=account).first()
-
-        if session:
-            logger.info("SESSION EXISTS")
-            try:
-                token = RefreshToken(session.refresh)
-                token.blacklist()
-            except TokenError:
-                pass  # Ignore if token has already expired
-            session.delete()
-            logger.info("OLD SESSION DELETED")
 
         logger.info("CREATING NEW SESSION")
         UserSession.objects.create(
@@ -146,7 +136,8 @@ class Login(views.APIView):
         )
         logger.info(f"User {account.email} logged in successfully")
 
-        response_data = {"user": UserSerializer.Retrieve(instance=account).data, "token": auth_token}
+        serializer = UserSerializer.Retrieve(instance=account)
+        response_data = {"user": serializer.data,  "token": auth_token}
         return response.Response(response_data, status=status.HTTP_200_OK)
     
 
@@ -158,15 +149,15 @@ class Logout(views.APIView):
 
     @extend_schema(
         description="endpoint for user logout",
-        request=None,
+        request=AuthSerializer.Logout,
         responses={200: None},
     )
     def post(self, request):
         try:
-            session = UserSession.objects.filter(user=request.user).first()
-            if session:
-                token = RefreshToken(session.refresh)
-                token.blacklist()
+            refresh_token = request.data.get("refresh")
+            UserSession.objects.get(refresh=refresh_token).delete()
+            token = RefreshToken(refresh_token)
+            token.blacklist()
         except TokenError:
             pass  # Ignore if token has already expired
         except UserSession.DoesNotExist:
@@ -175,9 +166,8 @@ class Logout(views.APIView):
                 message="user does not have an active session"
             )
         else:
-            session.delete()
             logger.info(f"User {request.user.email} logged out successfully")
-            return response.Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+            return response.Response(status=status.HTTP_205_RESET_CONTENT)
         
 
 @extend_schema(tags=["Auth"])
@@ -190,7 +180,7 @@ class TokenRefresh(views.APIView):
         auth=[],
         description="endpoint for refreshing user access token after it expires",
         request=AuthSerializer.TokenRefresh,
-        responses={200: None}
+        responses={200: TokenSerializer}
     )
     def post(self, request):
         serializer = AuthSerializer.TokenRefresh(data=request.data)
