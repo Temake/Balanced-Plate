@@ -33,6 +33,7 @@ import CustomCalendar from "@/components/CustomCalendar";
 import { Calendar as CalendarIcon, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 import GoogleButton from "@/components/GoogleButton";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const SignupformSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required" }),
@@ -55,6 +56,7 @@ export default function SignUp() {
   const { SignUp, clearError, error } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const navigate = useNavigate()
   
   const genderOptions = [
     { value: "Male", label: "Male" },
@@ -94,8 +96,9 @@ export default function SignUp() {
         gender: data.gender,
         country: data.country
       });
-      setSuccessMessage("Sign up successful! Please verify your email.");
+      setSuccessMessage("Sign up successful!");
       form.reset();
+      navigate("/login")
     } catch (err) {
       console.error("Error during signup:", err);
     } finally {
@@ -118,7 +121,16 @@ export default function SignUp() {
         </div>
 
   
-        {error && (
+      
+        {/* Signup Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">Create Account</h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+            Get started with your healthy journey today
+          </p>
+
+          <GoogleButton />
+            {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
@@ -130,15 +142,6 @@ export default function SignUp() {
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
-
-        {/* Signup Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">Create Account</h2>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-            Get started with your healthy journey today
-          </p>
-
-          <GoogleButton />
 
 
           <div className="relative my-6">

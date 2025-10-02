@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import api from "../api/axios";
 import type { User,LoginCredentials,LoginResponse,AuthContextType,SignupCredentials,SignupResponse} from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
+;
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -11,6 +12,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children
 }) => {
   const [user, setUser] = useState<User | null>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +55,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       localStorage.setItem(REFRESH_TOKEN, token.refresh);
 
       setUser(userData);
+
+      setError(null)
      
       }
       else {
@@ -107,8 +111,8 @@ const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
     let errorMessage = 'SignUp failed. Please try again.';
 
     if (typeof error === 'object' && error && 'response' in error) {
-      const response = (error as { response?: { data?: { detail?: string; message?: {phone_number:string,password:string} } } }).response;
-      errorMessage = response?.data?.message?.phone_number || response?.data?.message?.password || errorMessage;
+      const response = (error as { response?: { data?: { detail?: string; message?: {phone_number:string,password:string,email:string} } } }).response;
+      errorMessage = response?.data?.message?.phone_number || response?.data?.message?.password || response?.data?.message?.email || errorMessage;
       errorMessage = errorMessage[0]
     }
    setError(errorMessage) 
@@ -190,6 +194,8 @@ const resetPassword = async (email: string, password: string, confirmPassword: s
   }
 };
 
+
+
   const logout = async () => {
     setIsLoading(true);
     
@@ -200,7 +206,7 @@ const resetPassword = async (email: string, password: string, confirmPassword: s
       
     }
 
-    // Clear local storage
+
     localStorage.removeItem(ACCESS_TOKEN);
     localStorage.removeItem(REFRESH_TOKEN);
   
@@ -208,13 +214,13 @@ const resetPassword = async (email: string, password: string, confirmPassword: s
     setIsLoading(false);
   };
 
-  // Clear error function
+
   const clearError = () => {
     setError(null);
   };
 
 
-  const isAuthenticated = !!user && !!localStorage.getItem(ACCESS_TOKEN);
+  const isAuthenticated =  !!localStorage.getItem(ACCESS_TOKEN);
 
   const value: AuthContextType = {
     user,

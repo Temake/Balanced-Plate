@@ -136,6 +136,7 @@ class Login(views.APIView):
 
         serializer = UserSerializer.Retrieve(instance=account)
         response_data = {"user": serializer.data,  "token": auth_token}
+       
         return response.Response(response_data, status=status.HTTP_200_OK)
     
 

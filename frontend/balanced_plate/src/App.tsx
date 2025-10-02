@@ -17,6 +17,7 @@ import Recipes from "./pages/Recipes";
 function App() {
   return (
    <ThemeProvider defaultTheme="light">
+
    <BrowserRouter>
    <Routes>
 
@@ -37,6 +38,7 @@ function App() {
 
    </Routes>
    </BrowserRouter>
+   
  </ThemeProvider>
   )
 }

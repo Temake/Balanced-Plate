@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import GoogleButton from "@/components/GoogleButton";
 import { LogIn,  AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 
 const LoginformSchema = z.object({
@@ -30,6 +31,7 @@ type LoginFormValues = z.infer<typeof LoginformSchema>;
 
 export default function LoginPage() {
   const { login, error, clearError } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
@@ -49,6 +51,7 @@ export default function LoginPage() {
       await login({ email: data.email, password: data.password });
       setSuccessMessage("Logged in successfully.");
       form.reset();
+      navigate('/');
     } catch (err) {
       console.error("Error during login:", err);
     } finally {

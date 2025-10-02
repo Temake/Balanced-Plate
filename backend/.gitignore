@@ -116,7 +116,7 @@ envs/
 *.env
 ZENV/
 
-
+test.py
 # Spyder project settings
 .spyderproject
 .spyproject

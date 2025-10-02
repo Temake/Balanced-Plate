@@ -43,8 +43,9 @@ export interface SignupResponse{
   };
   message?:{
     phone_number:string,
-    password:string
-  }
+    password:string,
+    email?:string
+}
 
 }
 
@@ -53,6 +54,7 @@ export interface ResponseError{
     message:{
       phone_number?:string,
       password?:string
+      email?:string
 
 
     }
@@ -70,4 +72,14 @@ export interface AuthContextType {
   logout: () => void;
   error: string | null;
   clearError: () => void;
+}
+
+
+export interface FileType{
+  id? : number;
+  file?: string;
+  date_added?: string;
+  date_last_modified?: string;
+  analysis_result?: string;
+  owner?: number;
 }

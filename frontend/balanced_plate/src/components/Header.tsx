@@ -24,7 +24,7 @@ const HeadersOptions = [
   { name: "Learn", icon: <Brain className='w-5 h-5' />, path: "/learn" },
 ]
 
-const Header = () => {
+const Header:React.FC = () => {
   const { isAuthenticated } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
@@ -61,7 +61,7 @@ const Header = () => {
         </div>
 
  
-        {!isAuthenticated && (
+        {isAuthenticated && (
           <nav className="hidden md:flex items-center justify-center flex-1 max-w-2xl mx-8">
             <div className="flex items-center justify-between w-full">
               {HeadersOptions.map((option) => (
@@ -86,7 +86,7 @@ const Header = () => {
         <div className="flex items-center space-x-3">
           <ModeToggle />
             
-          {!isAuthenticated ? (
+          {isAuthenticated ? (
     <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -145,7 +145,7 @@ const Header = () => {
             </div>
             
             
-            {!isAuthenticated && (
+            {isAuthenticated && (
               <nav className="grid gap-2">
                 {HeadersOptions.map((option) => (
                   <Link
@@ -167,7 +167,7 @@ const Header = () => {
             )}
             
             {/* Auth buttons for non-authenticated users */}
-            {isAuthenticated && (
+            {!isAuthenticated && (
               <div className="grid gap-2">
                 <Button variant="ghost" className="justify-start" asChild onClick={() => setIsMobileMenuOpen(false)}>
                   <Link to="/login">Log in</Link>
