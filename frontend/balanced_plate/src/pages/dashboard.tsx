@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  console.log("Authenticated user:", user);
+  console.log("Authenticated user:", user?.dob);
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
       <Header />

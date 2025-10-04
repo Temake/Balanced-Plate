@@ -5,6 +5,18 @@ export interface User {
   last_name: string;
   city?: string;
   is_verified?: boolean;
+  is_superuser?:boolean
+  phone_number:string
+  is_phone_number_verified:boolean
+  is_email_verified:boolean
+  gender:string
+  dob:Date
+  is_banned:boolean
+  account_type:string
+  country:string,
+  state?:string
+
+  
   
 }
 
@@ -72,6 +84,7 @@ export interface AuthContextType {
   logout: () => void;
   error: string | null;
   clearError: () => void;
+  refreshToken?: () => Promise<void>;
 }
 
 
