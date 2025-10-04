@@ -14,19 +14,24 @@ import Learn from "./pages/Learn";
 import Shopping from "./pages/Shopping";
 import Profile from "./pages/Profile";
 import Recipes from "./pages/Recipes";
+import  { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
    <ThemeProvider defaultTheme="light">
-
+   
+  <AuthProvider>
+   
    <BrowserRouter>
    <Routes>
-
-    <Route path="/" element={<Dashboard/>}/>
-    <Route path="/analyze-food" element={<AnalyseFood/>}/>
-    <Route path="/learn" element={<Learn/>}/>
-    <Route path="/shopping" element={<Shopping/>}/>
-    <Route path="/profile" element={<Profile/>}/>
-    <Route path="/recipes" element={<Recipes/>}/>
+    {/* <ProtectedRoute> */}
+    <Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
+    <Route path="/analyze-food" element={<ProtectedRoute><AnalyseFood/></ProtectedRoute>}/>
+    <Route path="/learn" element={<ProtectedRoute><Learn/></ProtectedRoute>}/>
+    <Route path="/shopping" element={<ProtectedRoute><Shopping/></ProtectedRoute>}/>
+    <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
+    <Route path="/recipes" element={<ProtectedRoute><Recipes/></ProtectedRoute>}/>
+    {/* </ProtectedRoute> */}
 
     <Route path="/otp" element={<Otp/>}/>
     <Route path="/login" element={<LoginPage/>}/>
@@ -38,6 +43,8 @@ function App() {
 
    </Routes>
    </BrowserRouter>
+    </AuthProvider>
+
    
  </ThemeProvider>
   )

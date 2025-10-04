@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       } else {
         setIsLoading(false);
+        
       }
     };
 
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
      
       }
       else {
-        const message = response.message
+        const message =  'Login failed';
         console.log(response.status)
         setError(message)
 
@@ -101,8 +102,8 @@ const  SignUp = async (credential:SignupCredentials):Promise<SignupResponse> =>{
 
 
   else {
-    setError(response.message || "Signup Failed")
-    console.error('SignUp failed:', response.message);
+    setError("Signup Failed")
+    console.error('SignUp failed:', response);
     throw new Error('SignUp failed');
   }
     
