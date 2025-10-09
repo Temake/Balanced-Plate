@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import GoogleButton from "@/components/GoogleButton";
+// import GoogleButton from "@/components/GoogleButton";
 import { LogIn,  AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -80,8 +80,8 @@ export default function LoginPage() {
             Sign in to continue your healthy journey
           </p>
 
-          <GoogleButton />
-
+          {/* <GoogleButton /> */}
+{/* 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 or continue with email
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Login Form */}
           <Form {...form}>

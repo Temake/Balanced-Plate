@@ -1,7 +1,5 @@
 import { BrowserRouter, Route, Routes} from "react-router-dom"
-// import { AuthProvider } from "./context/AuthContext"
 import LoginPage from "./pages/login"
-
 import Main from './pages/main';
 import Otp from "./pages/otp"
 import ResetPassword from "./pages/reset-password"
@@ -14,15 +12,18 @@ import Learn from "./pages/Learn";
 import Shopping from "./pages/Shopping";
 import Profile from "./pages/Profile";
 import Recipes from "./pages/Recipes";
-import  { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
+import { FilesProvider } from "./context/FilesContext";
 import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'sonner';
+
 function App() {
   return (
    <ThemeProvider defaultTheme="light">
-   
-  <AuthProvider>
-   
-   <BrowserRouter>
+    <AuthProvider>
+     <FilesProvider>
+      <BrowserRouter>
+       <Toaster position="top-right" richColors />
    <Routes>
     {/* <ProtectedRoute> */}
     <Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
@@ -41,12 +42,11 @@ function App() {
     <Route path="*" element={<Main/>} />
 
 
-   </Routes>
-   </BrowserRouter>
+       </Routes>
+      </BrowserRouter>
+     </FilesProvider>
     </AuthProvider>
-
-   
- </ThemeProvider>
+   </ThemeProvider>
   )
 }
 

@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/popover";
 import CustomCalendar from "@/components/CustomCalendar";
 import { Calendar as CalendarIcon, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
-import GoogleButton from "@/components/GoogleButton";
+// import GoogleButton from "@/components/GoogleButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
@@ -129,7 +129,7 @@ export default function SignUp() {
             Get started with your healthy journey today
           </p>
 
-          <GoogleButton />
+          {/* <GoogleButton /> */}
             {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -144,7 +144,7 @@ export default function SignUp() {
         )}
 
 
-          <div className="relative my-6">
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
             </div>
@@ -153,7 +153,7 @@ export default function SignUp() {
                 or continue with email
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Signup Form */}
           <Form {...form}>
@@ -332,7 +332,7 @@ export default function SignUp() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full"
+                className="w-full bg-green-600  dark:bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -352,30 +352,12 @@ export default function SignUp() {
           {/* Login Link */}
           <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
             Already have an account?{" "}
-            <a href="/login" className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium transition-colors">
+            <a href="/login" className="text-black dark:text-green-500 hover:text-gray-500 dark:hover:text-green-400 font-medium transition-colors">
               Sign in instead
             </a>
           </p>
         </div>
 
-        {/* Features Preview */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Join thousands who are already eating smarter</p>
-          <div className="flex justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📸</span>
-              <span>Photo Analysis</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">🧠</span>
-              <span>AI Recommendations</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📊</span>
-              <span>Progress Tracking</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

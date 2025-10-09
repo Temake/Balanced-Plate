@@ -88,11 +88,25 @@ export interface AuthContextType {
 }
 
 
-export interface FileType{
-  id? : number;
-  file?: string;
-  date_added?: string;
-  date_last_modified?: string;
-  analysis_result?: string;
-  owner?: number;
+export interface FileType {
+  id: string;
+  file: string;
+  purpose: "avatar" | "food image";
+  mime_type?: string;
+  original_name?: string;
+  currently_under_processing?: boolean;
+  upload_session_id?: string;
+  size?: number;
+  date_added: string;
+  owner: number;
+}
+
+export interface FilesContextType {
+  files: FileType[];
+  isLoading: boolean;
+  error: string | null;
+  uploadFile: (file: File, purpose: "avatar" | "food image") => Promise<FileType>;
+  fetchFiles: () => Promise<void>;
+  getFile: (id: string) => Promise<FileType>;
+  clearError: () => void;
 }

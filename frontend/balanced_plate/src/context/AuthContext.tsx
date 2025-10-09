@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import api from "../api/axios";
 import type { User,LoginCredentials,LoginResponse,AuthContextType,SignupCredentials,SignupResponse} from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
+import { Navigate} from "react-router-dom";
 
 interface JWTPayload {
   exp: number;
@@ -109,6 +110,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     checkAuthStatus();
+
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
