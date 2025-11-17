@@ -81,10 +81,11 @@ export interface AuthContextType {
   SignUp: (credentials: SignupCredentials) => Promise<SignupResponse>;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<LoginResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
-  refreshToken?: () => Promise<void>;
+  loadCurrentUser: () => Promise<void>;
+  setAuthStatus: (status: boolean) => void;
 }
 
 

@@ -1,15 +1,8 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
-import { jwtDecode } from "jwt-decode";
 import api from "../api/axios";
 import type { User,LoginCredentials,LoginResponse,AuthContextType,SignupCredentials,SignupResponse} from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
-import { Navigate} from "react-router-dom";
-
-interface JWTPayload {
-  exp: number;
-  user_id: number;
-}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -17,102 +10,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-
-  const isTokenExpired = (token: string): boolean => {
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return true;
-    }
-  };
-
-  // Token refresh function
-  const refreshToken = async (): Promise<boolean> => {
-    try {
-      const refreshTokenValue = localStorage.getItem(REFRESH_TOKEN);
-      if (!refreshTokenValue) {
-        console.log('No refresh token found');
-        return false;
-      }
-
-      const response = await api.post('/auth/token/refresh/', {
-        refresh: refreshTokenValue
-      });
-
-      if (response.data.access) {
-        localStorage.setItem(ACCESS_TOKEN, response.data.access);
-        setIsAuthenticated(true);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      localStorage.removeItem(ACCESS_TOKEN);
-      localStorage.removeItem(REFRESH_TOKEN);
-      setIsAuthenticated(false);
-      setUser(null);
-      return false;
-    }
-  };
-
-  // Updated auth check function
-  const checkAuthStatus = async () => {
-    const token = localStorage.getItem(ACCESS_TOKEN);
-    
-    if (!token) {
-      setIsAuthenticated(false);
-      setIsLoading(false);
-      return;
-    }
-
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
-    if (isTokenExpired(token)) {
-      console.log('Access token expired, attempting refresh');
-      const refreshSuccess = await refreshToken();
-      
-      if (refreshSuccess) {
-       
-        try {
-          const response = await api.get('/accounts/me/');
-          setUser(response.data);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Failed to get user data after refresh:', error);
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-    } else {
-      
-      try {
-        const response = await api.get('/accounts/me/');
-        setUser(response.data);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Token validation failed:', error);
-        localStorage.removeItem(ACCESS_TOKEN);
-        localStorage.removeItem(REFRESH_TOKEN);
-        setIsAuthenticated(false);
-      }
-    }
-    
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    checkAuthStatus();
-
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+  const setAuthStatus = useCallback((status: boolean) => {
+    setIsAuthenticated(status);
   }, []);
+
+  const loadCurrentUser = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/accounts/me/');
+      setUser(response.data);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Failed to load current user:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setIsLoading, setError, setUser, setIsAuthenticated]);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
@@ -265,7 +184,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true);
     
     try {
@@ -279,7 +198,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setUser(null);
     setIsAuthenticated(false);
     setIsLoading(false);
-  };
+  }, [setIsLoading, setUser, setIsAuthenticated]);
 
   const clearError = () => {
     setError(null);
@@ -292,12 +211,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     resetPassword,
     SignUp,
     isLoading,
-    isAuthenticated: isAuthenticated ?? false,
+    isAuthenticated,
     login,
     logout,
     error,
     clearError,
-  
+    loadCurrentUser,
+    setAuthStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
