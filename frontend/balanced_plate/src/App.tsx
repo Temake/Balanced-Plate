@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes} from "react-router-dom"
+import { Suspense } from "react"
 import LoginPage from "./pages/login"
 import Main from './pages/main';
 import Otp from "./pages/otp"
@@ -17,11 +18,14 @@ import { FilesProvider } from "./context/FilesContext";
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 
+const Loading = <div className="flex items-center justify-center h-screen">Loading...</div>;
+
 function App() {
   return (
    <ThemeProvider defaultTheme="light">
     <AuthProvider>
      <FilesProvider>
+      <Suspense fallback={Loading}>
       <BrowserRouter>
        <Toaster position="top-right" richColors />
    <Routes>
@@ -44,6 +48,7 @@ function App() {
 
        </Routes>
       </BrowserRouter>
+      </Suspense>
      </FilesProvider>
     </AuthProvider>
    </ThemeProvider>

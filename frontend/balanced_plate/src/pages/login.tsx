@@ -43,6 +43,8 @@ export default function LoginPage() {
     },
   });
 
+ 
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     setSuccessMessage("");
@@ -166,24 +168,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Features Preview */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Join thousands who are already eating smarter</p>
-          <div className="flex justify-center space-x-6 text-xs text-gray-400 dark:text-gray-500">
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📸</span>
-              <span>Photo Analysis</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">🧠</span>
-              <span>AI Recommendations</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-green-600 dark:text-green-500">📊</span>
-              <span>Progress Tracking</span>
-            </div>
-          </div>
-        </div>
+
+ 
       </div>
     </div>
   );
