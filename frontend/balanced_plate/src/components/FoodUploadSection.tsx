@@ -3,6 +3,15 @@ import { Camera, Image, X } from 'lucide-react';
 import { useFiles } from '@/hooks/useFiles';
 import { toast } from 'sonner';
 
+const getImageUrl = (filePath: string): string => {
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+  const baseURL = import.meta.env.VITE_API || '';
+  console.log(filePath + "He")
+  return `${baseURL}${filePath.startsWith('/') ? filePath : '/' + filePath}`;
+};
+
 interface FoodUploadSectionProps {
   className?: string;
 }
@@ -244,11 +253,17 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' })
             {files.map((file) => (
               <div key={file.id} className="relative group">
                 <img
-                  src={file.file}
+                  src={getImageUrl(file.file)}
                   alt={file.original_name || 'Food image'}
                   className="w-full h-32 object-cover rounded-lg shadow-md transition-transform group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    console.error('Failed to load image:', file.file);
+                    target.style.backgroundColor = '#f3f4f6';
+                    target.alt = 'Failed to load image';
+                  }}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity rounded-lg flex items-center justify-center">
+                <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-40 transition-opacity rounded-lg flex items-center justify-center">
                   <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center">
                     {file.original_name || 'Food image'}
                   </span>

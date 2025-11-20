@@ -79,7 +79,7 @@ class RetrieveFile(views.APIView):
     )
     def get(self, request, pk):
         try: 
-            file = models.FileModel.objects.get(id=pk)   
+            file = models.FileModel.objects.get(id=pk) 
             self.check_object_permissions(request, file)       
             serializer = serializers.FileSerializer.ListRetrieve(instance=file)
             logger.info(f"Retrieved file with ID: {pk}")

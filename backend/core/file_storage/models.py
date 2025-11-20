@@ -34,6 +34,7 @@ def upload_format_file(instance, filename):
     return os.path.join(
         owner_email, instance.purpose.lower(), file_type, f"{file_name}{extension}"
     )
+   
 
 
 class FileModel(BaseModelMixin):
@@ -86,6 +87,7 @@ class FileModel(BaseModelMixin):
         max_length=500,
         editable=False,
     )
+  
 
     @property
     def file_type(self):
@@ -99,6 +101,7 @@ class FileModel(BaseModelMixin):
             if settings.USING_MANAGED_STORAGE
             else os.path.join(settings.BASE_DIR, self.file.path)
         )
+      
     
 
     class Meta:
