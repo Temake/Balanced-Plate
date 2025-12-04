@@ -24,8 +24,14 @@ class NutritionResult(BaseModelMixin):
         blank=False,
         verbose_name=_("Food Image")
     )
-    volume = models.DecimalField(
-        _("Food Volume"),
+    name=models.CharField(
+        _("The Name of the Food"),
+        null=False,
+        blank=False,
+        
+    )
+    confidence = models.DecimalField(
+        _("Food Confidence"),
         max_digits=15,
         decimal_places=2,
         null=True,
