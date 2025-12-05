@@ -24,6 +24,10 @@ PRODUCTION = env.bool("PRODUCTION", False)
 USE_MEMORY_DATABASE = env.bool("USE_MEMORY_DATABASE", True)
 USING_MANAGED_STORAGE = env.bool("USING_MANAGED_STORAGE", False)
 
+# Gemini AI Configuration
+GEMINI_API_KEY = env.str("GEMINI_API_KEY", "")
+GEMINI_MODEL = env.str("GEMINI_MODEL", "gemini-1.5-flash")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str(
     "DJANGO_SECRET_KEY", 'django-insecure-cbu$=!&(o-kbl#d@($!(s--mpdoeoy#ht^__ejmjt@cq5q=n&#'

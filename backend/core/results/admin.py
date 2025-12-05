@@ -1,33 +1,32 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
-from .models import NutritionResult
-from django.contrib.auth.models import Group
+
+from .models import FoodAnalysis, DetectedFood
 
 
-
-@admin.register(NutritionResult)
-class NutritionResultAdmin(ModelAdmin):
-
+@admin.register(FoodAnalysis)
+class FoodAnalysisAdmin(ModelAdmin):
     fieldsets = (
         (
             _("User"),
             {
                 "classes": ["tab"],
-                "fields": (
-                    "owner",
-                ),
+                "fields": ("owner",),
             },
         ),
         (
-            _("Meta info"),
+            _("Analysis Info"),
             {
                 "classes": ["tab"],
                 "fields": (
                     "food_image",
-                    "volume",
-                    "calories",
+                    "meal_type",
+                    "balance_score",
+                    "suggestions",
+                    "is_mock_data",
+                    "analysis_status",
+                    "error_message",
                 ),
             },
         ),
@@ -39,9 +38,48 @@ class NutritionResultAdmin(ModelAdmin):
             },
         ),
     )
+    list_display = ["id", "owner", "meal_type", "balance_score", "analysis_status", "is_mock_data"]
+    list_filter = ["analysis_status", "is_mock_data", "meal_type"]
+    search_fields = ["id", "owner__email", "owner__first_name"]
+    readonly_fields = ["date_added", "date_last_modified"]
 
-    list_display = [
-        "id", "owner__first_name", "food_image__id"
-    ]
-    search_fields = ["id", "food_image__id"]
+
+@admin.register(DetectedFood)
+class DetectedFoodAdmin(ModelAdmin):
+    fieldsets = (
+        (
+            _("Food Info"),
+            {
+                "classes": ["tab"],
+                "fields": (
+                    "analysis",
+                    "name",
+                    "confidence",
+                    "portion_estimate",
+                ),
+            },
+        ),
+        (
+            _("Nutritional Info"),
+            {
+                "classes": ["tab"],
+                "fields": (
+                    "calories",
+                    "protein",
+                    "carbs",
+                    "fat",
+                ),
+            },
+        ),
+        (
+            _("Important dates"),
+            {
+                "classes": ["tab"],
+                "fields": ("date_added", "date_last_modified"),
+            },
+        ),
+    )
+    list_display = ["id", "name", "confidence", "calories", "protein", "carbs", "fat"]
+    list_filter = ["name"]
+    search_fields = ["name", "analysis__id"]
     readonly_fields = ["date_added", "date_last_modified"]
