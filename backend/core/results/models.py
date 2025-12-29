@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.utils.mixins import BaseModelMixin
 from core.file_storage.models import FileModel
+from core.utils import enums
 
 
 class FoodAnalysis(BaseModelMixin):
@@ -53,13 +54,9 @@ class FoodAnalysis(BaseModelMixin):
     analysis_status = models.CharField(
         _("Analysis Status"),
         max_length=20,
-        default="pending",
-        choices=[
-            ("pending", "Pending"),
-            ("processing", "Processing"),
-            ("completed", "Completed"),
-            ("failed", "Failed"),
-        ]
+        default=enums.FoodAnalysisStatus.PENDING.value,
+        choices=enums.FoodAnalysisStatus.choices(),
+        help_text=_("Current status of the food analysis process")
     )
     error_message = models.TextField(
         _("Error Message"),
@@ -122,6 +119,13 @@ class DetectedFood(BaseModelMixin):
         blank=True,
         help_text=_("Estimated portion size (e.g., '1 cup', '100g')")
     )
+    food_group = models.CharField(
+        _("Food Group"),
+        max_length=50,
+        choices=enums.FoodGroup.choices(),
+        blank=True,
+        null=True
+    )
     calories = models.DecimalField(
         _("Calories"),
         max_digits=10,
@@ -149,6 +153,13 @@ class DetectedFood(BaseModelMixin):
         decimal_places=2,
         null=True,
         blank=True,
+    )
+    micronutrients = models.JSONField(
+        _("Micronutrients"),
+        null=True,
+        blank=True,
+        default=dict,
+        help_text=_("Micronutrient details like vitamins and minerals")
     )
 
     class Meta:

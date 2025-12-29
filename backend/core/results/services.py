@@ -26,8 +26,23 @@ Analyze this food image and provide nutritional information in the following JSO
                 "calories": number,
                 "protein": number in grams,
                 "carbs": number in grams,
-                "fat": number in grams
-            }
+                "fat": number in grams,
+            },
+            "micronutrients": {
+                "vitamins": {
+                    "vitamin_c": number in mg,
+                    "vitamin_d": number in mcg ,
+                    "vitamin_b12": number in mcg
+                },
+                "minerals": {
+                    "calcium": number in mg,
+                    "iron": number in mg,
+                    "zinc": number in mg,
+                    "magnesium": number in mg,
+                    "folate": number in mg
+                }
+            },
+            "food_group": "Carbs/Proteins/Vegetables/Fruits/Dairy"
         }
     ],
     "meal_type": "Breakfast/Lunch/Dinner/Snack",
@@ -35,7 +50,7 @@ Analyze this food image and provide nutritional information in the following JSO
     "suggestions": ["suggestion 1", "suggestion 2"]
 }
 
-Be accurate with portion estimates and nutritional values.
+Be accurate with portion estimates and nutritional values and micronutrients values.
 Return ONLY valid JSON, no additional text.
 """
 

@@ -56,6 +56,7 @@ class DetectedFoodAdmin(ModelAdmin):
                     "name",
                     "confidence",
                     "portion_estimate",
+                    "food_group"
                 ),
             },
         ),
@@ -68,6 +69,7 @@ class DetectedFoodAdmin(ModelAdmin):
                     "protein",
                     "carbs",
                     "fat",
+                    "micronutrients",
                 ),
             },
         ),
@@ -79,7 +81,7 @@ class DetectedFoodAdmin(ModelAdmin):
             },
         ),
     )
-    list_display = ["id", "name", "confidence", "calories", "protein", "carbs", "fat"]
+    list_display = ["id", "name", "confidence", "calories", "food_group"]
     list_filter = ["name"]
     search_fields = ["name", "analysis__id"]
     readonly_fields = ["date_added", "date_last_modified"]

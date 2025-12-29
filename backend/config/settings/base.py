@@ -227,9 +227,14 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": _("Nutrition Result"),
+                        "title": _("Food Analysis"),
                         "icon": "report",
-                        "link": reverse_lazy("admin:results_nutritionresult_changelist"),
+                        "link": reverse_lazy("admin:results_foodanalysis_changelist"),
+                    },
+                    {
+                        "title": _("Detected Food"),
+                        "icon": "food_bank",
+                        "link": reverse_lazy("admin:results_detectedfood_changelist"),
                     },
                 ]
             }
