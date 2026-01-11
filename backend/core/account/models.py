@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.utils import enums
 from core.utils.mixins import BaseModelMixin
+from .models_manager.queryset import UserQuerySet
 
 
 class AccountManager(BaseUserManager):
@@ -129,7 +130,7 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
 
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
-    objects = AccountManager()
+    objects = AccountManager.from_queryset(UserQuerySet)()
 
     class Meta:
         verbose_name = _("Account")

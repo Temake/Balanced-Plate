@@ -65,6 +65,7 @@ CORE_APPS = [
     "core.account.apps.AccountConfig",
     "core.file_storage.apps.FileStorageConfig",
     "core.results.apps.ResultsConfig",
+    "core.analytics.apps.AnalyticsConfig",
     "core.utils.apps.UtilsConfig",
 ]
 

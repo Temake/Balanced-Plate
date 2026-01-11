@@ -29,18 +29,14 @@ Analyze this food image and provide nutritional information in the following JSO
                 "fat": number in grams,
             },
             "micronutrients": {
-                "vitamins": {
-                    "vitamin_c": number in mg,
-                    "vitamin_d": number in mcg ,
-                    "vitamin_b12": number in mcg
-                },
-                "minerals": {
-                    "calcium": number in mg,
-                    "iron": number in mg,
-                    "zinc": number in mg,
-                    "magnesium": number in mg,
-                    "folate": number in mg
-                }
+                "vitamin_c": number in mg,
+                "vitamin_d": number in mcg,
+                "vitamin_b12": number in mcg,
+                "calcium": number in mg,
+                "iron": number in mg,
+                "zinc": number in mg,
+                "magnesium": number in mg,
+                "folate": number in mg
             },
             "food_group": "Carbs/Proteins/Vegetables/Fruits/Dairy"
         }

@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/", include("core.account.urls")),
     path("api/", include("core.file_storage.urls")),
     path("api/", include("core.results.urls")),
+    path("api/", include("core.analytics.urls")),
 ]
 
 if not settings.PRODUCTION:
