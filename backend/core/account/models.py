@@ -16,6 +16,9 @@ from .models_manager.queryset import UserQuerySet
 class AccountManager(BaseUserManager):
     use_in_migrations = True
 
+    def get_queryset(self):
+        return UserQuerySet(self.model, using=self._db)
+
     def _create_user(
         self, email: str, first_name: str, last_name: str,  password: str, **extra_fields
     ):
@@ -63,6 +66,15 @@ class AccountManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         return self._create_user(email, first_name, last_name, password, **extra_fields)
+    
+    def with_food_groups_data(self):
+        return self.get_queryset().with_food_groups_data()
+
+    def with_weekly_balance_score(self):
+        return self.get_queryset().with_weekly_balance_score()
+
+    def with_current_day_hourly_calories(self):
+        return self.get_queryset().with_current_day_hourly_calories()
 
 
 class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
@@ -130,7 +142,7 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
 
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
-    objects = AccountManager.from_queryset(UserQuerySet)()
+    objects = AccountManager()
 
     class Meta:
         verbose_name = _("Account")
