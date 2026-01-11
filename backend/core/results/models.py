@@ -39,12 +39,12 @@ class FoodAnalysis(BaseModelMixin):
         blank=True,
         help_text=_("Nutritional balance score between 0 and 1")
     )
-    suggestions = models.JSONField(
-        _("Suggestions"),
+    next_meal_recommendations = models.JSONField(
+        _("Next Meal Recommendations"),
         null=True,
         blank=True,
-        default=list,
-        help_text=_("AI-generated suggestions for improving the meal")
+        default=dict,
+        help_text=_("AI-generated recommendations for the next meal")
     )
     is_mock_data = models.BooleanField(
         _("Is Mock Data"),

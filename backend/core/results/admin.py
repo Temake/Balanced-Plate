@@ -23,7 +23,7 @@ class FoodAnalysisAdmin(ModelAdmin):
                     "food_image",
                     "meal_type",
                     "balance_score",
-                    "suggestions",
+                    "next_meal_recommendations",
                     "is_mock_data",
                     "analysis_status",
                     "error_message",

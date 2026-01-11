@@ -33,7 +33,7 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
 
         analysis.meal_type = result.get("meal_type")
         analysis.balance_score = result.get("balance_score")
-        analysis.suggestions = result.get("suggestions", [])
+        analysis.next_meal_recommendations = result.get("next_meal_recommendations", {})
         analysis.is_mock_data = is_mock
         analysis.analysis_status = "completed"
         analysis.save()

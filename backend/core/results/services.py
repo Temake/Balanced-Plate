@@ -43,10 +43,31 @@ Analyze this food image and provide nutritional information in the following JSO
     ],
     "meal_type": "Breakfast/Lunch/Dinner/Snack",
     "balance_score": 0.0 to 1.0 (nutritional balance rating),
-    "suggestions": ["suggestion 1", "suggestion 2"]
+    "next_meal_recommendations": {
+        "nutritional_recommendations": [
+            "One-liner recommendation based on current meal's nutritional content",
+            "One-liner recommendation based on health best practices"
+        ],
+        "balance_improvements": [
+            "One-liner suggestion to improve diet balance based on missing food groups",
+            "One-liner suggestion for nutrients lacking in the analyzed meal"
+        ],
+        "timing_recommendations": [
+            "One-liner advice on foods to avoid at this meal time",
+            "One-liner advice on foods to include at this meal time",
+            "One-liner age-appropriate dietary timing suggestion"
+        ]
+    }
 }
 
 Be accurate with portion estimates and nutritional values and micronutrients values.
+
+For next_meal_recommendations:
+- nutritional_recommendations: Provide 2-3 one-liner bullet points suggesting what to eat next based on the nutritional content and gaps in the current meal, following evidence-based health practices.
+- balance_improvements: Provide 2-3 one-liner bullet points identifying which food groups or nutrients are underrepresented and specific foods to eat in the next meal to achieve better dietary balance.
+- timing_recommendations: Provide 2-3 one-liner bullet points advising on meal timing best practices, including foods to avoid or reduce at certain times of day (e.g., heavy carbs late at night), and foods beneficial to consume at specific meal times for optimal health.
+
+Keep all recommendations concise, actionable, and in one-liner bullet point format.
 Return ONLY valid JSON, no additional text.
 """
 
