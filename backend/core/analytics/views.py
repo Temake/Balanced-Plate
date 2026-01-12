@@ -31,7 +31,7 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
 	
     def get_serializer_class(self):
         if self.action == "food_classes":
-            return NutritionAnalyticsSerializer.FoodGroupCount
+            return NutritionAnalyticsSerializer.FoodGroupGrams
         elif self.action == "distribution":
             return NutritionAnalyticsSerializer.FoodGroupPercentage
         elif self.action == "balance_score":
@@ -42,12 +42,12 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(
 		description="Get food group counts for the authenticated user",
-		responses={200: NutritionAnalyticsSerializer.FoodGroupCount},
+		responses={200: NutritionAnalyticsSerializer.FoodGroupGrams},
 	)
-    @action(detail=True, methods=["get"], url_path="food-group-count")
+    @action(detail=True, methods=["get"], url_path="food-group-grams")
     def food_classes(self, request, pk):
-        """Returns count of foods per food group."""
-        if request.user.id != pk:
+        """Returns grams of foods per food group."""
+        if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -62,7 +62,7 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
                 message="User not found."
             )
         
-        serializer = NutritionAnalyticsSerializer.FoodGroupCount(instance=user)
+        serializer = NutritionAnalyticsSerializer.FoodGroupGrams(instance=user)
         return response.Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -72,7 +72,7 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="food-group-percentage")
     def distribution(self, request, pk):
         """Returns percentage distribution of food groups."""
-        if request.user.id != pk:
+        if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -96,7 +96,7 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="daily-balance-score")
     def balance_score(self, request, pk):
         """Returns balance scores for each day of the current week."""
-        if request.user.id != pk:
+        if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
                 status_code=status.HTTP_403_FORBIDDEN,

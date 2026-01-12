@@ -27,6 +27,9 @@ Analyze this food image and provide nutritional information in the following JSO
                 "protein": number in grams,
                 "carbs": number in grams,
                 "fat": number in grams,
+                "dairy": number in grams,
+                "vegetable": number in grams,
+                "fruit": number in grams
             },
             "micronutrients": {
                 "vitamin_c": number in mg,

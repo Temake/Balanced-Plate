@@ -2,19 +2,20 @@ from rest_framework import serializers
 
 
 class NutritionAnalyticsSerializer:
-    class FoodGroupCount(serializers.Serializer):
-        carbs_count = serializers.IntegerField()
-        proteins_count = serializers.IntegerField()
-        vegetables_count = serializers.IntegerField()
-        fruits_count = serializers.IntegerField()
-        dairy_count = serializers.IntegerField()
+    class FoodGroupGrams(serializers.Serializer):
+        total_carbs_grams = serializers.IntegerField()
+        total_protein_grams = serializers.IntegerField()
+        total_fat_grams = serializers.IntegerField()
+        total_vegetable_grams = serializers.IntegerField()
+        total_dairy_grams = serializers.IntegerField()
+        total_fruit_grams = serializers.IntegerField()
 
 
     class FoodGroupPercentage(serializers.Serializer):
         carbs_percent = serializers.FloatField()
-        proteins_percent = serializers.FloatField()
-        vegetables_percent = serializers.FloatField()
-        fruits_percent = serializers.FloatField()
+        protein_percent = serializers.FloatField()
+        vegetable_percent = serializers.FloatField()
+        fruit_percent = serializers.FloatField()
         dairy_percent = serializers.FloatField()
 
 

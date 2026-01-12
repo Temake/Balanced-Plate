@@ -51,6 +51,9 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
                 protein=nutritional_info.get("protein"),
                 carbs=nutritional_info.get("carbs"),
                 fat=nutritional_info.get("fat"),
+                dairy=nutritional_info.get("dairy"),
+                vegetable=nutritional_info.get("vegetable"),
+                fruit=nutritional_info.get("fruit"),
             )
 
         file_obj.currently_under_processing = False

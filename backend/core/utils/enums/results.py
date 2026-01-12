@@ -3,10 +3,17 @@ from .base import BaseEnum
 
 class FoodGroup(BaseEnum):
     CARBS = "Carbs"
-    PROTEINS = "Proteins"
-    VEGETABLES = "Vegetables"
-    FRUITS = "Fruits"
+    PROTEIN = "Proteins"
+    VEGETABLE = "Vegetables"
+    FRUIT = "Fruits"
     DAIRY = "Dairy"
+    FAT = "Fat"
+
+class MealType(BaseEnum):
+    BREAKFAST = "Breakfast"
+    LUNCH = "Lunch"
+    DINNER = "Dinner"
+    SNACK = "Snack"
 
 
 class FoodAnalysisStatus(BaseEnum):

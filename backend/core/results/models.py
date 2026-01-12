@@ -29,6 +29,7 @@ class FoodAnalysis(BaseModelMixin):
         max_length=50,
         null=True,
         blank=True,
+        choices=enums.MealType.choices(),
         help_text=_("Type of meal (Breakfast, Lunch, Dinner, Snack)")
     )
     balance_score = models.DecimalField(
@@ -119,13 +120,6 @@ class DetectedFood(BaseModelMixin):
         blank=True,
         help_text=_("Estimated portion size (e.g., '1 cup', '100g')")
     )
-    food_group = models.CharField(
-        _("Food Group"),
-        max_length=50,
-        choices=enums.FoodGroup.choices(),
-        blank=True,
-        null=True
-    )
     calories = models.DecimalField(
         _("Calories"),
         max_digits=10,
@@ -149,6 +143,27 @@ class DetectedFood(BaseModelMixin):
     )
     fat = models.DecimalField(
         _("Fat (g)"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    dairy = models.DecimalField(
+        _("Dairy (g)"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    vegetable = models.DecimalField(
+        _("Vegetable (g)"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    fruit = models.DecimalField(
+        _("Fruit (g)"),
         max_digits=10,
         decimal_places=2,
         null=True,
