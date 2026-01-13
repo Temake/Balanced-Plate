@@ -7,8 +7,8 @@ const getImageUrl = (filePath: string): string => {
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath;
   }
-  const baseURL = import.meta.env.VITE_API || '';
-  console.log(filePath + "He")
+  // Remove /api suffix from base URL for media files
+  const baseURL = (import.meta.env.VITE_API_URL || '').replace('/api', '');
   return `${baseURL}${filePath.startsWith('/') ? filePath : '/' + filePath}`;
 };
 

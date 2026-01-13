@@ -1,5 +1,5 @@
 import axios from "axios"
-import { ACCESS_TOKEN } from "./constants"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants"
 
 
 declare global {
@@ -63,17 +63,38 @@ api.interceptors.response.use(
         return response
     },
     async (error) => {
+        const originalRequest = error.config
         console.error("Response error status:", error.response?.status)
         console.error("Response error data:", error.response?.data?.detail)
-        console.error("Full error object:", error)
-        console.error("djj:", error.response.message)
 
-        if (error.response?.status === 403) {
+        // Handle 401 Unauthorized - try to refresh token
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true
             
+            const refreshToken = localStorage.getItem(REFRESH_TOKEN)
+            if (refreshToken) {
+                try {
+                    const response = await api.post('/auth/token/refresh/', {
+                        refresh: refreshToken
+                    })
+                    
+                    if (response.data?.access) {
+                        localStorage.setItem(ACCESS_TOKEN, response.data.access)
+                        originalRequest.headers.Authorization = `Bearer ${response.data.access}`
+                        return api(originalRequest)
+                    }
+                } catch (refreshError) {
+                    console.error("Token refresh failed:", refreshError)
+                }
+            }
+            
+            // If refresh fails, clear tokens and redirect to login
             console.error("Authentication error - clearing token")
             localStorage.removeItem(ACCESS_TOKEN)
+            localStorage.removeItem(REFRESH_TOKEN)
             window.location.href = '/login'
         }
+        
         return Promise.reject(error)
     }
 )
