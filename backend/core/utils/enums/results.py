@@ -1,13 +1,14 @@
 from .base import BaseEnum
 
 
-class FoodGroup(BaseEnum):
+class NutritionalContentType(BaseEnum):
     CARBS = "Carbs"
     PROTEIN = "Proteins"
     VEGETABLE = "Vegetables"
     FRUIT = "Fruits"
     DAIRY = "Dairy"
     FAT = "Fat"
+    CALORIES = "Calories"
 
 class MealType(BaseEnum):
     BREAKFAST = "Breakfast"

@@ -26,7 +26,7 @@ class UserQuerySet(models.QuerySet):
         """Annotate grams and percentages of detected food groups."""
 
         food_group_list = [
-            member.name.lower() for member in enums.FoodGroup
+            member.name.lower() for member in enums.NutritionalContentType
         ]
 
         date_filter = Q()
@@ -39,14 +39,24 @@ class UserQuerySet(models.QuerySet):
         grams_annotations = {}
 
         for value in food_group_list:
-            grams_annotations[f"total_{value}_grams"] = Coalesce(
-                Sum(
-                    f"food_analyses__detected_foods__{value}",
-                    filter=date_filter,
-                ),
-                Value(Decimal("0.00")),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            )
+            if value == "calories":
+                grams_annotations[f"total_{value}"] = Coalesce(
+                    Sum(
+                        f"food_analyses__detected_foods__{value}",
+                        filter=date_filter,
+                    ),
+                    Value(Decimal("0.00")),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            else:
+                grams_annotations[f"total_{value}_grams"] = Coalesce(
+                    Sum(
+                        f"food_analyses__detected_foods__{value}",
+                        filter=date_filter,
+                    ),
+                    Value(Decimal("0.00")),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
 
         qs = self.annotate(**grams_annotations)
 
@@ -64,6 +74,7 @@ class UserQuerySet(models.QuerySet):
 
         # Percentage annotations
         percent_annotations = {}
+        food_group_list.remove("calories")
 
         for value in food_group_list:
             percent_annotations[f"{value}_percent"] = Case(
@@ -78,13 +89,14 @@ class UserQuerySet(models.QuerySet):
         return qs.annotate(**percent_annotations)
 
 
-    def with_weekly_balance_score(self):
+    def with_weekly_balance_score(self, start_date=None, end_date=None):
         """
         Annotate average balance score for each day of the current week (Mon-Sun).
         """
-        today = timezone.localdate()
-        start_of_week = today - timedelta(days=today.weekday())
-        end_of_week = start_of_week + timedelta(days=6)
+        if start_date is None or end_date is None:
+            today = timezone.localdate()
+            start_date = today - timedelta(days=today.weekday())
+            end_date = start_date + timedelta(days=6)
 
         day_map = {
             "monday": 2,
@@ -96,14 +108,27 @@ class UserQuerySet(models.QuerySet):
             "sunday": 1,
         }
 
-        annotations = {}
+        annotations = {
+            "avg_balance_score": Coalesce(
+                Avg(
+                    "food_analyses__balance_score",
+                    filter=Q(
+                        food_analyses__date_added__date__gte=start_date,
+                        food_analyses__date_added__date__lte=end_date,
+                    ),
+                ),
+                Value(0.0),
+                output_field=FloatField(),
+            ),
+        }
+
         for day_name, day_num in day_map.items():
             annotations[f"{day_name}_balance"] = Coalesce(
                 Avg(
                     "food_analyses__balance_score",
                     filter=Q(
-                        food_analyses__date_added__date__gte=start_of_week,
-                        food_analyses__date_added__date__lte=end_of_week,
+                        food_analyses__date_added__date__gte=start_date,
+                        food_analyses__date_added__date__lte=end_date,
                         food_analyses__date_added__week_day=day_num,
                     ),
                 ),
