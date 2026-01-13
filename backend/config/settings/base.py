@@ -67,7 +67,8 @@ CORE_APPS = [
     "core.results.apps.ResultsConfig",
     "core.analytics.apps.AnalyticsConfig",
     "core.utils.apps.UtilsConfig",
-    "core.recommendations.apps.RecommendationsConfig"
+    "core.recommendations.apps.RecommendationsConfig",
+    "core.websocket.apps.WebsocketConfig"
 ]
 
 INSTALLED_APPS += CORE_APPS
