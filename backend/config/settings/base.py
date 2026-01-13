@@ -237,6 +237,11 @@ UNFOLD = {
                         "icon": "food_bank",
                         "link": reverse_lazy("admin:results_detectedfood_changelist"),
                     },
+                    {
+                        "title": _("Weekly Recommendations"),
+                        "icon": "food_bank",
+                        "link": reverse_lazy("admin:results_weeklyrecommendation_changelist"),
+                    },
                 ]
             }
         ]
