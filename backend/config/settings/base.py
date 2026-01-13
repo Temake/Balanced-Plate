@@ -67,6 +67,7 @@ CORE_APPS = [
     "core.results.apps.ResultsConfig",
     "core.analytics.apps.AnalyticsConfig",
     "core.utils.apps.UtilsConfig",
+    "core.recommendations.apps.RecommendationsConfig"
 ]
 
 INSTALLED_APPS += CORE_APPS
@@ -236,14 +237,20 @@ UNFOLD = {
                         "title": _("Detected Food"),
                         "icon": "food_bank",
                         "link": reverse_lazy("admin:results_detectedfood_changelist"),
-                    },
+                    }
+                ]
+            },
+            {
+                "title": _("Recommendations"),
+                "collapsible": True,
+                "items": [
                     {
                         "title": _("Weekly Recommendations"),
                         "icon": "food_bank",
-                        "link": reverse_lazy("admin:results_weeklyrecommendation_changelist"),
+                        "link": reverse_lazy("admin:recommendations_weeklyrecommendation_changelist"),
                     },
                 ]
-            }
+            },
         ]
     }
 }
