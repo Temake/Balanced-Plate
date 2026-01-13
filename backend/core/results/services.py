@@ -6,12 +6,9 @@ from django.conf import settings
 from loguru import logger
 
 from .mock import get_mock_analysis_response
+from core.utils.helpers.recommendations import WeeklyRecommendationHelper
+from core.utils.services import GeminiBaseService
 
-try:
-    import google.generativeai as genai
-    GENAI_AVAILABLE = True
-except ImportError:
-    GENAI_AVAILABLE = False
 
 
 ANALYSIS_PROMPT = """
@@ -74,17 +71,10 @@ Keep all recommendations concise, actionable, and in one-liner bullet point form
 Return ONLY valid JSON, no additional text.
 """
 
+class GeminiAnalysisService(GeminiBaseService):
 
-class GeminiAnalysisService:
     def __init__(self):
-        self.api_key = getattr(settings, 'GEMINI_API_KEY', None)
-        self.model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')
-        
-        if GENAI_AVAILABLE and self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
-        else:
-            self.model = None
+        super().__init__()
 
     def analyze_image(self, image_path: str) -> Tuple[dict, bool]:
         """
@@ -104,19 +94,7 @@ class GeminiAnalysisService:
                 "data": base64.b64encode(image_data).decode('utf-8')
             }]
 
-            response = self.model.generate_content([ANALYSIS_PROMPT, image_parts[0]])
-            
-            response_text = response.text.strip()
-            if response_text.startswith('```json'):
-                response_text = response_text[7:]
-            if response_text.startswith('```'):
-                response_text = response_text[3:]
-            if response_text.endswith('```'):
-                response_text = response_text[:-3]
-            
-            result = json.loads(response_text.strip())
-            logger.info("Successfully analyzed image with Gemini")
-            return result, False
+            return self.call_gemini([ANALYSIS_PROMPT, image_parts[0]])
 
         except FileNotFoundError:
             logger.error(f"Image file not found: {image_path}")
@@ -148,19 +126,7 @@ class GeminiAnalysisService:
                 "data": base64.b64encode(image_data).decode('utf-8')
             }]
 
-            ai_response = self.model.generate_content([ANALYSIS_PROMPT, image_parts[0]])
-            
-            response_text = ai_response.text.strip()
-            if response_text.startswith('```json'):
-                response_text = response_text[7:]
-            if response_text.startswith('```'):
-                response_text = response_text[3:]
-            if response_text.endswith('```'):
-                response_text = response_text[:-3]
-            
-            result = json.loads(response_text.strip())
-            logger.info("Successfully analyzed image from URL with Gemini")
-            return result, False
+            return self.call_gemini([ANALYSIS_PROMPT, image_parts[0]])
 
         except Exception as e:
             logger.error(f"Gemini analysis from URL failed: {e}")
