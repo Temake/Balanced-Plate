@@ -62,6 +62,10 @@ class WeeklyRecommendation(BaseModelMixin):
         _("Is Mock Data"),
         default=False,
     )
+    is_read = models.BooleanField(
+        _("Has User Read Notification?"),
+        default=False
+    )
     notification_sent = models.BooleanField(
         _("Notification Sent"),
         default=False,
