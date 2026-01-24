@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useRef } from "react";
+import React, { createContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
 import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse } from '../api/types'
@@ -6,40 +6,28 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  
-  // Prevent duplicate loadCurrentUser calls
-  const isLoadingUser = useRef(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   const setAuthStatus = useCallback((status: boolean) => {
     setIsAuthenticated(status);
   }, []);
 
   const loadCurrentUser = useCallback(async () => {
-    // Prevent concurrent calls
-    if (isLoadingUser.current) return;
+    if (user) return;
     
-    isLoadingUser.current = true;
     setIsLoading(true);
-    setError(null);
-    
     try {
-      const response = await api.get('/accounts/me/');
-      setUser(response.data);
+      const { data } = await api.get('/accounts/me/');
+      setUser(data);
       setIsAuthenticated(true);
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
-      isLoadingUser.current = false;
     }
-  }, []);
+  }, [user]);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
