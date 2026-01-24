@@ -262,9 +262,9 @@ export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
         weeklyScore: calculateWeeklyScore(transformedWeeklyBalance),
         recommendations: generateRecommendations(transformedMicronutrients, transformedFoodGroups),
       });
-    } catch (err: any) {
-      console.error('Failed to fetch nutrition analytics:', err);
-      setError(err.message || 'Failed to load nutrition analytics');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load nutrition analytics';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
