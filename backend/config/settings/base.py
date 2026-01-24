@@ -46,6 +46,7 @@ ALLOWED_HOSTS = env.list(
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "unfold",
     "unfold.contrib.filters",
     "django.contrib.admin",
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "channels"
 ]
 
 CORE_APPS = [
@@ -103,6 +105,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = "config.asgi.application"
 
 
 
@@ -291,7 +294,31 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_ACKS_LATE = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
-# CELERYD_PREFETCH_MULTIPLIER = 1
+# CELERYD_PREFETCH_MULTIPLIER = 1\
+
+
+REDIS_HOST = env.str("REDIS_HOST", default="localhost")
+REDIS_PORT = env.int("REDIS_PORT", default=6379)
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
+}
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": REDIS_URL,
+        },
+    },
+}
+
 
 
 # Email settings

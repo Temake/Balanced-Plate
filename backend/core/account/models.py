@@ -155,6 +155,10 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
         return data
+    
+    @property
+    def push_notification_channel_id(self):
+        return f"user_{self.id}_push_notification_channel"
 
     def __str__(self):
         return f"< {type(self).__name__}({self.id}) ({self.first_name})  {self.email}>"
