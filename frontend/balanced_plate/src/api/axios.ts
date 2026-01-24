@@ -26,12 +26,17 @@ interface DjangoError{
   }
 }
 
+console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('All env vars:', import.meta.env);
+
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
         'Content-Type': 'application/json'
     }
 })
+
+console.log('Axios baseURL:', api.defaults.baseURL);
 
 
 api.interceptors.request.use(

@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Lightbulb, 
   AlertTriangle, 
   CheckCircle2, 
+  ChevronLeft,
   ChevronRight,
   Salad,
   Pill,
   Clock,
-  Target
+  Sparkles,
+  Zap,
+  ArrowRight,
+  Leaf,
+  Sun
 } from 'lucide-react';
 
 export interface Recommendation {
@@ -69,33 +74,62 @@ export const mockRecommendations: Recommendation[] = [
   }
 ];
 
-const getIcon = (type: string, category?: string) => {
-  if (category === 'vitamins') return <Pill className="w-5 h-5 text-purple-500" />;
-  if (category === 'timing') return <Clock className="w-5 h-5 text-blue-500" />;
-  if (category === 'nutrition') return <Salad className="w-5 h-5 text-green-500" />;
-  
-  switch (type) {
-    case 'warning':
-      return <AlertTriangle className="w-5 h-5 text-amber-500" />;
-    case 'success':
-      return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-    default:
-      return <Lightbulb className="w-5 h-5 text-blue-500" />;
-  }
+const getCategoryConfig = (category?: string, type?: string) => {
+  if (category === 'vitamins') return { 
+    icon: Pill, 
+    gradient: 'from-violet-500 to-purple-600',
+    bgGlow: 'bg-violet-500/20',
+    lightBg: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30'
+  };
+  if (category === 'timing') return { 
+    icon: Clock, 
+    gradient: 'from-blue-500 to-cyan-500',
+    bgGlow: 'bg-blue-500/20',
+    lightBg: 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30'
+  };
+  if (category === 'nutrition') return { 
+    icon: Leaf, 
+    gradient: 'from-emerald-500 to-green-500',
+    bgGlow: 'bg-emerald-500/20',
+    lightBg: 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30'
+  };
+  if (type === 'success') return { 
+    icon: CheckCircle2, 
+    gradient: 'from-green-500 to-emerald-500',
+    bgGlow: 'bg-green-500/20',
+    lightBg: 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30'
+  };
+  if (type === 'warning') return { 
+    icon: AlertTriangle, 
+    gradient: 'from-amber-500 to-orange-500',
+    bgGlow: 'bg-amber-500/20',
+    lightBg: 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30'
+  };
+  return { 
+    icon: Lightbulb, 
+    gradient: 'from-blue-500 to-indigo-500',
+    bgGlow: 'bg-blue-500/20',
+    lightBg: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30'
+  };
 };
 
-const getPriorityStyles = (priority: string, type: string) => {
-  if (type === 'success') {
-    return 'border-l-4 border-l-green-500 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30';
-  }
-  
+const getPriorityBadge = (priority: string) => {
   switch (priority) {
     case 'high':
-      return 'border-l-4 border-l-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30';
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-sm">
+          <Zap className="w-2.5 h-2.5" />
+          Urgent
+        </span>
+      );
     case 'medium':
-      return 'border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30';
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+          Important
+        </span>
+      );
     default:
-      return 'border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30';
+      return null;
   }
 };
 
@@ -104,90 +138,180 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   isLoading,
   className = ''
 }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
   // Sort by priority: high > medium > low
   const sortedRecommendations = [...recommendations].sort((a, b) => {
     const priorityOrder = { high: 0, medium: 1, low: 2 };
     return priorityOrder[a.priority] - priorityOrder[b.priority];
   });
 
+  const highPriorityCount = sortedRecommendations.filter(r => r.priority === 'high').length;
+
+  const nextTip = () => {
+    setActiveIndex((prev) => (prev + 1) % sortedRecommendations.length);
+  };
+
+  const prevTip = () => {
+    setActiveIndex((prev) => (prev - 1 + sortedRecommendations.length) % sortedRecommendations.length);
+  };
+
   if (isLoading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full ${className}`}>
-        <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      <div className={`relative overflow-hidden rounded-2xl h-full ${className}`}>
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20" />
+        <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/50 h-full p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="flex-1">
+              <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+              <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
           </div>
-        </div>
-        <div className="p-4 space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
-          ))}
+          <div className="space-y-3">
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+            <div className="flex gap-2 justify-center">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse" />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
+  const activeTip = sortedRecommendations[activeIndex];
+  const config = getCategoryConfig(activeTip?.category, activeTip?.type);
+  const IconComponent = config.icon;
+
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full flex flex-col ${className}`}>
-      <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Target className="w-5 h-5 text-amber-500" />
-            Personalized Tips
-          </h2>
-          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-            {sortedRecommendations.length} tips
-          </span>
-        </div>
-      </div>
+    <div 
+      className={`relative overflow-hidden rounded-2xl h-full group ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-cyan-500/5 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20" />
+      <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full ${config.bgGlow} blur-3xl transition-all duration-700 ${isHovered ? 'opacity-60 scale-110' : 'opacity-30'}`} />
+      <div className={`absolute -bottom-24 -left-24 w-48 h-48 rounded-full ${config.bgGlow} blur-3xl transition-all duration-700 ${isHovered ? 'opacity-40 scale-110' : 'opacity-20'}`} />
       
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-3 max-h-[400px] lg:max-h-none">
-        {sortedRecommendations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-green-500" />
-            <p className="font-medium">Great job!</p>
-            <p className="text-sm">No urgent recommendations at this time.</p>
-          </div>
-        ) : (
-          sortedRecommendations.slice(0, 5).map((rec) => (
-            <div
-              key={rec.id}
-              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${getPriorityStyles(rec.priority, rec.type)}`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  {getIcon(rec.type, rec.category)}
+      <div className="relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-gray-700/50 h-full flex flex-col shadow-xl shadow-gray-200/50 dark:shadow-none">
+        {/* Header */}
+        <div className="p-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                      {rec.title}
-                    </h4>
-                    {rec.priority === 'high' && (
-                      <span className="flex-shrink-0 text-[10px] font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 px-1.5 py-0.5 rounded">
-                        HIGH
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                    {rec.description}
-                  </p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" />
+                {highPriorityCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-800">
+                    {highPriorityCount}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  Smart Insights
+                </h2>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  Personalized for you
+                </p>
               </div>
             </div>
-          ))
-        )}
-      </div>
-
-      {sortedRecommendations.length > 5 && (
-        <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-          <button className="w-full text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium">
-            View all {sortedRecommendations.length} recommendations
-          </button>
+            
+            {/* Navigation Arrows */}
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={prevTip}
+                className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              </button>
+              <button 
+                onClick={nextTip}
+                className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              </button>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Featured Tip Card */}
+        <div className="flex-1 px-4 pb-3">
+          {sortedRecommendations.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center py-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-3 shadow-lg shadow-green-500/25">
+                <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+              <p className="font-semibold text-gray-900 dark:text-white">You're doing great!</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">No recommendations right now</p>
+            </div>
+          ) : (
+            <div 
+              className={`${config.lightBg} rounded-xl p-4 h-full transition-all duration-500 border border-white/50 dark:border-gray-600/30`}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                  <IconComponent className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                      {activeTip?.title}
+                    </h3>
+                    {getPriorityBadge(activeTip?.priority)}
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                {activeTip?.description}
+              </p>
+
+              <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors group/btn">
+                Learn more
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Dot Indicators & Quick Stats */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between">
+            {/* Dot Navigation */}
+            <div className="flex items-center gap-1.5">
+              {sortedRecommendations.slice(0, 5).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`transition-all duration-300 rounded-full ${
+                    idx === activeIndex 
+                      ? 'w-6 h-2 bg-gradient-to-r from-emerald-500 to-teal-500' 
+                      : 'w-2 h-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  }`}
+                />
+              ))}
+              {sortedRecommendations.length > 5 && (
+                <span className="text-[10px] text-gray-400 ml-1">+{sortedRecommendations.length - 5}</span>
+              )}
+            </div>
+
+            {/* Quick tip count */}
+            <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                {highPriorityCount} urgent
+              </span>
+              <span>{sortedRecommendations.length} total</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
