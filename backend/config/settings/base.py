@@ -69,6 +69,7 @@ CORE_APPS = [
     "core.results.apps.ResultsConfig",
     "core.analytics.apps.AnalyticsConfig",
     "core.utils.apps.UtilsConfig",
+    "core.notification.apps.NotificationConfig",
     "core.recommendations.apps.RecommendationsConfig",
     "core.websocket.apps.WebsocketConfig"
 ]
