@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { Brain, CookingPot, Home, ShoppingCart, User2Icon, Menu, X, LogOut, Camera } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -25,10 +25,17 @@ const HeadersOptions = [
 
 const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth()
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const isActivePath = (path: string) => location.pathname === path
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
 
   useEffect(() => {
     if (isSidebarOpen) {
@@ -113,7 +120,7 @@ const Header: React.FC = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="text-red-600 cursor-pointer">
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>
@@ -221,7 +228,7 @@ const Header: React.FC = () => {
                 Profile Settings
               </Link>
               <button
-                onClick={() => { logout(); closeSidebar(); }}
+                onClick={() => { handleLogout(); closeSidebar(); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all w-full"
               >
                 <LogOut className="w-5 h-5" />
