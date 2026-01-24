@@ -81,7 +81,7 @@ export const FilesProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setError(null);
 
     try {
-      const response = await api.get(`/api/files/${id}/`);
+      const response = await api.get(`/files/${id}/`);
       return response.data;
     } catch (error: unknown) {
       let errorMessage = 'Failed to get file';

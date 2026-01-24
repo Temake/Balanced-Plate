@@ -1,9 +1,9 @@
 import { useAuth } from '@/hooks/useAuth'
 import { Brain, CookingPot, Home, ShoppingCart, User2Icon, Menu, X, LogOut, Camera } from 'lucide-react'
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import {Avatar,AvatarFallback,AvatarImage} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/toggle'
-
 import { cn } from '@/lib/utils'
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu'
 
@@ -24,163 +23,222 @@ const HeadersOptions = [
   { name: "Learn", icon: <Brain className='w-5 h-5' />, path: "/learn" },
 ]
 
-const Header:React.FC = () => {
-  const { isAuthenticated } = useAuth()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+const Header: React.FC = () => {
+  const { isAuthenticated, user, logout } = useAuth()
+  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
-  const isActivePath = (path: string) => {
-    return location.pathname === path
+  const isActivePath = (path: string) => location.pathname === path
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
   }
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => { document.body.style.overflow = 'unset' }
+  }, [isSidebarOpen])
+
+  const closeSidebar = () => setIsSidebarOpen(false)
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-   
-        <div className="mr-6 flex items-center space-x-2">
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden mr-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
+    <>
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsSidebarOpen(true)}
+            >
               <Menu className="h-5 w-5" />
-            )}
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-          
-          <span className="hidden sm:inline-block">
-           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-0.7">
-            Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
-          </h3>
-          </span>
-        </div>
-
- 
-        {isAuthenticated && (
-          <nav className="hidden md:flex items-center justify-center flex-1 max-w-2xl mx-8">
-            <div className="flex items-center justify-between w-full">
-              {HeadersOptions.map((option) => (
-                <Link
-                  key={option.path}
-                  to={option.path}
-                  className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:text-foreground/80 whitespace-nowrap min-w-[120px] justify-center",
-                    isActivePath(option.path) 
-                      ? "text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300 rounded-full" 
-                      : "text-foreground/70 hover:bg-accent/50 rounded-full"
-                  )}
-                >
-                  {option.icon}
-                  {option.name}
-                </Link>
-              ))}
-            </div>
-          </nav>
-        )}
-
-        <div className="flex items-center space-x-3">
-          <ModeToggle />
+            </Button>
             
-          {isAuthenticated ? (
-    <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/abstract-profile.png" alt="Profile" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1 items-center">
-                  <p className="text-sm font-medium leading-none ">John Doe</p>
-                  <p className="text-xs leading-none text-muted-foreground">john@example.com</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="flex items-center">
-                  <User2Icon className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </Link>
-              </DropdownMenuItem>
-           
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-          ) : (
-            <div className="flex items-center space-x-2 ">
-              <Button variant="ghost" asChild>
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/signup">Sign up</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-     
-      {isMobileMenuOpen && (
-        <div className="border-t bg-background md:hidden">
-          <div className="p-4">
-            {/* Mobile Balanced Plate branding */}
-            <div className="mb-4 pb-4 border-b border-border">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            <Link to="/" className="hidden sm:block">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
               </h3>
-            </div>
-            
-            
-            {isAuthenticated && (
-              <nav className="grid gap-2">
+            </Link>
+          </div>
+
+          {isAuthenticated && (
+            <nav className="hidden md:flex items-center justify-center flex-1 max-w-2xl mx-8">
+              <div className="flex items-center justify-between w-full">
                 {HeadersOptions.map((option) => (
                   <Link
                     key={option.path}
                     to={option.path}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                      "flex items-center gap-2 px-6 py-2.5 text-sm font-medium transition-all duration-200 whitespace-nowrap min-w-[120px] justify-center rounded-full",
                       isActivePath(option.path)
-                        ? "bg-green-600 dark:bg-green-500 text-white rounded-full"
-                        : "text-foreground/60"
+                        ? "text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300"
+                        : "text-foreground/70 hover:bg-accent/50 hover:text-foreground/80"
                     )}
-                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {option.icon}
                     {option.name}
                   </Link>
                 ))}
-              </nav>
-            )}
-            
-            {/* Auth buttons for non-authenticated users */}
-            {!isAuthenticated && (
-              <div className="grid gap-2">
-                <Button variant="ghost" className="justify-start" asChild onClick={() => setIsMobileMenuOpen(false)}>
+              </div>
+            </nav>
+          )}
+
+          <div className="flex items-center gap-3">
+            <ModeToggle />
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src="/abstract-profile.png" alt="Profile" />
+                      <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">
+                        {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal p-3">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-semibold">{user?.first_name} {user?.last_name}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center cursor-pointer">
+                      <User2Icon className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild>
                   <Link to="/login">Log in</Link>
                 </Button>
-                <Button className="justify-start" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                <Button asChild>
                   <Link to="/signup">Sign up</Link>
                 </Button>
               </div>
             )}
           </div>
         </div>
-      )}
-    </header>
+      </header>
+
+      {/* Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300",
+          isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={closeSidebar}
+      />
+
+      {/* Slide-in Sidebar */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 z-50 md:hidden transform transition-transform duration-300 ease-out shadow-2xl",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-4 border-b dark:border-gray-800">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              Balanced Plate<span className="text-green-600">.AI</span>
+            </h3>
+            <Button variant="ghost" size="icon" onClick={closeSidebar}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* User Info */}
+          {isAuthenticated && user && (
+            <div className="p-4 border-b dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src="/abstract-profile.png" />
+                  <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">
+                    {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">{user.first_name} {user.last_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {isAuthenticated ? (
+              HeadersOptions.map((option) => (
+                <Link
+                  key={option.path}
+                  to={option.path}
+                  onClick={closeSidebar}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                    isActivePath(option.path)
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  )}
+                >
+                  {option.icon}
+                  {option.name}
+                </Link>
+              ))
+            ) : (
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start" asChild onClick={closeSidebar}>
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button className="w-full justify-start" asChild onClick={closeSidebar}>
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </div>
+            )}
+          </nav>
+
+          {/* Sidebar Footer */}
+          {isAuthenticated && (
+            <div className="p-4 border-t dark:border-gray-800">
+              <Link
+                to="/profile"
+                onClick={closeSidebar}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              >
+                <User2Icon className="w-5 h-5" />
+                Profile Settings
+              </Link>
+              <button
+                onClick={() => { handleLogout(); closeSidebar(); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all w-full"
+              >
+                <LogOut className="w-5 h-5" />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      </aside>
+    </>
   )
 }
 

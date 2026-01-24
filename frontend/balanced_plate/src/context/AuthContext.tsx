@@ -1,37 +1,33 @@
 import React, { createContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
-import type { User,LoginCredentials,LoginResponse,AuthContextType,SignupCredentials,SignupResponse} from '../api/types'
+import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse } from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   const setAuthStatus = useCallback((status: boolean) => {
     setIsAuthenticated(status);
   }, []);
 
   const loadCurrentUser = useCallback(async () => {
+    if (user) return;
+    
     setIsLoading(true);
-    setError(null);
     try {
-      const response = await api.get('/accounts/me/');
-      setUser(response.data);
+      const { data } = await api.get('/accounts/me/');
+      setUser(data);
       setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Failed to load current user:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [setIsLoading, setError, setUser, setIsAuthenticated]);
+  }, [user]);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
@@ -39,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     try {
       const response = await api.post<LoginResponse>('/auth/login/', credentials);
-      if (response.status == 200){
+      if (response.status === 200) {
         const { user: userData, token } = response.data;
 
         localStorage.setItem(ACCESS_TOKEN, token.access);
@@ -48,16 +44,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser(userData);
         setIsAuthenticated(true);
         setError(null);
-      }
-      else {
-        const message = 'Login failed';
-        console.log(response.status);
-        setError(message);
+      } else {
+        setError('Login failed');
         setIsAuthenticated(false);
       }
       
       return response.data;
-    } catch (error:unknown) {
+    } catch (error: unknown) {
       let errorMessage = 'Login failed. Please try again.';
       
       if (typeof error === 'object' && error && 'response' in error) {
@@ -67,7 +60,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       
       setError(errorMessage);
       setIsAuthenticated(false);
-      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -80,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     try {
       const response = await api.post<SignupResponse>('/accounts/', credential);
-      if (response.status == 201){
+      if (response.status === 201) {
         const { user: userData, token } = response.data;
 
         localStorage.setItem(ACCESS_TOKEN, token.access);
@@ -89,11 +81,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser(userData);
         setIsAuthenticated(true);
         return response.data;
-      }
-      else {
+      } else {
         setError("Signup Failed");
         setIsAuthenticated(false);
-        console.error('SignUp failed:', response);
         throw new Error('SignUp failed');
       }
     } catch (error: unknown) {
@@ -129,7 +119,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       setError(errorMessage);
-      console.error('Forgot Password error:', error);
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -153,7 +142,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       setError(errorMessage);
-      console.error('OTP verification error:', error);
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -189,8 +177,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     
     try {
       await api.post('/auth/logout/');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      // Silently handle logout errors - we'll clear local state anyway
     }
 
     localStorage.removeItem(ACCESS_TOKEN);
@@ -198,7 +186,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setUser(null);
     setIsAuthenticated(false);
     setIsLoading(false);
-  }, [setIsLoading, setUser, setIsAuthenticated]);
+  }, []);
 
   const clearError = () => {
     setError(null);

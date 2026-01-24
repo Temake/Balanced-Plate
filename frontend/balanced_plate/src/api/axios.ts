@@ -1,81 +1,99 @@
 import axios from "axios"
-import { ACCESS_TOKEN } from "./constants"
-
+import type { InternalAxiosRequestConfig } from "axios"
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants"
 
 declare global {
   interface ImportMetaEnv {
     VITE_API_URL: string
   }
-  interface ST{
-    detail?:string
-  }
-interface DataType{
-    data?:ST
-    status?:number
-    detail?:string
-
-}
-interface DjangoError{
-   readonly response: DataType,
-
-
-}
-  
   interface ImportMeta {
     readonly env: ImportMetaEnv
   }
 }
 
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: { 'Content-Type': 'application/json' }
 })
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
 
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem(ACCESS_TOKEN)
-        console.log("Current token:", token) 
-        
-        if (token) {
-            config.headers = config.headers || {}
-            config.headers.Authorization = `Bearer ${token}`
-            console.log("Request URL:", config.url)
-            console.log("Request Method:", config.method)
-            console.log("Request Headers:", config.headers)
-        } else {
-            console.log("No token found in localStorage")
-        }
-        return config
-    },
-    (error: Error) => {
-        console.error("Request interceptor error:", error)
-        return Promise.reject(error)
-    }
-)
+const onRefreshed = (token: string) => {
+  refreshSubscribers.forEach(cb => cb(token));
+  refreshSubscribers = [];
+};
 
+const addSubscriber = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(ACCESS_TOKEN);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 api.interceptors.response.use(
-    (response) => {
-        console.log("Response success:", response.config.url)
-        return response
-    },
-    async (error) => {
-        console.error("Response error status:", error.response?.status)
-        console.error("Response error data:", error.response?.data?.detail)
-        console.error("Full error object:", error)
-        console.error("djj:", error.response.message)
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addSubscriber((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
 
-        if (error.response?.status === 403) {
-            
-            console.error("Authentication error - clearing token")
-            localStorage.removeItem(ACCESS_TOKEN)
-            window.location.href = '/login'
-        }
-        return Promise.reject(error)
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+      
+      if (!refreshToken) {
+        isRefreshing = false;
+        clearAuth();
+        return Promise.reject(error);
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/token/refresh/`,
+          { refresh: refreshToken }
+        );
+        
+        localStorage.setItem(ACCESS_TOKEN, data.access);
+        onRefreshed(data.access);
+        originalRequest.headers.Authorization = `Bearer ${data.access}`;
+        return api(originalRequest);
+      } catch {
+        clearAuth();
+        return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
+      }
     }
-)
+    
+    return Promise.reject(error);
+  }
+);
+
+const clearAuth = () => {
+  localStorage.removeItem(ACCESS_TOKEN);
+  localStorage.removeItem(REFRESH_TOKEN);
+  if (!window.location.pathname.includes('/login')) {
+    window.location.href = '/login';
+  }
+};
 
 export default api
