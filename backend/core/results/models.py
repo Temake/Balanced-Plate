@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from core.utils.mixins import BaseModelMixin
@@ -88,8 +89,40 @@ class FoodAnalysis(BaseModelMixin):
     @property
     def total_fat(self):
         return sum(food.fat or 0 for food in self.detected_foods.all())
+    
+
+    class EventData:
+        """
+        Subclass for generating WebSocket event payload on analysis completion or failure.
+        """
+        
+        @staticmethod
+        def on_completed(instance: "FoodAnalysis") -> dict:
+
+            return {
+                "type": enums.FoodAnalysisStatus.COMPLETED.value,
+                "data": {
+                    "message": "Analysis Completed!",
+                    "id": instance.id,
+                    "timestamp": timezone.now().isoformat(),
+                },
+            }
+        
+        @staticmethod
+        def on_failed(instance):
+
+            data = {
+                "type": enums.FoodAnalysisStatus.FAILED.value,
+                "data": {
+                    "message": "Analysis Failed!",
+                    "id": instance.id,
+                    "timestamp": timezone.now().isoformat(),
+                },
+            }
+            return data
 
 
+ 
 class DetectedFood(BaseModelMixin):
     analysis = models.ForeignKey(
         to=FoodAnalysis,

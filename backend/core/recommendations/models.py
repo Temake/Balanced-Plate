@@ -3,12 +3,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
-from loguru import logger
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-
 from core.utils.mixins import BaseModelMixin
 from core.utils import enums
+from core.websocket.utils import emit_websocket_event
 
 
 class WeeklyRecommendation(BaseModelMixin):  
@@ -121,34 +118,7 @@ class WeeklyRecommendation(BaseModelMixin):
                 },
             }
             return data
-
-    def emit_recommendation_event(self, event_type: str) -> bool:
-        """
-        Emit WebSocket event for this recommendation.
-        """
-        event_method = getattr(self.EventData, f"on_{event_type}", None)
-        if not event_method:
-            logger.warning(f"Unknown recommendation event type: {event_type}")
-            return False
         
-        try:
-            event_data = event_method(self)
-            channel_layer = get_channel_layer()
-            
-            async_to_sync(channel_layer.group_send)(
-                self.owner.push_notification_channel_id,
-                event_data,
-            )
-            
-            logger.info(
-                f"Recommendation event emitted: type={event_type}, "
-                f"user={self.owner.id}"
-            )
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to emit recommendation event: {e}")
-            return False
 
     def mark_as_read(self):
         if self.is_read:
@@ -156,7 +126,7 @@ class WeeklyRecommendation(BaseModelMixin):
         self.is_read = True
         self.read_at = timezone.now()
         self.save()
-        self.emit_recommendation_event(enums.RecommendationEventType.RECOMMENDATION_READ.value)
+        emit_websocket_event(self, enums.RecommendationEventType.RECOMMENDATION_READ.value)
 
     def save(self, *args, **kwargs):
         created = False
@@ -165,7 +135,7 @@ class WeeklyRecommendation(BaseModelMixin):
 
         super().save(*args, **kwargs)
         if created and not self.notification_sent:
-            self.emit_recommendation_event(enums.RecommendationEventType.RECOMMENDATION_READY.value)
+            emit_websocket_event(self, enums.RecommendationEventType.RECOMMENDATION_READY.value)
             self.notification_sent_at  = timezone.now()
             self.save(update_fields=[
                 "notification_sent", 
