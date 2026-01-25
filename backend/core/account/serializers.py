@@ -6,6 +6,19 @@ from phonenumbers.phonenumberutil import NumberParseException
 from .models import Account, UserSession
 
 
+
+class BaseUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Account
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "date_added",
+        ]
+
 class UserSerializer:
     class Retrieve(serializers.ModelSerializer):
         class Meta:
