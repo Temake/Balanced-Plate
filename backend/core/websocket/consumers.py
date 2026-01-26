@@ -2,11 +2,11 @@
 WebSocket Consumers - Handle WebSocket connections and messages.
 """
 
-import json
-
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 from loguru import logger
+
+from core.recommendations.models import WeeklyRecommendation
 
 
 class NotificationConsumer(AsyncJsonWebsocketConsumer):
@@ -64,19 +64,19 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
                 "type": "pong",
                 "timestamp": data.get("timestamp"),
             })        
-        elif message_type == "mark_read":
-            notification_id = data.get("notification_id")
-            if notification_id:
-                success = await self.mark_notification_read(notification_id)
-                await self.send_json({
-                    "type": "notification_marked_read",
-                    "notification_id": notification_id,
-                    "success": success,
-                })
+        elif message_type == "mark_notification_read":
+            recommendation_id = data.get("recommendation_id")
+            if recommendation_id:
+                success = await self.mark_recommendation_read(recommendation_id)
+                if not success:
+                    await self.send_json({
+                        "type": "error",
+                        "message": f"Could not mark recommendation {recommendation_id} as read",
+                    })
             else:
                 await self.send_json({
                     "type": "error",
-                    "message": "notification_id is required",
+                    "message": "recommendation_id is required",
                 })
         else:
             await self.send_json({
@@ -85,34 +85,44 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             })
 
 
-    async def notification_message(self, event):
-        """
-        Handle notification messages sent to the group.
-        
-        Called when channel_layer.group_send() is used with type="notification_message"
-        """
-        await self.send_json({
-            "type": "notification",
-            "data": event["data"],
-        })
-        
+    async def recommendation_ready(self, event):
+        await self.send_json(event)
+        logger.info(f"Sent recommendation_ready to user {self.user.id}")
 
-    async def weekly_recommendation_notification(self, event):
-        """Handle weekly recommendation notifications."""
-        await self.send_json({
-            "type": "weekly_recommendation",
-            "data": event["data"],
-        })
 
-    async def food_analysis_complete(self, event):
-        """Handle food analysis completion notifications."""
-        await self.send_json({
-            "type": "food_analysis_complete",
-            "data": event["data"],
-        })
+    async def recommendation_read(self, event):
+        await self.send_json(event)
+        logger.info(f"Sent recommendation_read to user {self.user.id}")
+
+
+    async def analysis_completed(self, event):
+        await self.send_json(event)
+        logger.info(f"Sent analysis_completed to user {self.user.id}")
+
+
+    async def analysis_failed(self, event):
+        await self.send_json(event)
+        logger.info(f"Sent analysis_failed to user {self.user.id}")
+
 
     @database_sync_to_async
-    def mark_notification_read(self, notification_id: int):
-        """Mark a notification as read in the database."""
-        # Implement based on your Notification model
-        pass
+    def mark_recommendation_read(self, recommendation_id: int) -> bool:
+        """
+        Mark a weekly recommendation as read.
+        """
+        
+        try:
+            recommendation = WeeklyRecommendation.objects.get(
+                id=recommendation_id,
+                owner=self.user,
+            )
+            recommendation.mark_as_read()
+            return True
+        except WeeklyRecommendation.DoesNotExist:
+            logger.warning(
+                f"Recommendation {recommendation_id} not found for user {self.user.id}"
+            )
+            return False
+        except Exception as e:
+            logger.error(f"Error marking recommendation as read: {e}")
+            return False
