@@ -126,21 +126,20 @@ class WeeklyRecommendation(BaseModelMixin):
         self.is_read = True
         self.read_at = timezone.now()
         self.save()
-        emit_websocket_event(self, enums.RecommendationEventType.RECOMMENDATION_READ.value)
+        emit_websocket_event(
+            self, enums.RecommendationEventType.RECOMMENDATION_READ.value
+        )
 
-    def save(self, *args, **kwargs):
-        created = False
-        if not self.is_instance_exist():
-            created = True
-
-        super().save(*args, **kwargs)
-        if created and not self.notification_sent:
-            emit_websocket_event(self, enums.RecommendationEventType.RECOMMENDATION_READY.value)
-            self.notification_sent_at  = timezone.now()
-            self.save(update_fields=[
-                "notification_sent", 
-                "notification_sent_at"
-            ])
+    def emit_ready_event(self):
+        emit_websocket_event(
+            self, enums.RecommendationEventType.RECOMMENDATION_READY.value
+        )
+        self.notification_sent = True
+        self.notification_sent_at  = timezone.now()
+        self.save(update_fields=[
+            "notification_sent", 
+            "notification_sent_at"
+        ])
 
 
     class Meta:
