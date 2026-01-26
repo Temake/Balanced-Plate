@@ -57,7 +57,7 @@ class FoodAnalysis(BaseModelMixin):
     analysis_status = models.CharField(
         _("Analysis Status"),
         max_length=20,
-        default=enums.FoodAnalysisStatus.PENDING.value,
+        default=enums.FoodAnalysisStatus.ANALYSIS_PENDING.value,
         choices=enums.FoodAnalysisStatus.choices(),
         help_text=_("Current status of the food analysis process")
     )
@@ -107,10 +107,10 @@ class FoodAnalysis(BaseModelMixin):
         """
         
         @staticmethod
-        def on_completed(instance: "FoodAnalysis") -> dict:
+        def on_analysis_completed(instance: "FoodAnalysis") -> dict:
 
             return {
-                "type": enums.FoodAnalysisStatus.COMPLETED.value,
+                "type": enums.FoodAnalysisStatus.ANALYSIS_COMPLETED.value,
                 "data": {
                     "message": "Analysis Completed!",
                     "id": instance.id,
@@ -119,10 +119,10 @@ class FoodAnalysis(BaseModelMixin):
             }
         
         @staticmethod
-        def on_failed(instance):
+        def on_analysis_failed(instance):
 
             data = {
-                "type": enums.FoodAnalysisStatus.FAILED.value,
+                "type": enums.FoodAnalysisStatus.ANALYSIS_FAILED.value,
                 "data": {
                     "message": "Analysis Failed!",
                     "id": instance.id,
