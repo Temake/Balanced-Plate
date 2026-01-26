@@ -15,6 +15,8 @@ from django.utils.timezone import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from core.utils import enums
+from config.celery.queue import CeleryQueue
+from celery.schedules import crontab
 
 from .. import env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -294,7 +296,16 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_ACKS_LATE = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_QUEUES = CeleryQueue.queues()
 # CELERYD_PREFETCH_MULTIPLIER = 1\
+
+CELERY_BEAT_SCHEDULE = {
+    "generate-weekly-recommendations": {
+        "task": "core.recommendations.tasks.generate_weekly_recommendations_for_all_users",
+        "schedule": crontab(hour=6, minute=0, day_of_week=1),
+        "options": {"queue": "recommendations"},
+    },
+}
 
 
 REDIS_HOST = env.str("REDIS_HOST", default="localhost")
