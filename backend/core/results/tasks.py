@@ -20,10 +20,10 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
             analysis = FoodAnalysis.objects.create(
                 owner=file_obj.owner,
                 food_image=file_obj,
-                analysis_status="processing"
+                analysis_status=enums.FoodAnalysisStatus.ANALYSIS_PROCESSING.value
             )
         else:
-            analysis.analysis_status = "processing"
+            analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_PROCESSING.value
             analysis.save()
 
         if use_mock:
@@ -36,9 +36,9 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         analysis.balance_score = result.get("balance_score")
         analysis.next_meal_recommendations = result.get("next_meal_recommendations", {})
         analysis.is_mock_data = is_mock
-        analysis.analysis_status = "completed"
+        analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_COMPLETED.value
         analysis.save()
-        analysis.emit_event(enums.FoodAnalysisStatus.COMPLETED.value.lower())
+        analysis.emit_event(enums.FoodAnalysisStatus.ANALYSIS_COMPLETED.value.lower())
 
         DetectedFood.objects.filter(analysis=analysis).delete()
 
@@ -74,10 +74,10 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         try:
             analysis = FoodAnalysis.objects.filter(food_image_id=file_id).first()
             if analysis:
-                analysis.analysis_status = "failed"
+                analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_FAILED.value
                 analysis.error_message = str(e)
                 analysis.save()
-                analysis.emit_event(enums.FoodAnalysisStatus.FAILED.value.lower())
+                analysis.emit_event(enums.FoodAnalysisStatus.ANALYSIS_FAILED.value.lower())
             
             file_obj = FileModel.objects.get(id=file_id)
             file_obj.currently_under_processing = False
