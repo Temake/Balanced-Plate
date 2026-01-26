@@ -5,6 +5,7 @@ from core.file_storage.models import FileModel
 from .models import FoodAnalysis, DetectedFood
 from .services import gemini_service
 from .mock import get_mock_analysis_response
+from core.utils import enums
 
 
 @shared_task(bind=True, max_retries=3)
@@ -37,6 +38,7 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         analysis.is_mock_data = is_mock
         analysis.analysis_status = "completed"
         analysis.save()
+        analysis.emit_event(enums.FoodAnalysisStatus.COMPLETED.value.lower())
 
         DetectedFood.objects.filter(analysis=analysis).delete()
 
@@ -75,6 +77,7 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
                 analysis.analysis_status = "failed"
                 analysis.error_message = str(e)
                 analysis.save()
+                analysis.emit_event(enums.FoodAnalysisStatus.FAILED.value.lower())
             
             file_obj = FileModel.objects.get(id=file_id)
             file_obj.currently_under_processing = False

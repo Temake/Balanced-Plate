@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from core.utils.mixins import BaseModelMixin
 from core.file_storage.models import FileModel
 from core.utils import enums
+from core.websocket.utils import emit_websocket_event
 
 
 class FoodAnalysis(BaseModelMixin):
@@ -65,6 +66,15 @@ class FoodAnalysis(BaseModelMixin):
         null=True,
         blank=True,
     )
+    push_sent = models.BooleanField(
+        _("Is Event Pushed?"),
+        default = False
+    )
+    push_sent_at = models.DateTimeField(
+        _("Time Event Was Pushed"),
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = _("Food Analysis")
@@ -120,6 +130,18 @@ class FoodAnalysis(BaseModelMixin):
                 },
             }
             return data
+        
+    
+    def emit_event(self, event_type):
+        emit_websocket_event(
+            self, event_type
+        )
+        self.push_sent = True
+        self.push_sent_at  = timezone.now()
+        self.save(update_fields=[
+            "push_sent", 
+            "push_sent_at"
+        ])
 
 
  
