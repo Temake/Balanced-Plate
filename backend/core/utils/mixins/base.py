@@ -11,6 +11,9 @@ class BaseModelMixin(models.Model):
 
     def __str__(self):
         return f"< {type(self).__name__}({self.id}) >"
+    
+    def is_instance_exist(self):
+        return self.__class__.objects.filter(id=self.id).exists()
 
     def get_identifier(self):
         return secrets.token_hex(5) + str(int(timezone.now().timestamp()))
