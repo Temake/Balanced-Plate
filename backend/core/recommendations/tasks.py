@@ -40,6 +40,7 @@ def generate_weekly_recommendations_for_all_users(self):
         except Exception as e:
             error_count += 1
             logger.error(f"Failed to generate recommendation for user {user.id}: {e}")
+            raise self.retry(exc=e, countdown=60)
 
     logger.info(
         f"Weekly recommendations complete. Success: {success_count}, Errors: {error_count}"
