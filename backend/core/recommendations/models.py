@@ -49,6 +49,20 @@ class WeeklyRecommendation(BaseModelMixin):
         default=dict,
         help_text=_("AI-generated weekly recommendations")
     )
+    priority_actions = models.JSONField(
+        _("Priority Actions"),
+        blank=True,
+        null=True,
+        default=list,
+        help_text=_("AI-generated priority actions that user should take"),
+    )
+    weekly_goals = models.JSONField(
+        _("Weekly Goals"),
+        blank=True,
+        null=True,
+        default=list,
+        help_text=_("AI-generated weekly health goals"),
+    )
     status = models.CharField(
         _("Status"),
         max_length=20,
