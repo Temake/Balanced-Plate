@@ -18,10 +18,10 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        user = self.scope.get("user")
-        self.group_name = user.push_notification_channel_id
+        self.user = self.scope.get("user")
+        self.group_name = self.user.push_notification_channel_id if self.user and self.user.is_authenticated else None
         
-        if not user or not user.is_authenticated:
+        if not self.user or not self.user.is_authenticated:
             logger.warning("Unauthenticated WebSocket connection rejected")
             await self.close(code=4001)
             return
@@ -31,11 +31,11 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             self.group_name,
             self.channel_name
         )  
-        logger.info(f"WebSocket connected: user={user.id}, group={self.group_name}")
+        logger.info(f"WebSocket connected: user={self.user.id}, group={self.group_name}")
         await self.send_json({
             "type": "connection_established",
             "message": "Connected to notification service",
-            "user_id": user.id,
+            "user_id": self.user.id,
         })
 
 

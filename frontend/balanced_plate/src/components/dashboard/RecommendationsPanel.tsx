@@ -5,19 +5,22 @@ import {
   CheckCircle2, 
   ChevronLeft,
   ChevronRight,
-  Salad,
-  Pill,
+  Leaf,
   Clock,
   Sparkles,
   Zap,
   ArrowRight,
-  Leaf,
-  Sun
+  TrendingUp,
+  Camera
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Button } from '@/components/ui/button';
+
+export type TimeFilter = 'today' | 'week' | 'month' | 'all';
 
 export interface Recommendation {
   id: string;
-  type: 'warning' | 'success' | 'tip';
+  type: 'warning' | 'success' | 'tip' | 'diet' | 'balance';
   title: string;
   description: string;
   priority: 'high' | 'medium' | 'low';
@@ -28,6 +31,8 @@ interface RecommendationsPanelProps {
   recommendations?: Recommendation[];
   isLoading?: boolean;
   className?: string;
+  onTimeFilterChange?: (filter: TimeFilter) => void;
+  timeFilter?: TimeFilter;
 }
 
 // Mock recommendations - will be replaced with backend data later
@@ -76,7 +81,7 @@ export const mockRecommendations: Recommendation[] = [
 
 const getCategoryConfig = (category?: string, type?: string) => {
   if (category === 'vitamins') return { 
-    icon: Pill, 
+    icon: Leaf, 
     gradient: 'from-violet-500 to-purple-600',
     bgGlow: 'bg-violet-500/20',
     lightBg: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30'
@@ -87,11 +92,17 @@ const getCategoryConfig = (category?: string, type?: string) => {
     bgGlow: 'bg-blue-500/20',
     lightBg: 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30'
   };
-  if (category === 'nutrition') return { 
+  if (category === 'nutrition' || type === 'diet') return { 
     icon: Leaf, 
     gradient: 'from-emerald-500 to-green-500',
     bgGlow: 'bg-emerald-500/20',
     lightBg: 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30'
+  };
+  if (type === 'balance') return { 
+    icon: TrendingUp, 
+    gradient: 'from-blue-500 to-indigo-500',
+    bgGlow: 'bg-blue-500/20',
+    lightBg: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30'
   };
   if (type === 'success') return { 
     icon: CheckCircle2, 
@@ -134,12 +145,29 @@ const getPriorityBadge = (priority: string) => {
 };
 
 const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({ 
-  recommendations = mockRecommendations, 
+  recommendations = [], 
   isLoading,
-  className = ''
+  className = '',
+  onTimeFilterChange,
+  timeFilter = 'week'
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [localTimeFilter, setLocalTimeFilter] = useState<TimeFilter>(timeFilter);
+  const navigate = useNavigate();
+
+  const handleTimeFilterChange = (filter: TimeFilter) => {
+    setLocalTimeFilter(filter);
+    setActiveIndex(0);
+    onTimeFilterChange?.(filter);
+  };
+
+  const timeFilters: { value: TimeFilter; label: string }[] = [
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'This Week' },
+    { value: 'month', label: 'This Month' },
+    { value: 'all', label: 'All Time' },
+  ];
 
   // Sort by priority: high > medium > low
   const sortedRecommendations = [...recommendations].sort((a, b) => {
@@ -199,8 +227,8 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
       
       <div className="relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-gray-700/50 h-full flex flex-col shadow-xl shadow-gray-200/50 dark:shadow-none">
         {/* Header */}
-        <div className="p-4 pb-3">
-          <div className="flex items-center justify-between">
+        <div className="p-4 pb-2">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="relative">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
@@ -238,17 +266,45 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Time Filter Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {timeFilters.map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => handleTimeFilterChange(filter.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${
+                  localTimeFilter === filter.value
+                    ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Featured Tip Card */}
         <div className="flex-1 px-4 pb-3">
           {sortedRecommendations.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-3 shadow-lg shadow-green-500/25">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center mb-3">
+                <Sparkles className="w-8 h-8 text-emerald-500" />
               </div>
-              <p className="font-semibold text-gray-900 dark:text-white">You're doing great!</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">No recommendations right now</p>
+              <p className="font-semibold text-gray-900 dark:text-white">No Insights Yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4 max-w-[200px]">
+                Analyze your meals to get personalized recommendations
+              </p>
+              <Button 
+                onClick={() => navigate('/analyse-food')}
+                size="sm"
+                variant="outline"
+                className="gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                Analyze Food
+              </Button>
             </div>
           ) : (
             <div 

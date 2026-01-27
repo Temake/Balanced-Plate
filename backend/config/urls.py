@@ -31,7 +31,7 @@ urlpatterns = [
     path("api/", include("core.file_storage.urls")),
     path("api/", include("core.results.urls")),
     path("api/", include("core.analytics.urls")),
-    path("api/", include("core.recommendation.urls"))
+    path("api/", include("core.recommendations.urls"))
 ]
 
 if not settings.PRODUCTION:

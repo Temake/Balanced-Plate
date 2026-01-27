@@ -6,8 +6,10 @@ import {
 } from 'recharts';
 import { 
   BarChart3, PieChart as PieChartIcon, TrendingUp, Clock, 
-  Pill, Activity
+  Activity, Camera
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Button } from '@/components/ui/button';
 
 export interface FoodGroupData {
   name: string;
@@ -24,15 +26,6 @@ export interface WeeklyBalanceData {
   [key: string]: string | number;
 }
 
-export interface MicronutrientData {
-  name: string;
-  current: number;
-  recommended: number;
-  percentage: number;
-  color: string;
-  [key: string]: string | number;
-}
-
 export interface MealTimingData {
   hour: string;
   calories: number;
@@ -43,8 +36,8 @@ export interface MealTimingData {
 interface AnalyticsSectionProps {
   foodData?: FoodGroupData[];
   weeklyBalance?: WeeklyBalanceData[];
-  micronutrients?: MicronutrientData[];
   mealTiming?: MealTimingData[];
+  timingRecommendations?: string[];
   isLoading?: boolean;
   className?: string;
 }
@@ -68,17 +61,6 @@ const mockWeeklyBalance: WeeklyBalanceData[] = [
   { day: 'Sun', balance: 79, target: 80 }
 ];
 
-const mockMicronutrients: MicronutrientData[] = [
-  { name: 'Vitamin C', current: 85, recommended: 90, percentage: 94, color: '#f59e0b' },
-  { name: 'Vitamin D', current: 15, recommended: 20, percentage: 75, color: '#3b82f6' },
-  { name: 'Iron', current: 12, recommended: 18, percentage: 67, color: '#ef4444' },
-  { name: 'Calcium', current: 950, recommended: 1000, percentage: 95, color: '#10b981' },
-  { name: 'Zinc', current: 8, recommended: 11, percentage: 73, color: '#8b5cf6' },
-  { name: 'B12', current: 2.2, recommended: 2.4, percentage: 92, color: '#06b6d4' },
-  { name: 'Folate', current: 380, recommended: 400, percentage: 95, color: '#84cc16' },
-  { name: 'Magnesium', current: 280, recommended: 320, percentage: 88, color: '#f97316' }
-];
-
 const mockMealTiming: MealTimingData[] = [
   { hour: '6 AM', calories: 0, mealType: '' },
   { hour: '7 AM', calories: 320, mealType: 'Breakfast' },
@@ -99,7 +81,7 @@ const mockMealTiming: MealTimingData[] = [
   { hour: '10 PM', calories: 80, mealType: 'Snack' },
 ];
 
-type TabType = 'distribution' | 'balance' | 'micronutrients' | 'timing';
+type TabType = 'distribution' | 'balance' | 'timing';
 
 interface Tab {
   id: TabType;
@@ -111,8 +93,7 @@ interface Tab {
 const tabs: Tab[] = [
   { id: 'distribution', label: 'Food Distribution', icon: PieChartIcon, shortLabel: 'Food' },
   { id: 'balance', label: 'Weekly Balance', icon: TrendingUp, shortLabel: 'Balance' },
-  { id: 'micronutrients', label: 'Micronutrients', icon: Pill, shortLabel: 'Vitamins' },
-  { id: 'timing', label: 'Meal Timing', icon: Clock, shortLabel: 'Timing' },
+  { id: 'timing', label: 'Meal Recommendations', icon: Clock, shortLabel: 'Timing' },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -133,219 +114,262 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
-  foodData = mockFoodData,
-  weeklyBalance = mockWeeklyBalance,
-  micronutrients = mockMicronutrients,
-  mealTiming = mockMealTiming,
+  foodData,
+  weeklyBalance,
+  mealTiming,
+  timingRecommendations = [],
   isLoading,
   className = ''
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('distribution');
+  const navigate = useNavigate();
 
-  const renderDistributionChart = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Bar Chart */}
-      <div className="h-64 sm:h-72">
+  // Check if we have real data
+  const hasFoodData = foodData && foodData.length > 0 && foodData.some(d => d.value > 0);
+  const hasWeeklyBalance = weeklyBalance && weeklyBalance.length > 0 && weeklyBalance.some(d => d.balance > 0);
+  const hasMealTiming = mealTiming && mealTiming.length > 0 && mealTiming.some(d => d.calories > 0);
+  const hasAnyData = hasFoodData || hasWeeklyBalance || hasMealTiming;
+
+  // Use mock data only for display purposes when there's no real data
+  const displayFoodData = hasFoodData ? foodData : mockFoodData;
+  const displayWeeklyBalance = hasWeeklyBalance ? weeklyBalance : mockWeeklyBalance;
+  const displayMealTiming = hasMealTiming ? mealTiming : mockMealTiming;
+
+  // Empty state component
+  const EmptyState = ({ type }: { type: string }) => (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 flex items-center justify-center mb-4">
+        {type === 'distribution' && <PieChartIcon className="w-8 h-8 text-purple-500" />}
+        {type === 'balance' && <TrendingUp className="w-8 h-8 text-green-500" />}
+        {type === 'timing' && <Clock className="w-8 h-8 text-blue-500" />}
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        {type === 'distribution' && 'No Food Data Yet'}
+        {type === 'balance' && 'No Balance Data Yet'}
+        {type === 'timing' && 'No Meal Timing Data Yet'}
+      </h3>
+      <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mb-6">
+        {type === 'distribution' && 'Analyze your meals to see how your food groups are distributed.'}
+        {type === 'balance' && 'Track your daily meals to see your weekly nutrition balance.'}
+        {type === 'timing' && 'Upload meals to receive personalized meal timing recommendations.'}
+      </p>
+      <Button 
+        onClick={() => navigate('/analyse-food')}
+        variant="outline"
+        className="gap-2"
+      >
+        <Camera className="w-4 h-4" />
+        Start Analyzing
+      </Button>
+    </div>
+  );
+
+  const renderDistributionChart = () => {
+    if (!hasFoodData) {
+      return <EmptyState type="distribution" />;
+    }
+    
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart */}
+        <div className="h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={displayFoodData} margin={{ top: 20, right: 20, left: 0, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+              <XAxis 
+                dataKey="name" 
+                fontSize={11}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                className="fill-gray-600 dark:fill-gray-400"
+              />
+              <YAxis fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {displayFoodData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        
+        {/* Pie Chart */}
+        <div className="h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={displayFoodData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {displayFoodData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                formatter={(_value, entry: any) => (
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {entry.payload.name} ({entry.payload.percentage}%)
+                  </span>
+                )}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBalanceChart = () => {
+    if (!hasWeeklyBalance) {
+      return <EmptyState type="balance" />;
+    }
+
+    return (
+      <div className="h-64 sm:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={foodData} margin={{ top: 20, right: 20, left: 0, bottom: 40 }}>
+          <LineChart data={displayWeeklyBalance} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis 
-              dataKey="name" 
-              fontSize={11}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              className="fill-gray-600 dark:fill-gray-400"
+            <XAxis dataKey="day" fontSize={12} className="fill-gray-600 dark:fill-gray-400" />
+            <YAxis fontSize={12} domain={[0, 100]} className="fill-gray-600 dark:fill-gray-400" />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="balance" 
+              stroke="#10b981" 
+              strokeWidth={3}
+              dot={{ fill: '#10b981', r: 5 }}
+              name="Your Score"
             />
-            <YAxis fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {foodData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      
-      {/* Pie Chart */}
-      <div className="h-64 sm:h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={foodData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {foodData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              formatter={(_value, entry: any) => (
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {entry.payload.name} ({entry.payload.percentage}%)
-                </span>
-              )}
+            <Line 
+              type="monotone" 
+              dataKey="target" 
+              stroke="#ef4444" 
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={false}
+              name="Target (80%)"
             />
-          </PieChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderBalanceChart = () => (
-    <div className="h-64 sm:h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={weeklyBalance} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-          <XAxis dataKey="day" fontSize={12} className="fill-gray-600 dark:fill-gray-400" />
-          <YAxis fontSize={12} domain={[0, 100]} className="fill-gray-600 dark:fill-gray-400" />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="balance" 
-            stroke="#10b981" 
-            strokeWidth={3}
-            dot={{ fill: '#10b981', r: 5 }}
-            name="Your Score"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="target" 
-            stroke="#ef4444" 
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={false}
-            name="Target (80%)"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
 
-  const renderMicronutrientsChart = () => (
-    <div>
-      <div className="h-52 sm:h-64 mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={micronutrients} layout="vertical" margin={{ top: 5, right: 30, left: 60, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis type="number" domain={[0, 120]} fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
-            <YAxis dataKey="name" type="category" fontSize={11} width={70} className="fill-gray-600 dark:fill-gray-400" />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="percentage" radius={[0, 4, 4, 0]} name="% of RDA">
-              {micronutrients.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={entry.percentage >= 90 ? '#10b981' : entry.percentage >= 70 ? '#f59e0b' : '#ef4444'} 
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        {micronutrients.slice(0, 4).map((nutrient, idx) => (
-          <div 
-            key={idx} 
-            className={`p-2 sm:p-3 rounded-lg ${
-              nutrient.percentage >= 90 ? 'bg-green-50 dark:bg-green-900/20' :
-              nutrient.percentage >= 70 ? 'bg-amber-50 dark:bg-amber-900/20' :
-              'bg-red-50 dark:bg-red-900/20'
-            }`}
-          >
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{nutrient.name}</p>
-            <p className={`text-lg font-bold ${
-              nutrient.percentage >= 90 ? 'text-green-600 dark:text-green-400' :
-              nutrient.percentage >= 70 ? 'text-amber-600 dark:text-amber-400' :
-              'text-red-600 dark:text-red-400'
-            }`}>
-              {nutrient.percentage}%
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   const renderTimingChart = () => (
     <div>
-      <div className="h-52 sm:h-64 mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={mealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="caloriesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis dataKey="hour" fontSize={10} interval={2} className="fill-gray-600 dark:fill-gray-400" />
-            <YAxis fontSize={10} className="fill-gray-600 dark:fill-gray-400" />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                      <p className="font-medium text-gray-900 dark:text-white">{data.hour}</p>
-                      <p className="text-sm text-green-600 dark:text-green-400">{data.calories} calories</p>
-                      {data.mealType && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{data.mealType}</p>
-                      )}
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="calories" 
-              stroke="#10b981"
-              strokeWidth={2}
-              fill="url(#caloriesGradient)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      {/* Timing Recommendations List */}
+      <div className="space-y-3 mb-4">
+        {timingRecommendations && timingRecommendations.length > 0 ? (
+          timingRecommendations.map((recommendation, idx) => (
+            <div 
+              key={idx}
+              className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800"
+            >
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
+                {idx + 1}
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {recommendation}
+              </p>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-blue-500" />
+            </div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+              No Timing Recommendations Yet
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto mb-4">
+              Upload and analyze meals to receive personalized timing recommendations
+            </p>
+            <Button 
+              onClick={() => navigate('/analyse-food')}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Camera className="w-4 h-4" />
+              Analyze Meals
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Meal Summary */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 sm:p-3 border border-orange-200 dark:border-orange-800">
-          <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Breakfast</p>
-          <p className="text-sm text-orange-600 dark:text-orange-400">Peak: 7-8 AM</p>
+      {/* Meal Pattern Summary - only show if we have timing data */}
+      {hasMealTiming && (
+        <div className="h-52 sm:h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={displayMealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="caloriesGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+              <XAxis dataKey="hour" fontSize={10} interval={2} className="fill-gray-600 dark:fill-gray-400" />
+              <YAxis fontSize={10} className="fill-gray-600 dark:fill-gray-400" />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                        <p className="font-medium text-gray-900 dark:text-white">{data.hour}</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">{data.calories} calories</p>
+                        {data.mealType && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{data.mealType}</p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="calories" 
+                stroke="#10b981"
+                strokeWidth={2}
+                fill="url(#caloriesGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2 sm:p-3 border border-yellow-200 dark:border-yellow-800">
-          <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Lunch</p>
-          <p className="text-sm text-yellow-600 dark:text-yellow-400">Peak: 12-1 PM</p>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
-          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Dinner</p>
-          <p className="text-sm text-blue-600 dark:text-blue-400">Peak: 7-8 PM</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 
   const getInsightText = () => {
+    if (!hasAnyData) {
+      return 'Start analyzing your meals to get personalized nutrition insights and track your progress over time.';
+    }
     switch (activeTab) {
       case 'distribution':
-        return 'Your diet composition shows carbohydrates as the leading food group. Consider increasing vegetable and fruit intake for better balance.';
+        return hasFoodData 
+          ? 'Your diet composition shows carbohydrates as the leading food group. Consider increasing vegetable and fruit intake for better balance.'
+          : 'Analyze your meals to see your food group distribution.';
       case 'balance':
-        return 'You exceeded your balance target on 4 out of 7 days this week. Great progress toward consistent healthy eating!';
-      case 'micronutrients':
-        return `${micronutrients.filter(n => n.percentage >= 90).length} of ${micronutrients.length} vitamins meet daily requirements. Focus on Iron and Vitamin D.`;
+        return hasWeeklyBalance 
+          ? 'You exceeded your balance target on 4 out of 7 days this week. Great progress toward consistent healthy eating!'
+          : 'Track your daily meals to see your weekly balance progress.';
       case 'timing':
-        return 'Your eating pattern shows consistent meal timing. Consider reducing late-night snacking after 9 PM for better digestion.';
+        return timingRecommendations?.length 
+          ? timingRecommendations[0] 
+          : 'Upload meals to receive personalized timing recommendations.';
       default:
         return '';
     }
@@ -404,7 +428,6 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
       <div className="p-4 sm:p-6">
         {activeTab === 'distribution' && renderDistributionChart()}
         {activeTab === 'balance' && renderBalanceChart()}
-        {activeTab === 'micronutrients' && renderMicronutrientsChart()}
         {activeTab === 'timing' && renderTimingChart()}
 
         {/* Insight Box */}

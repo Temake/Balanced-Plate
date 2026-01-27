@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
+from drf_spectacular.utils import extend_schema
 
 from core.recommendations.models import WeeklyRecommendation
 from core.recommendations.serializers import WeeklyRecommendationSerializer
@@ -12,32 +13,42 @@ from core.utils.mixins import PaginationMixin
 from core.utils.permissions import IsObjectOwner
 
 
+@extend_schema(tags=["Recommendations"])
 class ListRecommendation(PaginationMixin, views.APIView):
     http_method_names = ["get"]
 
+    @extend_schema(
+        description="List all weekly recommendations for the authenticated user",
+        responses={200: WeeklyRecommendationSerializer.RecommendationList(many=True)}
+    )
     def get(self, request):
         queryset = WeeklyRecommendation.objects.filter(
             owner=request.user
         ).order_by("-week_start_date")
         paginated_queryset = self.paginate_queryset(queryset)
         if paginated_queryset is not None:
-            serializer = serializer = WeeklyRecommendationSerializer.RecommendationList(
+            serializer = WeeklyRecommendationSerializer.RecommendationList(
                 paginated_queryset, many=True
             )
             logger.info("retrieved paginated recommendations list for user")
             return self.get_paginated_response(serializer.data)
         
-        serializer = serializer = WeeklyRecommendationSerializer.RecommendationList(
+        serializer = WeeklyRecommendationSerializer.RecommendationList(
             queryset, many=True
         )
         logger.info("retrieved unpaginated recommendations list for user")
         return response.Response(data=serializer.data, status=status.HTTP_200_OK)
  
 
+@extend_schema(tags=["Recommendations"])
 class RetrieveRecommendation(views.APIView):
     http_method_names = ["get"]
     permission_classes = [IsAuthenticated, IsObjectOwner]
 
+    @extend_schema(
+        description="Retrieve a specific weekly recommendation by ID",
+        responses={200: WeeklyRecommendationSerializer.RecommendationDetails}
+    )
     def get(self, request, pk):
         try:
             recommendation = WeeklyRecommendation.objects.get(id=pk)
@@ -56,9 +67,15 @@ class RetrieveRecommendation(views.APIView):
             )
 
 
+@extend_schema(tags=["Recommendations"])
 class ReadRecommendation(views.APIView):
     permission_classes = [IsAuthenticated, IsObjectOwner]
 
+    @extend_schema(
+        description="Mark a recommendation as read",
+        request=None,
+        responses={200: None}
+    )
     def post(self, request, pk):
         try:
             recommendation = WeeklyRecommendation.objects.get(id=pk)

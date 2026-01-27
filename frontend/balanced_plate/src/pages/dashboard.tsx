@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import QuickActionButton from "@/components/QuickActionButton";
-import RecentAnalysis from "@/components/RecentAnalysis";
 import {
   NutritionSummaryCards,
   RecommendationsPanel,
@@ -9,15 +8,21 @@ import {
   HealthInsights,
   DateRangeFilter,
 } from "@/components/dashboard";
-import type { DateRange } from "@/components/dashboard";
+import type { DateRange, TimeFilter } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth } from "@/hooks/useAuth";
-import { Utensils, RefreshCw } from "lucide-react";
+import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
+import { Utensils, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange>('week');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
   const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
+  const { isConnected } = useWebSocket();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -38,8 +43,13 @@ const Dashboard: React.FC = () => {
               <Utensils className="w-6 h-6 text-green-600 dark:text-green-400" />
               {getGreeting()}, {user?.first_name || 'there'}!
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
               Track your nutrition and get personalized insights for a healthier you.
+              {/* WebSocket status indicator */}
+              <span className={`inline-flex items-center gap-1 text-xs ${isConnected ? 'text-green-500' : 'text-gray-400'}`}>
+                {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                {isConnected ? 'Live' : 'Offline'}
+              </span>
             </p>
           </div>
           
@@ -70,34 +80,43 @@ const Dashboard: React.FC = () => {
         {/* Summary Cards + Recommendations Row */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
           <div className="xl:col-span-2">
-            <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load nutrition summary" />}>
+              <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
+            </ErrorBoundary>
           </div>
           <div className="xl:col-span-1">
-            <RecommendationsPanel 
-              recommendations={data?.recommendations} 
-              isLoading={isLoading} 
-            />
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
+              <RecommendationsPanel 
+                recommendations={data?.recommendations} 
+                isLoading={isLoading}
+                timeFilter={timeFilter}
+                onTimeFilterChange={setTimeFilter}
+              />
+            </ErrorBoundary>
           </div>
         </div>
 
         {/* Main Analytics Section - Tabbed */}
         <div className="mb-6">
-          <AnalyticsSection 
-            foodData={data?.foodGroups}
-            weeklyBalance={data?.weeklyBalance}
-            micronutrients={data?.micronutrients}
-            mealTiming={data?.mealTiming}
-            isLoading={isLoading}
-          />
+          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load analytics" onRetry={refetch} />}>
+            <AnalyticsSection 
+              foodData={data?.foodGroups}
+              weeklyBalance={data?.weeklyBalance}
+              mealTiming={data?.mealTiming}
+              timingRecommendations={data?.timingRecommendations}
+              isLoading={isLoading}
+            />
+          </ErrorBoundary>
         </div>
 
-        {/* Bottom Row: Recent Analysis + Health Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <RecentAnalysis className="h-full" />
-          <HealthInsights 
-            weeklyScore={data?.weeklyScore}
-            isLoading={isLoading}
-          />
+        {/* Health Insights Section */}
+        <div>
+          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
+            <HealthInsights 
+              weeklyScore={data?.weeklyScore}
+              isLoading={isLoading}
+            />
+          </ErrorBoundary>
         </div>
       </main>
     </div>
