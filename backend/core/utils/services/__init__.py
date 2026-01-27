@@ -5,7 +5,7 @@ from typing import Any
 
 
 try:
-    import google.generativeai as genai
+    from google import genai
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
@@ -18,13 +18,15 @@ class GeminiBaseService:
         self.model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')
         
         if GENAI_AVAILABLE and self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
+            self.client = genai.Client(api_key=self.api_key)
         else:
-            self.model = None
+            self.client = None
 
     def call_gemini(self, input: Any):
-        response = self.model.generate_content(input)
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=input,
+        )
 
         response_text = response.text.strip()
         if response_text.startswith('```json'):
