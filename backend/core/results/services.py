@@ -81,8 +81,8 @@ class GeminiAnalysisService(GeminiBaseService):
         Analyze food image using Gemini AI.
         Returns tuple of (response_data, is_mock_data)
         """
-        if not self.model:
-            logger.warning("Gemini not configured, using mock data")
+        if not self.client:
+            logger.warning("Gemini client not configured, using mock data")
             return get_mock_analysis_response(), True
 
         try:
@@ -111,8 +111,8 @@ class GeminiAnalysisService(GeminiBaseService):
         Analyze food image from URL using Gemini AI.
         Returns tuple of (response_data, is_mock_data)
         """
-        if not self.model:
-            logger.warning("Gemini not configured, using mock data")
+        if not self.client:
+            logger.warning("Gemini client not configured, using mock data")
             return get_mock_analysis_response(), True
 
         try:

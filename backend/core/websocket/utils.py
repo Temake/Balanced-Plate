@@ -2,6 +2,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync   
 from loguru import logger
 
+from core.utils import exceptions
+
 
 def emit_websocket_event(instance,  event_type: str) -> bool:
     """
@@ -10,7 +12,9 @@ def emit_websocket_event(instance,  event_type: str) -> bool:
     event_method = getattr(instance.EventData, f"on_{event_type}", None)
     if not event_method:
         logger.warning(f"Unknown recommendation event type: {event_type}")
-        return False
+        raise exceptions.CustomException(
+            message="Invalid event type for WebSocket emission."
+        )
     
     try:
         event_data = event_method(instance)
@@ -29,4 +33,6 @@ def emit_websocket_event(instance,  event_type: str) -> bool:
         
     except Exception as e:
         logger.error(f"Failed to emit event: {e}")
-        return False
+        raise exceptions.CustomException(
+            message=f"Event emission failed: {e}"
+        )

@@ -8,7 +8,7 @@ from .mock import get_mock_analysis_response
 from core.utils import enums
 
 
-@shared_task(bind=True, max_retries=3)
+@shared_task(bind=True, max_retries=3, queue="email-notification")
 def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
     try:
         file_obj = FileModel.objects.get(id=file_id)

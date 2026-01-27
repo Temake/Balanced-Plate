@@ -7,7 +7,7 @@ from core.account.serializers import BaseUserSerializer
 class WeeklyRecommendationSerializer:
 
     class RecommendationDetails(serializers.ModelSerializer):    
-        owner_email = BaseUserSerializer()
+        owner = BaseUserSerializer()
         
         class Meta:
             model = WeeklyRecommendation

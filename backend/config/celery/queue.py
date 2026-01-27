@@ -5,7 +5,7 @@ class CeleryQueue:
     class Definitions:
         BEATS = "beats"
         EMAIL_AND_NOTIFICATION = "email-notification"
-        RECOMMENDATION = "recommendation"
+        RECOMMENDATIONS = "recommendations"
 
     @staticmethod
     def queues():

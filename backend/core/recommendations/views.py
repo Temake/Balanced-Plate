@@ -91,3 +91,66 @@ class ReadRecommendation(views.APIView):
                 message="Recommendation not found",
                 status_code=status.HTTP_404_NOT_FOUND
             )
+
+# @extend_schema(tags=["Recommendations"])
+# class WeeklyRecommendationTriggerView(views.APIView):
+#     """
+#     POST: Manually trigger recommendation generation for the user.
+    
+#     This is useful for testing or allowing users to request
+#     a new recommendation on-demand.
+    
+#     Query Parameters:
+#         - force: If "true", regenerate even if one exists (default: false)
+#     """
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         from core.recommendations.tasks import generate_weekly_recommendation_for_user
+        
+#         force = request.query_params.get("force", "false").lower() == "true"
+        
+#         today = timezone.localdate()
+#         days_since_monday = today.weekday()
+        
+#         # Calculate previous week (Monday to Sunday)
+#         if days_since_monday == 0:
+#             # Today is Monday, use last week
+#             end_date = today - timedelta(days=1)
+#         else:
+#             end_date = today - timedelta(days=days_since_monday + 1)
+#         start_date = end_date - timedelta(days=6)
+
+#         # Check if recommendation already exists
+#         existing = WeeklyRecommendation.objects.filter(
+#             owner=request.user,
+#             week_start_date=start_date,
+#         ).first()
+
+#         if existing and not force:
+#             if existing.status == "completed":
+#                 return Response({
+#                     "message": "Recommendation already exists for this week",
+#                     "recommendation_id": existing.id,
+#                     "status": existing.status,
+#                 })
+#             elif existing.status == "processing":
+#                 return Response({
+#                     "message": "Recommendation is currently being generated",
+#                     "recommendation_id": existing.id,
+#                     "status": existing.status,
+#                 })
+
+#         # Delete existing if force regeneration
+#         if existing and force:
+#             existing.delete()
+
+#         # Trigger async task
+#         task = generate_weekly_recommendation_for_user.delay(request.user.id)
+
+#         return Response({
+#             "message": "Recommendation generation started",
+#             "task_id": task.id,
+#             "week_start": start_date.isoformat(),
+#             "week_end": end_date.isoformat(),
+#         }, status=status.HTTP_202_ACCEPTED)
