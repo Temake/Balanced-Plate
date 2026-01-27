@@ -10,8 +10,11 @@ import {
   Sparkles,
   Zap,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Camera
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Button } from '@/components/ui/button';
 
 export type TimeFilter = 'today' | 'week' | 'month' | 'all';
 
@@ -142,7 +145,7 @@ const getPriorityBadge = (priority: string) => {
 };
 
 const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({ 
-  recommendations = mockRecommendations, 
+  recommendations = [], 
   isLoading,
   className = '',
   onTimeFilterChange,
@@ -151,6 +154,7 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [localTimeFilter, setLocalTimeFilter] = useState<TimeFilter>(timeFilter);
+  const navigate = useNavigate();
 
   const handleTimeFilterChange = (filter: TimeFilter) => {
     setLocalTimeFilter(filter);
@@ -285,11 +289,22 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
         <div className="flex-1 px-4 pb-3">
           {sortedRecommendations.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-3 shadow-lg shadow-green-500/25">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center mb-3">
+                <Sparkles className="w-8 h-8 text-emerald-500" />
               </div>
-              <p className="font-semibold text-gray-900 dark:text-white">You're doing great!</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">No recommendations right now</p>
+              <p className="font-semibold text-gray-900 dark:text-white">No Insights Yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4 max-w-[200px]">
+                Analyze your meals to get personalized recommendations
+              </p>
+              <Button 
+                onClick={() => navigate('/analyse-food')}
+                size="sm"
+                variant="outline"
+                className="gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                Analyze Food
+              </Button>
             </div>
           ) : (
             <div 

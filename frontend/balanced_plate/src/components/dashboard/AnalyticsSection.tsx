@@ -6,8 +6,10 @@ import {
 } from 'recharts';
 import { 
   BarChart3, PieChart as PieChartIcon, TrendingUp, Clock, 
-  Activity,
+  Activity, Camera
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Button } from '@/components/ui/button';
 
 export interface FoodGroupData {
   name: string;
@@ -112,102 +114,155 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
-  foodData = mockFoodData,
-  weeklyBalance = mockWeeklyBalance,
-  mealTiming = mockMealTiming,
+  foodData,
+  weeklyBalance,
+  mealTiming,
   timingRecommendations = [],
   isLoading,
   className = ''
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('distribution');
+  const navigate = useNavigate();
 
-  const renderDistributionChart = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Bar Chart */}
-      <div className="h-64 sm:h-72">
+  // Check if we have real data
+  const hasFoodData = foodData && foodData.length > 0 && foodData.some(d => d.value > 0);
+  const hasWeeklyBalance = weeklyBalance && weeklyBalance.length > 0 && weeklyBalance.some(d => d.balance > 0);
+  const hasMealTiming = mealTiming && mealTiming.length > 0 && mealTiming.some(d => d.calories > 0);
+  const hasAnyData = hasFoodData || hasWeeklyBalance || hasMealTiming;
+
+  // Use mock data only for display purposes when there's no real data
+  const displayFoodData = hasFoodData ? foodData : mockFoodData;
+  const displayWeeklyBalance = hasWeeklyBalance ? weeklyBalance : mockWeeklyBalance;
+  const displayMealTiming = hasMealTiming ? mealTiming : mockMealTiming;
+
+  // Empty state component
+  const EmptyState = ({ type }: { type: string }) => (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 flex items-center justify-center mb-4">
+        {type === 'distribution' && <PieChartIcon className="w-8 h-8 text-purple-500" />}
+        {type === 'balance' && <TrendingUp className="w-8 h-8 text-green-500" />}
+        {type === 'timing' && <Clock className="w-8 h-8 text-blue-500" />}
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        {type === 'distribution' && 'No Food Data Yet'}
+        {type === 'balance' && 'No Balance Data Yet'}
+        {type === 'timing' && 'No Meal Timing Data Yet'}
+      </h3>
+      <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mb-6">
+        {type === 'distribution' && 'Analyze your meals to see how your food groups are distributed.'}
+        {type === 'balance' && 'Track your daily meals to see your weekly nutrition balance.'}
+        {type === 'timing' && 'Upload meals to receive personalized meal timing recommendations.'}
+      </p>
+      <Button 
+        onClick={() => navigate('/analyse-food')}
+        variant="outline"
+        className="gap-2"
+      >
+        <Camera className="w-4 h-4" />
+        Start Analyzing
+      </Button>
+    </div>
+  );
+
+  const renderDistributionChart = () => {
+    if (!hasFoodData) {
+      return <EmptyState type="distribution" />;
+    }
+    
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart */}
+        <div className="h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={displayFoodData} margin={{ top: 20, right: 20, left: 0, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+              <XAxis 
+                dataKey="name" 
+                fontSize={11}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                className="fill-gray-600 dark:fill-gray-400"
+              />
+              <YAxis fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {displayFoodData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        
+        {/* Pie Chart */}
+        <div className="h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={displayFoodData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {displayFoodData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                formatter={(_value, entry: any) => (
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {entry.payload.name} ({entry.payload.percentage}%)
+                  </span>
+                )}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBalanceChart = () => {
+    if (!hasWeeklyBalance) {
+      return <EmptyState type="balance" />;
+    }
+
+    return (
+      <div className="h-64 sm:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={foodData} margin={{ top: 20, right: 20, left: 0, bottom: 40 }}>
+          <LineChart data={displayWeeklyBalance} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis 
-              dataKey="name" 
-              fontSize={11}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              className="fill-gray-600 dark:fill-gray-400"
-            />
-            <YAxis fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
+            <XAxis dataKey="day" fontSize={12} className="fill-gray-600 dark:fill-gray-400" />
+            <YAxis fontSize={12} domain={[0, 100]} className="fill-gray-600 dark:fill-gray-400" />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {foodData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="balance" 
+              stroke="#10b981" 
+              strokeWidth={3}
+              dot={{ fill: '#10b981', r: 5 }}
+              name="Your Score"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="target" 
+              stroke="#ef4444" 
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={false}
+              name="Target (80%)"
+            />
+          </LineChart>
         </ResponsiveContainer>
       </div>
-      
-      {/* Pie Chart */}
-      <div className="h-64 sm:h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={foodData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {foodData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              formatter={(_value, entry: any) => (
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {entry.payload.name} ({entry.payload.percentage}%)
-                </span>
-              )}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-
-  const renderBalanceChart = () => (
-    <div className="h-64 sm:h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={weeklyBalance} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-          <XAxis dataKey="day" fontSize={12} className="fill-gray-600 dark:fill-gray-400" />
-          <YAxis fontSize={12} domain={[0, 100]} className="fill-gray-600 dark:fill-gray-400" />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="balance" 
-            stroke="#10b981" 
-            strokeWidth={3}
-            dot={{ fill: '#10b981', r: 5 }}
-            name="Your Score"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="target" 
-            stroke="#ef4444" 
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={false}
-            name="Target (80%)"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+    );
+  };
 
 
 
@@ -231,19 +286,33 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
           ))
         ) : (
           <div className="text-center py-8">
-            <Clock className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-blue-500" />
+            </div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+              No Timing Recommendations Yet
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto mb-4">
               Upload and analyze meals to receive personalized timing recommendations
             </p>
+            <Button 
+              onClick={() => navigate('/analyse-food')}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Camera className="w-4 h-4" />
+              Analyze Meals
+            </Button>
           </div>
         )}
       </div>
 
-      {/* Meal Pattern Summary */}
-      {mealTiming && mealTiming.length > 0 && (
+      {/* Meal Pattern Summary - only show if we have timing data */}
+      {hasMealTiming && (
         <div className="h-52 sm:h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <AreaChart data={displayMealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="caloriesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -285,13 +354,22 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
   );
 
   const getInsightText = () => {
+    if (!hasAnyData) {
+      return 'Start analyzing your meals to get personalized nutrition insights and track your progress over time.';
+    }
     switch (activeTab) {
       case 'distribution':
-        return 'Your diet composition shows carbohydrates as the leading food group. Consider increasing vegetable and fruit intake for better balance.';
+        return hasFoodData 
+          ? 'Your diet composition shows carbohydrates as the leading food group. Consider increasing vegetable and fruit intake for better balance.'
+          : 'Analyze your meals to see your food group distribution.';
       case 'balance':
-        return 'You exceeded your balance target on 4 out of 7 days this week. Great progress toward consistent healthy eating!';
+        return hasWeeklyBalance 
+          ? 'You exceeded your balance target on 4 out of 7 days this week. Great progress toward consistent healthy eating!'
+          : 'Track your daily meals to see your weekly balance progress.';
       case 'timing':
-        return timingRecommendations?.length ? timingRecommendations[0] : 'Upload meals to receive personalized timing recommendations.';
+        return timingRecommendations?.length 
+          ? timingRecommendations[0] 
+          : 'Upload meals to receive personalized timing recommendations.';
       default:
         return '';
     }

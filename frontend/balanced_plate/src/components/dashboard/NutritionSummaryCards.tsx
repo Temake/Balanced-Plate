@@ -1,5 +1,7 @@
 import React from 'react';
-import { Flame, Beef, Wheat, Droplets, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
+import { Flame, Beef, Wheat, Droplets, TrendingUp, TrendingDown, Minus, Sparkles, Camera, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Button } from '@/components/ui/button';
 
 interface NutrientData {
   value: number;
@@ -77,6 +79,16 @@ const getProgressColor = (percentage: number) => {
 };
 
 const NutritionSummaryCards: React.FC<NutritionSummaryCardsProps> = ({ data, isLoading }) => {
+  const navigate = useNavigate();
+
+  // Check if there's real data (not all zeros)
+  const hasData = data && (
+    data.calories.value > 0 || 
+    data.protein.value > 0 || 
+    data.carbs.value > 0 || 
+    data.fats.value > 0
+  );
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
@@ -94,6 +106,44 @@ const NutritionSummaryCards: React.FC<NutritionSummaryCardsProps> = ({ data, isL
             <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
           </div>
         ))}
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!hasData) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
+        <div className="text-center">
+          <div className="flex justify-center gap-3 mb-6">
+            {cardConfig.map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <div 
+                  key={card.key}
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg opacity-${80 - idx * 15}`}
+                  style={{ opacity: 1 - idx * 0.15 }}
+                >
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+              );
+            })}
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            No Nutrition Data Yet
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto mb-6">
+            Start analyzing your meals to track calories, protein, carbs, and fats. Get insights into your daily nutrition intake.
+          </p>
+          <Button 
+            onClick={() => navigate('/analyse-food')}
+            className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+          >
+            <Camera className="w-4 h-4" />
+            Analyze Your First Meal
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     );
   }

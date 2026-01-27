@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import QuickActionButton from "@/components/QuickActionButton";
-import RecentAnalysis from "@/components/RecentAnalysis";
 import {
   NutritionSummaryCards,
   RecommendationsPanel,
@@ -110,11 +109,8 @@ const Dashboard: React.FC = () => {
           </ErrorBoundary>
         </div>
 
-        {/* Bottom Row: Recent Analysis + Health Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recent analysis" />}>
-            <RecentAnalysis className="h-full" onViewAll={() => navigate('/history')} />
-          </ErrorBoundary>
+        {/* Health Insights Section */}
+        <div>
           <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
             <HealthInsights 
               weeklyScore={data?.weeklyScore}
