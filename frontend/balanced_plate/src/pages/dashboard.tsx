@@ -8,7 +8,6 @@ import {
   AnalyticsSection,
   HealthInsights,
   DateRangeFilter,
-  FoodGallery,
 } from "@/components/dashboard";
 import type { DateRange, TimeFilter } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
@@ -16,9 +15,11 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
 import { Utensils, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange>('week');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
   const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
@@ -109,17 +110,10 @@ const Dashboard: React.FC = () => {
           </ErrorBoundary>
         </div>
 
-        {/* Food Gallery Section */}
-        <div className="mb-6">
-          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load food gallery" />}>
-            <FoodGallery />
-          </ErrorBoundary>
-        </div>
-
         {/* Bottom Row: Recent Analysis + Health Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recent analysis" />}>
-            <RecentAnalysis className="h-full" />
+            <RecentAnalysis className="h-full" onViewAll={() => navigate('/history')} />
           </ErrorBoundary>
           <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
             <HealthInsights 

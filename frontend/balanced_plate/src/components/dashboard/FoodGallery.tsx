@@ -19,6 +19,7 @@ import api from '@/api/axios';
 import { useFiles } from '@/hooks/useFiles';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
+import { getImageUrl } from '@/utils/imageUrl';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodImageSkeleton } from '@/components/common/Skeletons';
@@ -106,7 +107,7 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({ analysis, open, onClose }
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative w-full sm:w-48 h-48 rounded-xl overflow-hidden">
               <img
-                src={analysis.image_url}
+                src={getImageUrl(analysis.image_url)}
                 alt="Food analysis"
                 className="w-full h-full object-cover"
               />
@@ -257,7 +258,7 @@ const FoodImageCard: React.FC<FoodImageCardProps> = ({ analysis, onClick }) => {
     >
       {/* Image */}
       <img
-        src={analysis.image_url}
+        src={getImageUrl(analysis.image_url)}
         alt="Food"
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
       />

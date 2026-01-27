@@ -2,15 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Image, X } from 'lucide-react';
 import { useFiles } from '@/hooks/useFiles';
 import { toast } from 'sonner';
-
-const getImageUrl = (filePath: string): string => {
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    return filePath;
-  }
-  // Remove /api suffix from base URL for media files
-  const baseURL = (import.meta.env.VITE_API_URL || '').replace('/api', '');
-  return `${baseURL}${filePath.startsWith('/') ? filePath : '/' + filePath}`;
-};
+import { getImageUrl } from '@/utils/imageUrl';
 
 interface FoodUploadSectionProps {
   className?: string;
