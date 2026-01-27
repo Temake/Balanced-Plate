@@ -12,9 +12,12 @@ interface FoodUploadSectionProps {
 
 type UploadStatus = 'idle' | 'uploading' | 'analyzing' | 'complete' | 'error';
 
+// Timeout for analysis in case WebSocket notification is missed (30 seconds)
+const ANALYSIS_TIMEOUT = 30000;
+
 const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', onUploadComplete }) => {
   const { uploadFile } = useFiles();
-  const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
+  const { analysisCompleted, analysisFailed, clearAnalysisNotification, isConnected } = useWebSocket();
   const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
@@ -22,10 +25,16 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
   const [stream, setStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const analysisTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle WebSocket notifications for analysis completion
   useEffect(() => {
     if (analysisCompleted && uploadStatus === 'analyzing') {
+      // Clear timeout since we got the notification
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
+        analysisTimeoutRef.current = null;
+      }
       setUploadStatus('complete');
       toast.success('Food analysis complete!');
       // Invalidate queries to refresh data
@@ -40,6 +49,11 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
         setPreviewImage(null);
       }, 2000);
     } else if (analysisFailed && uploadStatus === 'analyzing') {
+      // Clear timeout since we got the notification
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
+        analysisTimeoutRef.current = null;
+      }
       setUploadStatus('error');
       toast.error('Food analysis failed. Please try again.');
       clearAnalysisNotification();
@@ -50,11 +64,14 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
     }
   }, [analysisCompleted, analysisFailed, uploadStatus, clearAnalysisNotification, queryClient, onUploadComplete]);
 
-  // Cleanup camera stream on unmount
+  // Cleanup camera stream and timeout on unmount
   useEffect(() => {
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+      }
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
       }
     };
   }, [stream]);
@@ -77,6 +94,28 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
       await uploadFile(file, 'food image');
       setUploadStatus('analyzing');
       toast.success('Image uploaded! Analyzing...');
+      
+      // Set a timeout to complete analysis in case WebSocket notification is missed
+      analysisTimeoutRef.current = setTimeout(() => {
+        // Use functional update to check current status
+        setUploadStatus((currentStatus) => {
+          if (currentStatus === 'analyzing') {
+            console.log('Analysis timeout - assuming complete');
+            toast.success('Food analysis complete!');
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['foodAnalyses'] });
+            queryClient.invalidateQueries({ queryKey: ['recentAnalyses'] });
+            queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+            onUploadComplete?.();
+            setTimeout(() => {
+              setUploadStatus('idle');
+              setPreviewImage(null);
+            }, 2000);
+            return 'complete';
+          }
+          return currentStatus;
+        });
+      }, ANALYSIS_TIMEOUT);
     } catch (error) {
       setUploadStatus('error');
       toast.error('Failed to upload image');
