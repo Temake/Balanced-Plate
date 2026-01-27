@@ -18,6 +18,7 @@ import { FilesProvider } from "./context/FilesContext";
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 
+
 const Loading = <div className="flex items-center justify-center h-screen">Loading...</div>;
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
        <Toaster position="top-right" richColors />
    <Routes>
     {/* <ProtectedRoute> */}
+      
     <Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
     <Route path="/analyze-food" element={<ProtectedRoute><AnalyseFood/></ProtectedRoute>}/>
     <Route path="/learn" element={<ProtectedRoute><Learn/></ProtectedRoute>}/>

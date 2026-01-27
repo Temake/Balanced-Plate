@@ -43,10 +43,34 @@ class ListCreateFile(PaginationMixin, views.APIView):
 
         serializer = serializers.FileSerializer.CreateFile(data=request.data)
         serializer.is_valid(raise_exception=True)
-        file = serializer.save()
-        logger.success(f"successfully created file with id {file.id}")
-        serializer = serializers.FileSerializer.ListRetrieve(instance=file)
-        return response.Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        file_obj = serializer.save()
+        logger.success(f"successfully created file with id {file_obj.id}")
+        
+        # Auto-trigger food analysis for food images
+        analysis_id = None
+        if file_obj.purpose == enums.FilePurposeType.FOOD_IMAGE.value:
+            from core.results.tasks import analyze_food_image_task
+            from core.results.models import FoodAnalysis
+            
+            # Create the analysis record first
+            analysis = FoodAnalysis.objects.create(
+                owner=file_obj.owner,
+                food_image=file_obj,
+            )
+            analysis_id = analysis.id
+            
+            # Trigger async analysis task
+            analyze_food_image_task.delay(str(file_obj.id), use_mock=False)
+            logger.info(f"Auto-triggered food analysis for file {file_obj.id}")
+        
+        serializer = serializers.FileSerializer.ListRetrieve(instance=file_obj)
+        response_data = serializer.data
+        
+        # Include analysis_id in response if analysis was triggered
+        if analysis_id:
+            response_data["analysis_id"] = analysis_id
+            
+        return response.Response(data=response_data, status=status.HTTP_201_CREATED)
 
 
     @extend_schema(

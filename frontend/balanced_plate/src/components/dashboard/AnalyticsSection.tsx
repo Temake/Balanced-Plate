@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   BarChart3, PieChart as PieChartIcon, TrendingUp, Clock, 
-  Pill, Activity
+  Activity, Utensils
 } from 'lucide-react';
 
 export interface FoodGroupData {
@@ -24,15 +24,6 @@ export interface WeeklyBalanceData {
   [key: string]: string | number;
 }
 
-export interface MicronutrientData {
-  name: string;
-  current: number;
-  recommended: number;
-  percentage: number;
-  color: string;
-  [key: string]: string | number;
-}
-
 export interface MealTimingData {
   hour: string;
   calories: number;
@@ -43,8 +34,8 @@ export interface MealTimingData {
 interface AnalyticsSectionProps {
   foodData?: FoodGroupData[];
   weeklyBalance?: WeeklyBalanceData[];
-  micronutrients?: MicronutrientData[];
   mealTiming?: MealTimingData[];
+  timingRecommendations?: string[];
   isLoading?: boolean;
   className?: string;
 }
@@ -68,17 +59,6 @@ const mockWeeklyBalance: WeeklyBalanceData[] = [
   { day: 'Sun', balance: 79, target: 80 }
 ];
 
-const mockMicronutrients: MicronutrientData[] = [
-  { name: 'Vitamin C', current: 85, recommended: 90, percentage: 94, color: '#f59e0b' },
-  { name: 'Vitamin D', current: 15, recommended: 20, percentage: 75, color: '#3b82f6' },
-  { name: 'Iron', current: 12, recommended: 18, percentage: 67, color: '#ef4444' },
-  { name: 'Calcium', current: 950, recommended: 1000, percentage: 95, color: '#10b981' },
-  { name: 'Zinc', current: 8, recommended: 11, percentage: 73, color: '#8b5cf6' },
-  { name: 'B12', current: 2.2, recommended: 2.4, percentage: 92, color: '#06b6d4' },
-  { name: 'Folate', current: 380, recommended: 400, percentage: 95, color: '#84cc16' },
-  { name: 'Magnesium', current: 280, recommended: 320, percentage: 88, color: '#f97316' }
-];
-
 const mockMealTiming: MealTimingData[] = [
   { hour: '6 AM', calories: 0, mealType: '' },
   { hour: '7 AM', calories: 320, mealType: 'Breakfast' },
@@ -99,7 +79,7 @@ const mockMealTiming: MealTimingData[] = [
   { hour: '10 PM', calories: 80, mealType: 'Snack' },
 ];
 
-type TabType = 'distribution' | 'balance' | 'micronutrients' | 'timing';
+type TabType = 'distribution' | 'balance' | 'timing';
 
 interface Tab {
   id: TabType;
@@ -111,8 +91,7 @@ interface Tab {
 const tabs: Tab[] = [
   { id: 'distribution', label: 'Food Distribution', icon: PieChartIcon, shortLabel: 'Food' },
   { id: 'balance', label: 'Weekly Balance', icon: TrendingUp, shortLabel: 'Balance' },
-  { id: 'micronutrients', label: 'Micronutrients', icon: Pill, shortLabel: 'Vitamins' },
-  { id: 'timing', label: 'Meal Timing', icon: Clock, shortLabel: 'Timing' },
+  { id: 'timing', label: 'Meal Recommendations', icon: Clock, shortLabel: 'Timing' },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -135,8 +114,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
   foodData = mockFoodData,
   weeklyBalance = mockWeeklyBalance,
-  micronutrients = mockMicronutrients,
   mealTiming = mockMealTiming,
+  timingRecommendations = [],
   isLoading,
   className = ''
 }) => {
@@ -230,51 +209,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
     </div>
   );
 
-  const renderMicronutrientsChart = () => (
-    <div>
-      <div className="h-52 sm:h-64 mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={micronutrients} layout="vertical" margin={{ top: 5, right: 30, left: 60, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis type="number" domain={[0, 120]} fontSize={11} className="fill-gray-600 dark:fill-gray-400" />
-            <YAxis dataKey="name" type="category" fontSize={11} width={70} className="fill-gray-600 dark:fill-gray-400" />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="percentage" radius={[0, 4, 4, 0]} name="% of RDA">
-              {micronutrients.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={entry.percentage >= 90 ? '#10b981' : entry.percentage >= 70 ? '#f59e0b' : '#ef4444'} 
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        {micronutrients.slice(0, 4).map((nutrient, idx) => (
-          <div 
-            key={idx} 
-            className={`p-2 sm:p-3 rounded-lg ${
-              nutrient.percentage >= 90 ? 'bg-green-50 dark:bg-green-900/20' :
-              nutrient.percentage >= 70 ? 'bg-amber-50 dark:bg-amber-900/20' :
-              'bg-red-50 dark:bg-red-900/20'
-            }`}
-          >
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{nutrient.name}</p>
-            <p className={`text-lg font-bold ${
-              nutrient.percentage >= 90 ? 'text-green-600 dark:text-green-400' :
-              nutrient.percentage >= 70 ? 'text-amber-600 dark:text-amber-400' :
-              'text-red-600 dark:text-red-400'
-            }`}>
-              {nutrient.percentage}%
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+
 
   const renderTimingChart = () => (
     <div>
@@ -342,10 +277,8 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
         return 'Your diet composition shows carbohydrates as the leading food group. Consider increasing vegetable and fruit intake for better balance.';
       case 'balance':
         return 'You exceeded your balance target on 4 out of 7 days this week. Great progress toward consistent healthy eating!';
-      case 'micronutrients':
-        return `${micronutrients.filter(n => n.percentage >= 90).length} of ${micronutrients.length} vitamins meet daily requirements. Focus on Iron and Vitamin D.`;
       case 'timing':
-        return 'Your eating pattern shows consistent meal timing. Consider reducing late-night snacking after 9 PM for better digestion.';
+        return timingRecommendations?.length ? timingRecommendations[0] : 'Upload meals to receive personalized timing recommendations.';
       default:
         return '';
     }
@@ -404,7 +337,6 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
       <div className="p-4 sm:p-6">
         {activeTab === 'distribution' && renderDistributionChart()}
         {activeTab === 'balance' && renderBalanceChart()}
-        {activeTab === 'micronutrients' && renderMicronutrientsChart()}
         {activeTab === 'timing' && renderTimingChart()}
 
         {/* Insight Box */}
