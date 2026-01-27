@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   BarChart3, PieChart as PieChartIcon, TrendingUp, Clock, 
-  Activity, Utensils
+  Activity,
 } from 'lucide-react';
 
 export interface FoodGroupData {
@@ -213,61 +213,74 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
 
   const renderTimingChart = () => (
     <div>
-      <div className="h-52 sm:h-64 mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={mealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="caloriesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-            <XAxis dataKey="hour" fontSize={10} interval={2} className="fill-gray-600 dark:fill-gray-400" />
-            <YAxis fontSize={10} className="fill-gray-600 dark:fill-gray-400" />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                      <p className="font-medium text-gray-900 dark:text-white">{data.hour}</p>
-                      <p className="text-sm text-green-600 dark:text-green-400">{data.calories} calories</p>
-                      {data.mealType && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{data.mealType}</p>
-                      )}
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="calories" 
-              stroke="#10b981"
-              strokeWidth={2}
-              fill="url(#caloriesGradient)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      {/* Timing Recommendations List */}
+      <div className="space-y-3 mb-4">
+        {timingRecommendations && timingRecommendations.length > 0 ? (
+          timingRecommendations.map((recommendation, idx) => (
+            <div 
+              key={idx}
+              className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800"
+            >
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
+                {idx + 1}
+              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {recommendation}
+              </p>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <Clock className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              Upload and analyze meals to receive personalized timing recommendations
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Meal Summary */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 sm:p-3 border border-orange-200 dark:border-orange-800">
-          <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Breakfast</p>
-          <p className="text-sm text-orange-600 dark:text-orange-400">Peak: 7-8 AM</p>
+      {/* Meal Pattern Summary */}
+      {mealTiming && mealTiming.length > 0 && (
+        <div className="h-52 sm:h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={mealTiming} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="caloriesGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+              <XAxis dataKey="hour" fontSize={10} interval={2} className="fill-gray-600 dark:fill-gray-400" />
+              <YAxis fontSize={10} className="fill-gray-600 dark:fill-gray-400" />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                        <p className="font-medium text-gray-900 dark:text-white">{data.hour}</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">{data.calories} calories</p>
+                        {data.mealType && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{data.mealType}</p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="calories" 
+                stroke="#10b981"
+                strokeWidth={2}
+                fill="url(#caloriesGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2 sm:p-3 border border-yellow-200 dark:border-yellow-800">
-          <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Lunch</p>
-          <p className="text-sm text-yellow-600 dark:text-yellow-400">Peak: 12-1 PM</p>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
-          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Dinner</p>
-          <p className="text-sm text-blue-600 dark:text-blue-400">Peak: 7-8 PM</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 

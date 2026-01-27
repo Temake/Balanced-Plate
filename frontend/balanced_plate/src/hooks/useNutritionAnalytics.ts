@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/api/axios';
 import type { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -6,10 +6,9 @@ import type { Recommendation } from '@/components/dashboard/RecommendationsPanel
 import type { 
   FoodGroupData, 
   WeeklyBalanceData, 
-  MicronutrientData, 
   MealTimingData 
 } from '@/components/dashboard/AnalyticsSection';
-import { mockRecommendations } from '@/components/dashboard/RecommendationsPanel';
+import type { FoodAnalysis, WeeklyRecommendation } from '@/api/types';
 
 interface NutrientData {
   value: number;
@@ -38,10 +37,11 @@ export interface NutritionAnalyticsData {
   summary: NutritionSummary;
   foodGroups: FoodGroupData[];
   weeklyBalance: WeeklyBalanceData[];
-  micronutrients: MicronutrientData[];
   mealTiming: MealTimingData[];
   weeklyScore: WeeklyScoreData;
   recommendations: Recommendation[];
+  timingRecommendations: string[];
+  weeklyRecommendations: WeeklyRecommendation[];
 }
 
 // Color palette for food groups
@@ -203,82 +203,128 @@ const calculateWeeklyScore = (balanceData: WeeklyBalanceData[]): WeeklyScoreData
   };
 };
 
-// Generate recommendations based on data (mock for now)
-// TODO: Replace with backend recommendations when available
-const generateRecommendations = (
-  _micronutrients: MicronutrientData[], 
-  _foodGroups: FoodGroupData[]
-): Recommendation[] => {
-  // For now, return mock recommendations
-  // This will be replaced with backend recommendations later
-  return mockRecommendations;
+// Extract timing recommendations from food analyses
+const extractTimingRecommendations = (analyses: FoodAnalysis[]): string[] => {
+  const allTimingRecs: string[] = [];
+  for (const analysis of analyses) {
+    const timingRecs = analysis.next_meal_recommendations?.timing_recommendations || [];
+    allTimingRecs.push(...timingRecs);
+  }
+  // Remove duplicates and return latest 5
+  return [...new Set(allTimingRecs)].slice(0, 5);
+};
+
+// Transform food analysis to recommendations
+const transformAnalysesToRecommendations = (analyses: FoodAnalysis[]): Recommendation[] => {
+  const recommendations: Recommendation[] = [];
+  
+  for (const analysis of analyses.slice(0, 5)) {
+    const nutritionalRecs = analysis.next_meal_recommendations?.nutritional_recommendations || [];
+    const balanceRecs = analysis.next_meal_recommendations?.balance_improvements || [];
+    
+    // Add nutritional recommendations
+    nutritionalRecs.forEach((rec, idx) => {
+      recommendations.push({
+        id: `nutritional-${analysis.id}-${idx}`,
+        title: 'Nutritional Tip',
+        description: rec,
+        type: 'diet' as const,
+        priority: 'medium' as const,
+      });
+    });
+    
+    // Add balance improvement recommendations
+    balanceRecs.forEach((rec, idx) => {
+      recommendations.push({
+        id: `balance-${analysis.id}-${idx}`,
+        title: 'Balance Improvement',
+        description: rec,
+        type: 'balance' as const,
+        priority: 'high' as const,
+      });
+    });
+  }
+  
+  return recommendations.slice(0, 10); // Return max 10 recommendations
+};
+
+// Query keys for React Query
+export const nutritionQueryKeys = {
+  all: ['nutrition'] as const,
+  analytics: (userId: number, dateRange: DateRange) => [...nutritionQueryKeys.all, 'analytics', userId, dateRange] as const,
+  foodGroups: (userId: number) => [...nutritionQueryKeys.all, 'foodGroups', userId] as const,
+  balanceScore: (userId: number) => [...nutritionQueryKeys.all, 'balanceScore', userId] as const,
+  analyses: (dateRange: DateRange) => [...nutritionQueryKeys.all, 'analyses', dateRange] as const,
+  weeklyRecommendations: () => [...nutritionQueryKeys.all, 'weeklyRecommendations'] as const,
+};
+
+// Fetch all analytics data
+const fetchAnalyticsData = async (userId: number, _dateRange: DateRange): Promise<NutritionAnalyticsData> => {
+  // Fetch all analytics data in parallel
+  const [foodGroupsRes, distributionRes, balanceScoreRes, mealTimingRes, analysesRes, weeklyRecsRes] = 
+    await Promise.allSettled([
+      api.get(`/analytics/nutrition/${userId}/food-group-grams/`),
+      api.get(`/analytics/nutrition/${userId}/food-group-percentage/`),
+      api.get(`/analytics/nutrition/${userId}/daily-balance-score/`),
+      api.get(`/analytics/meal-timing/${userId}/`),
+      api.get('/results/', { params: { page_size: 10 } }),
+      api.get('/recommendations/', { params: { page_size: 5 } }),
+    ]);
+
+  // Extract successful responses or use null
+  const foodGroupsData = foodGroupsRes.status === 'fulfilled' ? foodGroupsRes.value.data : null;
+  const distributionData = distributionRes.status === 'fulfilled' ? distributionRes.value.data : null;
+  const balanceScoreData = balanceScoreRes.status === 'fulfilled' ? balanceScoreRes.value.data : null;
+  const mealTimingData = mealTimingRes.status === 'fulfilled' ? mealTimingRes.value.data : null;
+  const analysesData: FoodAnalysis[] = analysesRes.status === 'fulfilled' 
+    ? (analysesRes.value.data.results || analysesRes.value.data || [])
+    : [];
+  const weeklyRecsData: WeeklyRecommendation[] = weeklyRecsRes.status === 'fulfilled'
+    ? (weeklyRecsRes.value.data.results || weeklyRecsRes.value.data || [])
+    : [];
+
+  // Transform data
+  const transformedFoodGroups = transformFoodGroupData(foodGroupsData).length > 0 
+    ? transformFoodGroupData(foodGroupsData) 
+    : transformDistributionData(distributionData);
+  const transformedWeeklyBalance = transformWeeklyBalance(balanceScoreData);
+  const transformedMealTiming = transformMealTiming(mealTimingData);
+  const timingRecommendations = extractTimingRecommendations(analysesData);
+  const recommendations = transformAnalysesToRecommendations(analysesData);
+
+  return {
+    summary: calculateSummary(foodGroupsData),
+    foodGroups: transformedFoodGroups,
+    weeklyBalance: transformedWeeklyBalance,
+    mealTiming: transformedMealTiming,
+    weeklyScore: calculateWeeklyScore(transformedWeeklyBalance),
+    recommendations,
+    timingRecommendations,
+    weeklyRecommendations: weeklyRecsData,
+  };
 };
 
 export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
   const { user } = useAuth();
-  const [data, setData] = useState<NutritionAnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchAnalytics = useCallback(async () => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
+  const query = useQuery({
+    queryKey: nutritionQueryKeys.analytics(user?.id || 0, dateRange),
+    queryFn: () => fetchAnalyticsData(user!.id, dateRange),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes (was cacheTime)
+  });
 
-    try {
-      // Fetch all analytics data in parallel
-      const [foodGroupsRes, distributionRes, balanceScoreRes, micronutrientsRes, mealTimingRes] = 
-        await Promise.allSettled([
-          api.get(`/analytics/nutrition/${user.id}/food-group-grams/`),
-          api.get(`/analytics/nutrition/${user.id}/food-group-percentage/`),
-          api.get(`/analytics/nutrition/${user.id}/daily-balance-score/`),
-          api.get(`/analytics/micronutrients/${user.id}/`),
-          api.get(`/analytics/meal-timing/${user.id}/`),
-        ]);
-
-      // Extract successful responses or use null
-      const foodGroupsData = foodGroupsRes.status === 'fulfilled' ? foodGroupsRes.value.data : null;
-      const distributionData = distributionRes.status === 'fulfilled' ? distributionRes.value.data : null;
-      const balanceScoreData = balanceScoreRes.status === 'fulfilled' ? balanceScoreRes.value.data : null;
-      const micronutrientsData = micronutrientsRes.status === 'fulfilled' ? micronutrientsRes.value.data : null;
-      const mealTimingData = mealTimingRes.status === 'fulfilled' ? mealTimingRes.value.data : null;
-
-      // Transform data
-      const transformedFoodGroups = transformFoodGroupData(foodGroupsData) || transformDistributionData(distributionData);
-      const transformedMicronutrients = transformMicronutrients(micronutrientsData);
-      const transformedWeeklyBalance = transformWeeklyBalance(balanceScoreData);
-      const transformedMealTiming = transformMealTiming(mealTimingData);
-
-      setData({
-        summary: calculateSummary(foodGroupsData),
-        foodGroups: transformedFoodGroups,
-        weeklyBalance: transformedWeeklyBalance,
-        micronutrients: transformedMicronutrients,
-        mealTiming: transformedMealTiming,
-        weeklyScore: calculateWeeklyScore(transformedWeeklyBalance),
-        recommendations: generateRecommendations(transformedMicronutrients, transformedFoodGroups),
-      });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load nutrition analytics';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user?.id, dateRange]);
-
-  useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: nutritionQueryKeys.analytics(user?.id || 0, dateRange) });
+  };
 
   return { 
-    data, 
-    isLoading, 
-    error, 
-    refetch: fetchAnalytics 
+    data: query.data || null, 
+    isLoading: query.isLoading, 
+    error: query.error?.message || null, 
+    refetch 
   };
 };
 
