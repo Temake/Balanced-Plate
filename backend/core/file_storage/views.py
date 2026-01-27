@@ -86,6 +86,6 @@ class RetrieveFile(views.APIView):
             return response.Response(data=serializer.data, status=status.HTTP_200_OK)
         except models.FileModel.DoesNotExist:
             raise exceptions.CustomException(
-                nessage="File not found", 
+                message="File not found", 
                 status_code=status.HTTP_404_NOT_FOUND
             )
