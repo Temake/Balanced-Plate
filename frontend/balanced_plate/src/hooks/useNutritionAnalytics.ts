@@ -266,7 +266,7 @@ const fetchAnalyticsData = async (userId: number, _dateRange: DateRange): Promis
       api.get(`/analytics/nutrition/${userId}/food-group-grams/`),
       api.get(`/analytics/nutrition/${userId}/food-group-percentage/`),
       api.get(`/analytics/nutrition/${userId}/daily-balance-score/`),
-      api.get(`/analytics/meal-timing/${userId}/`),
+      api.get('/analytics/meal-timing/'),
       api.get('/results/', { params: { page_size: 10 } }),
       api.get('/recommendations/', { params: { page_size: 5 } }),
     ]);

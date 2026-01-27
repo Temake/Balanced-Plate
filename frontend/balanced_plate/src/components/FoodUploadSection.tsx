@@ -1,26 +1,54 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Image, X } from 'lucide-react';
+import { Camera, Image, X, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useFiles } from '@/hooks/useFiles';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { toast } from 'sonner';
-import { getImageUrl } from '@/utils/imageUrl';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FoodUploadSectionProps {
   className?: string;
+  onUploadComplete?: () => void;
 }
 
-const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' }) => {
-  const { files, isLoading, error, uploadFile, fetchFiles } = useFiles();
+type UploadStatus = 'idle' | 'uploading' | 'analyzing' | 'complete' | 'error';
+
+const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', onUploadComplete }) => {
+  const { uploadFile } = useFiles();
+  const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
+  const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [isCameraOpen, setIsCameraOpen] = useState<boolean>(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Handle WebSocket notifications for analysis completion
   useEffect(() => {
-    fetchFiles();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (analysisCompleted && uploadStatus === 'analyzing') {
+      setUploadStatus('complete');
+      toast.success('Food analysis complete!');
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['foodAnalyses'] });
+      queryClient.invalidateQueries({ queryKey: ['recentAnalyses'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+      clearAnalysisNotification();
+      onUploadComplete?.();
+      // Reset after showing success
+      setTimeout(() => {
+        setUploadStatus('idle');
+        setPreviewImage(null);
+      }, 2000);
+    } else if (analysisFailed && uploadStatus === 'analyzing') {
+      setUploadStatus('error');
+      toast.error('Food analysis failed. Please try again.');
+      clearAnalysisNotification();
+      setTimeout(() => {
+        setUploadStatus('idle');
+        setPreviewImage(null);
+      }, 3000);
+    }
+  }, [analysisCompleted, analysisFailed, uploadStatus, clearAnalysisNotification, queryClient, onUploadComplete]);
 
   // Cleanup camera stream on unmount
   useEffect(() => {
@@ -44,16 +72,19 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' })
     reader.readAsDataURL(file);
 
     // Upload file
-    setIsUploading(true);
+    setUploadStatus('uploading');
     try {
       await uploadFile(file, 'food image');
-      toast.success('Image uploaded successfully!');
-      setPreviewImage(null);
+      setUploadStatus('analyzing');
+      toast.success('Image uploaded! Analyzing...');
     } catch (error) {
+      setUploadStatus('error');
       toast.error('Failed to upload image');
       console.error('Upload error:', error);
-    } finally {
-      setIsUploading(false);
+      setTimeout(() => {
+        setUploadStatus('idle');
+        setPreviewImage(null);
+      }, 3000);
     }
   };
 
@@ -61,6 +92,10 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' })
     const file = event.target.files?.[0];
     if (file) {
       handleFileSelect(file);
+    }
+    // Reset input so same file can be selected again
+    if (event.target) {
+      event.target.value = '';
     }
   };
 
@@ -114,6 +149,8 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' })
     }, 'image/jpeg', 0.95);
   };
 
+  const isProcessing = uploadStatus === 'uploading' || uploadStatus === 'analyzing';
+
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
       <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6 flex items-center">
@@ -152,124 +189,113 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '' })
         </div>
       )}
 
-      {/* Upload Options */}
-      {!isCameraOpen && (
-        <div className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={openCamera}
-              disabled={isUploading}
-              className="flex flex-col items-center p-4 sm:p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Camera className="text-blue-500 dark:text-blue-400 mb-3" size={28} />
-              <span className="font-medium text-gray-700 dark:text-gray-200">Use Camera</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Take a photo</span>
-            </button>
-            
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="flex flex-col items-center p-4 sm:p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Image className="text-green-500 dark:text-green-400 mb-3" size={28} />
-              <span className="font-medium text-gray-700 dark:text-gray-200">Upload Image</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">From gallery</span>
-            </button>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            disabled={isUploading}
-          />
-        </div>
-      )}
-
-      {/* Preview during upload */}
-      {previewImage && isUploading && (
+      {/* Processing State */}
+      {isProcessing && previewImage && (
         <div className="mb-6">
-          <div className="relative">
+          <div className="relative rounded-xl overflow-hidden">
             <img 
               src={previewImage} 
               alt="Preview"
-              className="w-full h-40 sm:h-48 object-cover rounded-lg shadow-md"
+              className="w-full h-48 sm:h-64 object-cover"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto mb-2"></div>
-                <p className="text-white font-medium">Uploading...</p>
+                {uploadStatus === 'uploading' ? (
+                  <>
+                    <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-3" />
+                    <p className="text-white font-medium text-lg">Uploading image...</p>
+                    <p className="text-white/70 text-sm mt-1">Please wait</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mx-auto mb-3 animate-pulse">
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping" />
+                    </div>
+                    <p className="text-white font-medium text-lg">Analyzing your food...</p>
+                    <p className="text-white/70 text-sm mt-1">AI is detecting nutrients</p>
+                    <div className="flex justify-center gap-1 mt-4">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && !isUploading && (
-        <div className="text-center p-6">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-2"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your images...</p>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && files.length === 0 && !previewImage && (
-        <div className="text-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-          <Image className="mx-auto text-gray-400 dark:text-gray-500 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-            No images yet
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Upload your first food image using the buttons above
-          </p>
-        </div>
-      )}
-
-      {/* Image Gallery */}
-      {!isLoading && files.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-            Your Food Images ({files.length})
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {files.map((file) => (
-              <div key={file.id} className="relative group">
-                <img
-                  src={getImageUrl(file.file)}
-                  alt={file.original_name || 'Food image'}
-                  className="w-full h-32 object-cover rounded-lg shadow-md transition-transform group-hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    console.error('Failed to load image:', file.file);
-                    target.style.backgroundColor = '#f3f4f6';
-                    target.alt = 'Failed to load image';
-                  }}
-                />
-                <div className="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-40 transition-opacity rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center">
-                    {file.original_name || 'Food image'}
-                  </span>
-                </div>
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">
-                    {new Date(file.date_added).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+      {/* Complete State */}
+      {uploadStatus === 'complete' && previewImage && (
+        <div className="mb-6">
+          <div className="relative rounded-xl overflow-hidden">
+            <img 
+              src={previewImage} 
+              alt="Preview"
+              className="w-full h-48 sm:h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-green-500/80 backdrop-blur-sm flex flex-col items-center justify-center">
+              <CheckCircle2 className="w-16 h-16 text-white mb-3" />
+              <p className="text-white font-medium text-lg">Analysis Complete!</p>
+              <p className="text-white/90 text-sm mt-1">Check your results below</p>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Error State */}
+      {uploadStatus === 'error' && previewImage && (
+        <div className="mb-6">
+          <div className="relative rounded-xl overflow-hidden">
+            <img 
+              src={previewImage} 
+              alt="Preview"
+              className="w-full h-48 sm:h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-red-500/80 backdrop-blur-sm flex flex-col items-center justify-center">
+              <X className="w-16 h-16 text-white mb-3" />
+              <p className="text-white font-medium text-lg">Analysis Failed</p>
+              <p className="text-white/90 text-sm mt-1">Please try again</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Options - Only show when not processing */}
+      {!isCameraOpen && uploadStatus === 'idle' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            onClick={openCamera}
+            className="flex flex-col items-center p-4 sm:p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-300"
+          >
+            <Camera className="text-blue-500 dark:text-blue-400 mb-3" size={28} />
+            <span className="font-medium text-gray-700 dark:text-gray-200">Use Camera</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">Take a photo</span>
+          </button>
+          
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center p-4 sm:p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-300"
+          >
+            <Image className="text-green-500 dark:text-green-400 mb-3" size={28} />
+            <span className="font-medium text-gray-700 dark:text-gray-200">Upload Image</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">From gallery</span>
+          </button>
+        </div>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="hidden"
+        disabled={isProcessing}
+      />
     </div>
   );
 };
