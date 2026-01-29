@@ -56,7 +56,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (typeof error === 'object' && error && 'response' in error) {
         const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
         errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+        
       }
+      
       
       setError(errorMessage);
       setIsAuthenticated(false);
@@ -73,13 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await api.post<SignupResponse>('/accounts/', credential);
       if (response.status === 201) {
-        const { user: userData, token } = response.data;
-
-        localStorage.setItem(ACCESS_TOKEN, token.access);
-        localStorage.setItem(REFRESH_TOKEN, token.refresh);
-
-        setUser(userData);
-        setIsAuthenticated(true);
+        
         return response.data;
       } else {
         setError("Signup Failed");
