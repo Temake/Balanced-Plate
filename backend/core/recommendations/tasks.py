@@ -7,7 +7,7 @@ from core.account.models import Account
 from core.recommendations.services import weekly_recommendation_service
 
 
-@shared_task(bind=True, max_retries=3, queue="recommendation")
+@shared_task(bind=True, max_retries=3, queue="recommendations")
 def generate_weekly_recommendations_for_all_users(self):
     """
     Generate weekly recommendations for all active users.
@@ -35,11 +35,11 @@ def generate_weekly_recommendations_for_all_users(self):
             recommendation.emit_ready_event()
             
             success_count += 1
-            logger.info(f"Generated recommendation for user {user.id}")
+            logger.info(f"Emitted recommendation for user {user.id}")
 
         except Exception as e:
             error_count += 1
-            logger.error(f"Failed to generate recommendation for user {user.id}: {e}")
+            logger.error(f"Failed to emit recommendation for user {user.id}: {e}")
             raise self.retry(exc=e, countdown=60)
 
     logger.info(

@@ -166,9 +166,9 @@ class WeeklyRecommendationHelper:
             keys = self.DEFAULT_MICRONUTRIENT_KEYS
 
         detected_foods = DetectedFood.objects.filter(
-            food_analysis__owner=self.user,
-            food_analysis__date_added__date__gte=self.start_date,
-            food_analysis__date_added__date__lte=self.end_date,
+            analysis__owner=self.user,
+            analysis__date_added__date__gte=self.start_date,
+            analysis__date_added__date__lte=self.end_date,
         ).values_list("micronutrients", flat=True)
 
         totals = {k: 0.0 for k in keys}

@@ -373,3 +373,7 @@ if USING_MANAGED_STORAGE:
 
     PUBLIC_MEDIA_LOCATION = "media"
     MEDIA_URL = f""
+
+
+GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
+GEMINI_MODEL = env.str("GEMINI_MODEL", default="gemini-2.0-flash")

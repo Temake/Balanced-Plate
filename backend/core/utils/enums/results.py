@@ -22,10 +22,3 @@ class FoodAnalysisStatus(BaseEnum):
     ANALYSIS_PROCESSING = "analysis_processing"   
     ANALYSIS_COMPLETED = "analysis_completed"
     ANALYSIS_FAILED = "analysis_failed"
-
-
-class WeeklyRecommendationStatus(BaseEnum):
-    PENDING = "Pending"
-    PROCESSING = "Processing"   
-    COMPLETED = "Completed"
-    FAILED = "Failed"

@@ -1,14 +1,13 @@
 import json
-import base64
 from typing import Tuple
 
-from django.conf import settings
 from loguru import logger
 
 from .mock import get_mock_weekly_recommendation
 from core.utils.helpers.recommendations import WeeklyRecommendationHelper
 from core.utils.services import GeminiBaseService
 from .models import WeeklyRecommendation
+from core.utils import enums
 
 
 WEEKLY_RECOMMENDATION_PROMPT = """
@@ -111,7 +110,7 @@ class WeeklyRecommendationService(GeminiBaseService):
             logger.info(f"Recommendation already exists for user {user.id} week {helper.start_date}")
             return recommendation
 
-        recommendation.status = "processing"
+        recommendation.status = enums.WeeklyRecommendationStatus.PROCESSING.value
         recommendation.save(update_fields=["status"])
 
         try:
@@ -122,7 +121,7 @@ class WeeklyRecommendationService(GeminiBaseService):
             recommendation.input_data = input_data
             recommendation.input_data["priority_actions"] = result.get("priority_actions", [])
             recommendation.input_data["weekly_goals"] = result.get("weekly_goals", [])
-            recommendation.status = "completed"
+            recommendation.status = enums.WeeklyRecommendationStatus.COMPLETED.value
             recommendation.is_mock_data = is_mock
             recommendation.save()
 
@@ -131,7 +130,7 @@ class WeeklyRecommendationService(GeminiBaseService):
 
         except Exception as e:
             logger.error(f"Failed to generate recommendation: {e}")
-            recommendation.status = "failed"
+            recommendation.status = enums.WeeklyRecommendationStatus.FAILED.value
             recommendation.error_message = str(e)
             recommendation.save(update_fields=["status", "error_message"])
             raise
@@ -139,8 +138,8 @@ class WeeklyRecommendationService(GeminiBaseService):
     def _call_gemini(self, input_data: dict) -> Tuple[dict, bool]:
         """Call Gemini API with the recommendation prompt."""
         
-        if not self.model:
-            logger.warning("Gemini not configured, using mock data")
+        if not self.client:
+            logger.warning("Gemini client not configured, using mock data")
             return get_mock_weekly_recommendation(), True
 
         try:
