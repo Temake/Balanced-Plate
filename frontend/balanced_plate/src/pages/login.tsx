@@ -46,9 +46,10 @@ export default function LoginPage() {
  
 
   const onSubmit = async (data: LoginFormValues) => {
+    clearError();
     setIsSubmitting(true);
     setSuccessMessage("");
-    clearError();
+   
     try {
       await login({ email: data.email, password: data.password });
       setSuccessMessage("Logged in successfully.");
@@ -136,8 +137,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex flex-row justify-end items-end-safe mt-0.5 my-2 text-sm text-gray-600 dark:text-gray-400">
-                <a href="/forget-password" className="text-black dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 font-medium transition-colors">Forgot your password?</a>
+              <div className="flex flex-row justify-end items-end-safe mt-0.5 my-2 text-sm text-gray-600 ">
+                <a href="/forget-password" className="text-black dark:text-green-600 hover:text-gray-500 dark:hover:text-gray-300 font-medium transition-colors">Forgot your password?</a>
               </div>
               <Button
                 type="submit"
@@ -160,9 +161,9 @@ export default function LoginPage() {
           </Form>
 
           {/* Signup Link */}
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+          <p className="text-center text-sm text-gray-600 dark:text-white mt-6">
             Don't have an account?{" "}
-            <a href="/signup" className="text-black  hover:text-gray-500  font-medium transition-colors">
+            <a href="/signup" className="text-black  hover:text-gray-500 dark:text-green-600 font-medium transition-colors">
               Sign up for free
             </a>
           </p>

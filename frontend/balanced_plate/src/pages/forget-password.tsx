@@ -52,7 +52,7 @@ const ForgetPasswordPage = () => {
 };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 px-4">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
@@ -162,18 +162,18 @@ const ForgetPasswordPage = () => {
               </svg>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Balanced Plate<span className="text-green-600">.AI</span>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Balanced Plate<span className="text-green-600 dark:text-green-500 ">.AI</span>
           </h1>
-          <p className="text-gray-600">Your AI-powered nutrition companion</p>
+          <p className="text-gray-600 dark:text-white">Your AI-powered nutrition companion</p>
         </div>
 
         {/* Forget Password Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border dark:bg-gray-800 border-gray-100 dark:border-gray-700">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2 text-center dark:text-white">
             Forgot Password?
           </h2>
-          <p className="text-center text-gray-600 mb-6">
+          <p className="text-center text-gray-600 mb-6 dark:text-white">
             Enter your email address and we'll send you an OTP to reset your
             password.
           </p>
@@ -235,7 +235,7 @@ const ForgetPasswordPage = () => {
           </Form>
 
           {/* Back to Login Link */}
-          <p className="text-center text-sm text-gray-600 mt-6">
+          <p className="text-center text-sm text-gray-600 mt-6 dark:text-white">
             Remember your password?{" "}
             <a
               href="/login"
