@@ -86,7 +86,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -372,7 +371,10 @@ if USING_MANAGED_STORAGE:
     # AWS_S3_OBJECT_PARAMETERS = {"CacheControl": f"max-age={DO_SPACE_URL_TIMEOUT_SECS}"}
 
     PUBLIC_MEDIA_LOCATION = "media"
-    MEDIA_URL = f""
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
 
 
 GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
