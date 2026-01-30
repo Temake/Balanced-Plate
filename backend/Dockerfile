@@ -25,7 +25,6 @@ RUN sed -i 's/\r$//g' /celery-worker.sh && chmod +x /celery-worker.sh
 COPY --chown=django:django ./devops/celery/celery_beat.sh /celery-beat.sh
 RUN sed -i 's/\r$//g' /celery-beat.sh && chmod +x /celery-beat.sh
 
-RUN python manage.py collectstatic --noinput
 
 USER django
 
