@@ -2,6 +2,7 @@ from drf_spectacular.utils import extend_schema
 from loguru import logger
 from rest_framework import response, status, views
 from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
 
 from core.utils.mixins import PaginationMixin
 from core.utils.exceptions import exceptions
@@ -25,6 +26,25 @@ class ListAnalysis(PaginationMixin, views.APIView):
     )
     def get(self, request, *args, **kwargs):
         analyses = FoodAnalysis.objects.filter(owner=request.user)
+        
+        # Filter by date range if provided
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        if start_date:
+            try:
+                start = datetime.strptime(start_date, '%Y-%m-%d').date()
+                analyses = analyses.filter(date_added__date__gte=start)
+            except ValueError:
+                pass
+        
+        if end_date:
+            try:
+                end = datetime.strptime(end_date, '%Y-%m-%d').date()
+                analyses = analyses.filter(date_added__date__lte=end)
+            except ValueError:
+                pass
+        
         paginated_queryset = self.paginate_queryset(analyses)
         if paginated_queryset is not None:
             serializer = FoodAnalysisSerializer.List(paginated_queryset, many=True)

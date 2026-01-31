@@ -8,7 +8,7 @@ import {
   HealthInsights,
   DateRangeFilter,
 } from "@/components/dashboard";
-import type { DateRange, TimeFilter } from "@/components/dashboard";
+import type { DateRange } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,9 +19,13 @@ import { Utensils, RefreshCw, Wifi, WifiOff } from "lucide-react";
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>('week');
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
   const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
   const { isConnected } = useWebSocket();
+
+  // Handle date range change and sync with recommendations panel
+  const handleDateRangeChange = (newRange: DateRange) => {
+    setDateRange(newRange);
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -53,7 +57,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => refetch()}
@@ -88,8 +92,8 @@ const Dashboard: React.FC = () => {
               <RecommendationsPanel 
                 recommendations={data?.recommendations} 
                 isLoading={isLoading}
-                timeFilter={timeFilter}
-                onTimeFilterChange={setTimeFilter}
+                timeFilter={dateRange}
+                onTimeFilterChange={handleDateRangeChange}
               />
             </ErrorBoundary>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Lightbulb, 
   AlertTriangle, 
@@ -153,11 +153,14 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [localTimeFilter, setLocalTimeFilter] = useState<TimeFilter>(timeFilter);
   const navigate = useNavigate();
 
+  // Sync local state with prop when it changes from parent
+  useEffect(() => {
+    setActiveIndex(0); // Reset to first recommendation when filter changes
+  }, [timeFilter]);
+
   const handleTimeFilterChange = (filter: TimeFilter) => {
-    setLocalTimeFilter(filter);
     setActiveIndex(0);
     onTimeFilterChange?.(filter);
   };
@@ -274,7 +277,7 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                 key={filter.value}
                 onClick={() => handleTimeFilterChange(filter.value)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all ${
-                  localTimeFilter === filter.value
+                  timeFilter === filter.value
                     ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                 }`}

@@ -3,6 +3,8 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 
 from loguru import logger
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 from core.analytics.serializers import (
 	NutritionAnalyticsSerializer,
@@ -17,16 +19,47 @@ from core.utils.helpers import analytics
 from core.utils import exceptions
 
 
+def get_date_range_from_filter(date_range: str):
+    """Convert date range filter to start_date and end_date."""
+    today = timezone.localdate()
+    
+    if date_range == 'today':
+        return today, today
+    elif date_range == 'week':
+        # Start from Monday of current week
+        start_of_week = today - timedelta(days=today.weekday())
+        return start_of_week, today
+    elif date_range == 'month':
+        # Start from first day of current month
+        start_of_month = today.replace(day=1)
+        return start_of_month, today
+    elif date_range == 'all':
+        return None, None
+    else:
+        # Default to current week
+        start_of_week = today - timedelta(days=today.weekday())
+        return start_of_week, today
+
+
 @extend_schema(tags=["Analytics"])
 class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Account.objects
     serializer_class = NutritionAnalyticsSerializer	
 
+    def get_date_range(self):
+        """Extract date range from query parameters."""
+        date_range = self.request.query_params.get('range', 'week')
+        return get_date_range_from_filter(date_range)
+
     def get_queryset(self):
+        start_date, end_date = self.get_date_range()
+        
         if self.action in ["food_classes", "distribution"]:
-            qs = self.queryset.with_food_groups_data()
+            qs = self.queryset.with_food_groups_data(start_date=start_date, end_date=end_date)
         elif self.action == "balance_score":
-            qs = self.queryset.with_weekly_balance_score()
+            qs = self.queryset.with_weekly_balance_score(start_date=start_date, end_date=end_date)
+        else:
+            qs = self.queryset.all()
         return qs
 	
     def get_serializer_class(self):
@@ -139,10 +172,16 @@ class MealTimingAnalyticsView(views.APIView):
 		responses={200: HourlyCaloriesSerializer},
 	)
 	def get(self, request):
+		date_range = request.query_params.get('range', 'today')
+		start_date, end_date = get_date_range_from_filter(date_range)
+		
+		# For meal timing, we use the target date (end_date or today)
+		target_date = end_date if end_date else timezone.localdate()
+		
 		user = (
 			Account.objects
 			.filter(id=request.user.id)
-			.with_current_day_hourly_calories()
+			.with_current_day_hourly_calories(target_date=target_date)
 		).first()
 		serializer = HourlyCaloriesSerializer(instance=user)
 
