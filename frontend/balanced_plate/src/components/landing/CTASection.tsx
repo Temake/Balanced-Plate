@@ -56,7 +56,7 @@ const CTASection: React.FC = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="w-full sm:w-auto h-14 px-8 text-base border-2 border-white/50 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="w-full sm:w-auto h-14 px-8 text-base border-2 border-white text-black hover:bg-white/10 backdrop-blur-sm  backdrop-blur-sm transition-all duration-300"
             >
               Sign In to Your Account
             </Button>

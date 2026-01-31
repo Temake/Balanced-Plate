@@ -10,17 +10,15 @@ import {
 } from "@/components/dashboard";
 import type { DateRange } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
-import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Utensils, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { Utensils, RefreshCw } from "lucide-react";
 
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>('week');
   const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
-  const { isConnected } = useWebSocket();
 
   // Handle date range change and sync with recommendations panel
   const handleDateRangeChange = (newRange: DateRange) => {

@@ -106,10 +106,9 @@ const HowItWorksSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Demo Video Placeholder */}
+{/* Demo Video Placeholder - Commented out until video is ready
         <div className="mt-16 lg:mt-24 relative">
           <div className="relative aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
-            {/* Video Thumbnail */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4 mx-auto cursor-pointer hover:bg-white/20 transition-colors group">
@@ -122,8 +121,6 @@ const HowItWorksSection: React.FC = () => {
                 <p className="text-white/80 text-lg">Watch How It Works</p>
               </div>
             </div>
-
-            {/* Decorative Elements */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
@@ -131,6 +128,7 @@ const HowItWorksSection: React.FC = () => {
             </div>
           </div>
         </div>
+        */}
       </div>
     </section>
   );

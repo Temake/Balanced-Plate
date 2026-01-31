@@ -150,7 +150,7 @@ const NutritionSummaryCards: React.FC<NutritionSummaryCardsProps> = ({ data, isL
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-      {cardConfig.map((card, index) => {
+      {cardConfig.map((card) => {
         const Icon = card.icon;
         const nutrient = data?.[card.key];
         const percentage = nutrient 

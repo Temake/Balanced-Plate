@@ -140,20 +140,6 @@ const transformWeeklyBalance = (data: any, dateRange: DateRange): WeeklyBalanceD
   });
 };
 
-// Transform micronutrients data
-const transformMicronutrients = (data: any): MicronutrientData[] => {
-  if (!data?.micronutrients) return [];
-  
-  const colors = ['#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'];
-  
-  return data.micronutrients.map((item: any, idx: number) => ({
-    name: item.name,
-    current: item.value,
-    recommended: item.value / (item.percent / 100) || 0,
-    percentage: Math.round(item.percent),
-    color: colors[idx % colors.length]
-  }));
-};
 
 // Transform meal timing data
 const transformMealTiming = (data: any): MealTimingData[] => {
