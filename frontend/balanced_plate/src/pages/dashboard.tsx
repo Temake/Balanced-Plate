@@ -49,10 +49,10 @@ const Dashboard: React.FC = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-2">
               Track your nutrition and get personalized insights for a healthier you.
               {/* WebSocket status indicator */}
-              <span className={`inline-flex items-center gap-1 text-xs ${isConnected ? 'text-green-500' : 'text-gray-400'}`}>
+              {/* <span className={`inline-flex items-center gap-1 text-xs ${isConnected ? 'text-green-500' : 'text-gray-400'}`}>
                 {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                 {isConnected ? 'Live' : 'Offline'}
-              </span>
+              </span> */}
             </p>
           </div>
           
