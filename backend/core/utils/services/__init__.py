@@ -6,9 +6,11 @@ from typing import Any
 
 try:
     from google import genai
+    from google.genai import types
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
+    types = None
 
 from django.conf import settings
 
@@ -22,10 +24,16 @@ class GeminiBaseService:
         else:
             self.client = None
 
-    def call_gemini(self, input: Any):
+    def create_image_part(self, image_data: bytes, mime_type: str = "image/jpeg") -> Any:
+        """Create an image Part for Gemini API using the new SDK format."""
+        if types is None:
+            raise ImportError("google.genai.types is not available")
+        return types.Part.from_bytes(data=image_data, mime_type=mime_type)
+
+    def call_gemini(self, contents: Any):
         response = self.client.models.generate_content(
             model=self.model_name,
-            contents=input,
+            contents=contents,
         )
 
         response_text = response.text.strip()

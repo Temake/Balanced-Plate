@@ -8,7 +8,6 @@ import {
   Award,
   Star,
   Camera,
-  Upload,
   Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -88,7 +87,7 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
             Upload and analyze your food images to track your weekly health score and nutrition progress.
           </p>
           <Button 
-            onClick={() => navigate('/analyse-food')}
+            onClick={() => navigate('/analyze-food')}
             className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
           >
             <Camera className="w-4 h-4" />

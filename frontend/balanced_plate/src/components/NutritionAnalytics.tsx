@@ -119,14 +119,14 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
           ) : chartType === 'pie' ? (
             <PieChart>
               <Pie
-                data={foodClassData}
+                data={foodClassData as any[]}
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
                 name=""
-                label={({ foodClass, percentage }) => `${foodClass} ${percentage}%`}
+                label={({ payload }: any) => `${payload.foodClass} ${payload.percentage}%`}
                 labelLine={false}
               >
                 {foodClassData.map((entry: FoodClassData, index: number) => (
@@ -134,7 +134,7 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number,  props: any) => [`${value} items (${props.payload.percentage}%)`, props.payload.foodClass]}
+                formatter={(value: number | undefined, _name: string | undefined, props: any) => [`${value ?? 0} items (${props.payload.percentage}%)`, props.payload.foodClass]}
               />
             </PieChart>
           ) : (

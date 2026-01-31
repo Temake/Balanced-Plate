@@ -19,10 +19,11 @@ import api from '@/api/axios';
 import { useFiles } from '@/hooks/useFiles';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
-import { getImageUrl } from '@/utils/imageUrl';
+import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodImageSkeleton } from '@/components/common/Skeletons';
+import { toast } from 'sonner';
 
 interface FoodGalleryProps {
   className?: string;
@@ -55,9 +56,9 @@ const formatRelativeTime = (dateString: string): string => {
   return date.toLocaleDateString();
 };
 
-// Get balance score color
+// Get balance score color (expects normalized 0-100 score)
 const getScoreColor = (score: string | number): { bg: string; text: string; gradient: string } => {
-  const numScore = typeof score === 'string' ? parseFloat(score) : score;
+  const numScore = normalizeScore(score);
   if (numScore >= 80) return { 
     bg: 'bg-emerald-100 dark:bg-emerald-900/30', 
     text: 'text-emerald-600 dark:text-emerald-400',
@@ -124,13 +125,13 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({ analysis, open, onClose }
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Balance Score</span>
                   <div className={`text-3xl font-bold ${scoreColor.text}`}>
-                    {parseFloat(analysis.balance_score).toFixed(0)}%
+                    {normalizeScore(analysis.balance_score).toFixed(0)}%
                   </div>
                 </div>
                 <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div 
                     className={`h-full bg-gradient-to-r ${scoreColor.gradient} rounded-full transition-all duration-500`}
-                    style={{ width: `${Math.min(parseFloat(analysis.balance_score), 100)}%` }}
+                    style={{ width: `${Math.min(normalizeScore(analysis.balance_score), 100)}%` }}
                   />
                 </div>
               </div>
@@ -171,7 +172,7 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({ analysis, open, onClose }
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">{food.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {food.portion_estimate} • {parseFloat(food.confidence).toFixed(0)}% confident
+                        {food.portion_estimate} • {normalizeScore(food.confidence).toFixed(0)}% confident
                       </div>
                     </div>
                     <div className="text-right">
@@ -284,7 +285,7 @@ const FoodImageCard: React.FC<FoodImageCardProps> = ({ analysis, onClick }) => {
         <>
           <div className={`absolute top-2 right-2 px-2 py-1 rounded-full ${scoreColor.bg} backdrop-blur-sm`}>
             <span className={`text-xs font-bold ${scoreColor.text}`}>
-              {parseFloat(analysis.balance_score).toFixed(0)}%
+              {normalizeScore(analysis.balance_score).toFixed(0)}%
             </span>
           </div>
 
@@ -319,20 +320,40 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
   const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
 
   // Fetch analyses with React Query
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: [...analysesQueryKey, page],
     queryFn: () => fetchAnalyses(page),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  // Handle WebSocket notifications
+  // Handle WebSocket notifications - auto-open modal when analysis completes
   useEffect(() => {
-    if (analysisCompleted || analysisFailed) {
-      // Refetch to get updated analysis
+    if (analysisCompleted) {
+      const completedId = analysisCompleted.id;
+      
+      // Refetch to get updated analysis data
+      refetch().then(({ data: refreshedData }) => {
+        // Find the completed analysis in the refreshed data
+        const completedAnalysis = refreshedData?.results?.find(
+          (a: FoodAnalysis) => a.id === completedId && a.analysis_status === 'analysis_completed'
+        );
+        
+        if (completedAnalysis) {
+          // Auto-open the modal with the completed analysis
+          setSelectedAnalysis(completedAnalysis);
+          toast.success('Food analysis complete! View your results.', {
+            duration: 4000,
+          });
+        }
+      });
+      
+      clearAnalysisNotification();
+    } else if (analysisFailed) {
+      toast.error('Food analysis failed. Please try again.');
       queryClient.invalidateQueries({ queryKey: analysesQueryKey });
       clearAnalysisNotification();
     }
-  }, [analysisCompleted, analysisFailed, queryClient, clearAnalysisNotification]);
+  }, [analysisCompleted, analysisFailed, queryClient, clearAnalysisNotification, refetch]);
 
   // Handle file upload
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

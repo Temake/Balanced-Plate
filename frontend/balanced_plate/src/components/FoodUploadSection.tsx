@@ -17,7 +17,7 @@ const ANALYSIS_TIMEOUT = 30000;
 
 const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', onUploadComplete }) => {
   const { uploadFile } = useFiles();
-  const { analysisCompleted, analysisFailed, clearAnalysisNotification, isConnected } = useWebSocket();
+  const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
   const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');

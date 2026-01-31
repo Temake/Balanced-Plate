@@ -54,7 +54,7 @@ export default function LoginPage() {
       await login({ email: data.email, password: data.password });
       setSuccessMessage("Logged in successfully.");
       form.reset();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error("Error during login:", err);
     } finally {
