@@ -67,14 +67,14 @@ class AccountManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
         return self._create_user(email, first_name, last_name, password, **extra_fields)
     
-    def with_food_groups_data(self):
-        return self.get_queryset().with_food_groups_data()
+    def with_food_groups_data(self, start_date=None, end_date=None):
+        return self.get_queryset().with_food_groups_data(start_date=start_date, end_date=end_date)
 
-    def with_weekly_balance_score(self):
-        return self.get_queryset().with_weekly_balance_score()
+    def with_weekly_balance_score(self, start_date=None, end_date=None):
+        return self.get_queryset().with_weekly_balance_score(start_date=start_date, end_date=end_date)
 
-    def with_current_day_hourly_calories(self):
-        return self.get_queryset().with_current_day_hourly_calories()
+    def with_current_day_hourly_calories(self, target_date=None):
+        return self.get_queryset().with_current_day_hourly_calories(target_date=target_date)
 
 
 class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):

@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu'
 
 const HeadersOptions = [
-  { name: "Dashboard", icon: <Home className='w-5 h-5' />, path: "/" },
+  { name: "Dashboard", icon: <Home className='w-5 h-5' />, path: "/dashboard" },
   { name: "Analyze Food", icon: <Camera className='w-5 h-5' />, path: "/analyze-food" },
   { name: "Recipes", icon: <CookingPot className='w-5 h-5' />, path: "/recipes" },
   { name: "Shopping", icon: <ShoppingCart className='w-5 h-5' />, path: "/shopping" },
@@ -62,7 +62,7 @@ const Header: React.FC = () => {
               <Menu className="h-5 w-5" />
             </Button>
             
-            <Link to="/" className="hidden sm:block">
+            <Link to="/dashboard" className="hidden sm:block">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
               </h3>

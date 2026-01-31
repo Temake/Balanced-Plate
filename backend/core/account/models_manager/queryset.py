@@ -138,12 +138,14 @@ class UserQuerySet(models.QuerySet):
 
         return self.annotate(**annotations)
 
-    def with_current_day_hourly_calories(self):
-        """Annotate sum of calories for each hour (06:00–22:00) of the current day.
+    def with_current_day_hourly_calories(self, target_date=None):
+        """Annotate sum of calories for each hour (06:00–22:00) of a specific day.
 
         Produces fields: h06_calories, h07_calories, ..., h22_calories
         """
-        today = timezone.localdate()
+        if target_date is None:
+            target_date = timezone.localdate()
+        
         exprs = {}
         for h in range(6, 23): 
             field_name = f"h{h:02d}_calories"
@@ -151,6 +153,7 @@ class UserQuerySet(models.QuerySet):
                 Sum(
                     "food_analyses__detected_foods__calories",
                     filter=(
+                        Q(food_analyses__date_added__date=target_date) &
                         Q(food_analyses__date_added__hour=h)
                     ),
                 ),

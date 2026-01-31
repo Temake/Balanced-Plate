@@ -8,6 +8,7 @@ import ForgetPassword from "./pages/forget-password"
 import SignUp from "./pages/signup";
 import { ThemeProvider } from "./components/theme-provider";
 import Dashboard from "./pages/dashboard";
+import LandingPage from "./pages/LandingPage";
 import AnalyseFood from "./pages/AnalyseFood";
 import Learn from "./pages/Learn";
 import Shopping from "./pages/Shopping";
@@ -30,16 +31,18 @@ function App() {
       <BrowserRouter>
        <Toaster position="top-right" richColors />
    <Routes>
-    {/* <ProtectedRoute> */}
-      
-    <Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
+    {/* Public Landing Page */}
+    <Route path="/" element={<LandingPage/>}/>
+    
+    {/* Protected Routes */}
+    <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
     <Route path="/analyze-food" element={<ProtectedRoute><AnalyseFood/></ProtectedRoute>}/>
     <Route path="/learn" element={<ProtectedRoute><Learn/></ProtectedRoute>}/>
     <Route path="/shopping" element={<ProtectedRoute><Shopping/></ProtectedRoute>}/>
     <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
     <Route path="/recipes" element={<ProtectedRoute><Recipes/></ProtectedRoute>}/>
-    {/* </ProtectedRoute> */}
 
+    {/* Auth Routes */}
     <Route path="/otp" element={<Otp/>}/>
     <Route path="/login" element={<LoginPage/>}/>
     <Route path="/signup" element={<SignUp/>}/>
