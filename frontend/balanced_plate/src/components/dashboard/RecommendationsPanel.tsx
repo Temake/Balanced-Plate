@@ -297,7 +297,7 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                 Analyze your meals to get personalized recommendations
               </p>
               <Button 
-                onClick={() => navigate('/analyse-food')}
+                onClick={() => navigate('/analyze-food')}
                 size="sm"
                 variant="outline"
                 className="gap-2"

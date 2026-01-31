@@ -92,18 +92,23 @@ const transformDistributionData = (data: any): FoodGroupData[] => {
   ].filter(g => g.value > 0);
 };
 
-// Transform weekly balance data
+// Transform weekly balance data (normalize scores from 0-1 to 0-100)
 const transformWeeklyBalance = (data: any): WeeklyBalanceData[] => {
   if (!data) return [];
   
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
-  return days.map((day, idx) => ({
-    day: shortDays[idx],
-    balance: Math.round(data[`${day}_balance`] || 0),
-    target: 80
-  }));
+  return days.map((day, idx) => {
+    const rawScore = data[`${day}_balance`] || 0;
+    // Normalize: if score is between 0-1, multiply by 100
+    const normalizedScore = rawScore <= 1 && rawScore > 0 ? rawScore * 100 : rawScore;
+    return {
+      day: shortDays[idx],
+      balance: Math.round(normalizedScore),
+      target: 80
+    };
+  });
 };
 
 // Transform micronutrients data

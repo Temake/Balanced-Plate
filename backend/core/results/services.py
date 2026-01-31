@@ -1,5 +1,4 @@
 import json
-import base64
 from typing import Tuple
 
 from django.conf import settings
@@ -89,12 +88,10 @@ class GeminiAnalysisService(GeminiBaseService):
             with open(image_path, 'rb') as f:
                 image_data = f.read()
             
-            image_parts = [{
-                "mime_type": "image/jpeg",
-                "data": base64.b64encode(image_data).decode('utf-8')
-            }]
+            # Use the new SDK format with types.Part
+            image_part = self.create_image_part(image_data, "image/jpeg")
 
-            return self.call_gemini([ANALYSIS_PROMPT, image_parts[0]])
+            return self.call_gemini([ANALYSIS_PROMPT, image_part])
 
         except FileNotFoundError:
             logger.error(f"Image file not found: {image_path}")
@@ -121,12 +118,10 @@ class GeminiAnalysisService(GeminiBaseService):
             response.raise_for_status()
             image_data = response.content
 
-            image_parts = [{
-                "mime_type": "image/jpeg",
-                "data": base64.b64encode(image_data).decode('utf-8')
-            }]
+            # Use the new SDK format with types.Part
+            image_part = self.create_image_part(image_data, "image/jpeg")
 
-            return self.call_gemini([ANALYSIS_PROMPT, image_parts[0]])
+            return self.call_gemini([ANALYSIS_PROMPT, image_part])
 
         except Exception as e:
             logger.error(f"Gemini analysis from URL failed: {e}")

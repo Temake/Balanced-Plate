@@ -18,7 +18,7 @@ import {
 import api from '@/api/axios';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getImageUrl } from '@/utils/imageUrl';
+import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
 
 interface RecentAnalysisProps {
   className?: string;
@@ -122,7 +122,7 @@ interface AnalysisDetailModalProps {
 const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, open, onClose }) => {
   if (!analysis) return null;
 
-  const balanceScore = parseFloat(analysis.balance_score);
+  const balanceScore = normalizeScore(analysis.balance_score);
   const healthScore = getHealthScore(balanceScore);
   const config = getScoreConfig(healthScore, balanceScore);
 
@@ -222,10 +222,10 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
   // Calculate stats from real data
   const completedAnalyses = analyses.filter(a => a.analysis_status === 'analysis_completed');
   const averageBalance = completedAnalyses.length > 0
-    ? Math.round(completedAnalyses.reduce((acc, a) => acc + parseFloat(a.balance_score), 0) / completedAnalyses.length)
+    ? Math.round(completedAnalyses.reduce((acc, a) => acc + normalizeScore(a.balance_score), 0) / completedAnalyses.length)
     : 0;
   const totalCalories = completedAnalyses.reduce((acc, a) => acc + parseFloat(a.total_calories), 0);
-  const excellentCount = completedAnalyses.filter(a => parseFloat(a.balance_score) >= 85).length;
+  const excellentCount = completedAnalyses.filter(a => normalizeScore(a.balance_score) >= 85).length;
 
   // Loading state
   if (isLoading) {
@@ -331,7 +331,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
           ) : (
             <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar">
               {completedAnalyses.map((analysis, index) => {
-                const balanceScore = parseFloat(analysis.balance_score);
+                const balanceScore = normalizeScore(analysis.balance_score);
                 const healthScore = getHealthScore(balanceScore);
                 const config = getScoreConfig(healthScore, balanceScore);
                 const isHovered = hoveredMeal === analysis.id;

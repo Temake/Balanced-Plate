@@ -14,11 +14,10 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
 import { Utensils, RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { useNavigate } from "react-router";
+
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange>('week');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
   const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);

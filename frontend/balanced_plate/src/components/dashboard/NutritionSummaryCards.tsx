@@ -136,7 +136,7 @@ const NutritionSummaryCards: React.FC<NutritionSummaryCardsProps> = ({ data, isL
             Start analyzing your meals to track calories, protein, carbs, and fats. Get insights into your daily nutrition intake.
           </p>
           <Button 
-            onClick={() => navigate('/analyse-food')}
+            onClick={() => navigate('/analyze-food')}
             className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
           >
             <Camera className="w-4 h-4" />
