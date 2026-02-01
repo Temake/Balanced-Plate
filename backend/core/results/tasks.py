@@ -1,6 +1,8 @@
 from celery import shared_task
 from loguru import logger
 
+from django.conf import settings
+
 from core.file_storage.models import FileModel
 from .models import FoodAnalysis, DetectedFood
 from .services import gemini_service
@@ -29,8 +31,12 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         if use_mock:
             result, is_mock = get_mock_analysis_response(), True
         else:
-            image_path = file_obj.file.path
-            result, is_mock = gemini_service.analyze_image(image_path)
+            if not settings.USING_MANAGED_STORAGE:
+                image_path = file_obj.file.path
+                result, is_mock = gemini_service.analyze_image(image_path)
+            else:
+                image_url = file_obj.file.url
+                result, is_mock = gemini_service.analyze_image_from_url(image_url)
 
         analysis.meal_type = result.get("meal_type")
         analysis.balance_score = result.get("balance_score")
