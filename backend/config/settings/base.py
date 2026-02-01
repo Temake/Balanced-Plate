@@ -378,3 +378,5 @@ if USING_MANAGED_STORAGE:
 
 GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
 GEMINI_MODEL = env.str("GEMINI_MODEL", default="gemini-2.0-flash")
+
+USE_DOCS = env.bool("USE_DOCS", False)
