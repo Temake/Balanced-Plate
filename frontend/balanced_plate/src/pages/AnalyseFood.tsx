@@ -4,7 +4,7 @@ import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
 import { FoodGallery } from "@/components/dashboard";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Camera, History, Images, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Camera, History, Images, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
 const AnalyseFood: React.FC = () => {
