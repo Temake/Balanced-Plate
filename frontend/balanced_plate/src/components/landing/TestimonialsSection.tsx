@@ -110,7 +110,7 @@ const TestimonialsSection: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
             <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
             <span className="text-sm font-medium text-white/90">
-              Loved by Thousands
+              Loved by our Users
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -208,20 +208,7 @@ const TestimonialsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-8 lg:gap-12">
-          {[
-            { label: 'App Store', rating: '4.9' },
-            { label: 'Play Store', rating: '4.8' },
-            { label: 'Product Hunt', rating: '#1 Product' },
-            { label: 'Trustpilot', rating: 'Excellent' },
-          ].map((badge, idx) => (
-            <div key={idx} className="text-center">
-              <div className="text-2xl font-bold text-white">{badge.rating}</div>
-              <div className="text-sm text-white/60">{badge.label}</div>
-            </div>
-          ))}
-        </div>
+     
       </div>
     </section>
   );

@@ -14,6 +14,7 @@ import Learn from "./pages/Learn";
 import Shopping from "./pages/Shopping";
 import Profile from "./pages/Profile";
 import Recipes from "./pages/Recipes";
+import AnalysisHistory from "./pages/AnalysisHistory";
 import { AuthProvider } from "./context/AuthContext";
 import { FilesProvider } from "./context/FilesContext";
 import ProtectedRoute from './components/ProtectedRoute';
@@ -41,6 +42,7 @@ function App() {
     <Route path="/shopping" element={<ProtectedRoute><Shopping/></ProtectedRoute>}/>
     <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
     <Route path="/recipes" element={<ProtectedRoute><Recipes/></ProtectedRoute>}/>
+    <Route path="/history" element={<ProtectedRoute><AnalysisHistory/></ProtectedRoute>}/>
 
     {/* Auth Routes */}
     <Route path="/otp" element={<Otp/>}/>
