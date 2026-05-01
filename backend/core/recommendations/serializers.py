@@ -22,7 +22,12 @@ class WeeklyRecommendationSerializer:
                 "id",
                 "week_start_date",
                 "week_end_date",
+                "health_report",
+                "recommendations",
+                "priority_actions",
+                "weekly_goals",
                 "status",
+                "is_mock_data",
                 "is_read",
                 "date_added",
             ]

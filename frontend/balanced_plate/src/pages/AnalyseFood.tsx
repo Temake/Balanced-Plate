@@ -4,7 +4,7 @@ import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
 import { FoodGallery } from "@/components/dashboard";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Camera, History, Images, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Camera, History, Images, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
 const AnalyseFood: React.FC = () => {
@@ -31,7 +31,7 @@ const AnalyseFood: React.FC = () => {
             </div>
             
             {/* Quick Stats */}
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI-Powered</span>
@@ -40,7 +40,7 @@ const AnalyseFood: React.FC = () => {
                 <Zap className="w-4 h-4 text-green-500" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Instant Results</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Feature Highlights */}

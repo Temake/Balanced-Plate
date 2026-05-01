@@ -36,7 +36,8 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
 }) => {
   const navigate = useNavigate();
   const hasData = weeklyScore && weeklyScore.totalMealsAnalyzed > 0;
-  const scoreDiff = weeklyScore ? weeklyScore.currentScore - weeklyScore.previousScore : 0;
+  const hasPreviousData = weeklyScore ? weeklyScore.previousScore > 0 : false;
+  const scoreDiff = weeklyScore && hasPreviousData ? weeklyScore.currentScore - weeklyScore.previousScore : 0;
   const isImproving = scoreDiff > 0;
 
   const getScoreBgColor = (score: number) => {
@@ -119,10 +120,14 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
             <div className="relative">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-white/80 text-sm font-medium">This Week</span>
-                <div className={`flex items-center gap-1 text-sm ${isImproving ? 'text-green-200' : 'text-red-200'}`}>
-                  <TrendingUp className={`w-4 h-4 ${!isImproving && 'rotate-180'}`} />
-                  {isImproving ? '+' : ''}{scoreDiff}%
-                </div>
+                {hasPreviousData ? (
+                  <div className={`flex items-center gap-1 text-sm ${isImproving ? 'text-green-200' : 'text-red-200'}`}>
+                    <TrendingUp className={`w-4 h-4 ${!isImproving && 'rotate-180'}`} />
+                    {isImproving ? '+' : ''}{scoreDiff}%
+                  </div>
+                ) : (
+                  <span className="text-white/60 text-xs">No prior data</span>
+                )}
               </div>
               
               <div className="flex items-end gap-2">

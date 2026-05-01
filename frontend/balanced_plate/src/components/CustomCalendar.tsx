@@ -62,7 +62,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ value, onChange }) => {
   const firstDayOfWeek = new Date(year, month, 1).getDay();
   const dayButtons = [];
   for (let i = 0; i < firstDayOfWeek; i++) {
-    dayButtons.push(<div key={"empty-" + i} className="w-8 h-8" />);
+    dayButtons.push(<div key={"empty-" + i} className="h-9 w-9" />);
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const dateObj = new Date(year, month, d);
@@ -71,12 +71,12 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ value, onChange }) => {
     dayButtons.push(
       <button
         key={d}
-        className={`w-8 h-8 rounded-full mx-1 my-1 text-sm ${
+        className={`m-0 h-9 w-9 rounded-full text-sm font-medium transition-colors ${
           d === selectedDay &&
           year === initialDate.getFullYear() &&
           month === initialDate.getMonth()
-            ? "bg-green-500 text-white" : "bg-gray-100 hover:bg-green-100"
-        } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+            ? "bg-green-500 text-white shadow-sm" : "bg-gray-100 text-gray-900 hover:bg-green-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+        } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
         disabled={disabled}
         onClick={() => handleDayClick(d)}
         type="button"
@@ -87,12 +87,12 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ value, onChange }) => {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex space-x-2 mb-2">
+    <div className="w-[min(20rem,calc(100vw-2rem))] p-4">
+      <div className="mb-3 flex gap-2">
         <select
           value={year}
           onChange={handleYearChange}
-          className="border rounded px-2 py-1"
+          className="h-10 rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
         >
           {years.map((y) => (
             <option key={y} value={y}>{y}</option>
@@ -101,7 +101,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ value, onChange }) => {
         <select
           value={month}
           onChange={handleMonthChange}
-          className="border rounded px-2 py-1"
+          className="h-10 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
         >
           {MONTHS.map((m, idx) => (
             <option key={m} value={idx}>{m}</option>

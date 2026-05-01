@@ -56,13 +56,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   // Get access token from localStorage
   const getAccessToken = useCallback((): string | null => {
     try {
-      const tokens = localStorage.getItem('tokens');
-      if (tokens) {
-        const parsed = JSON.parse(tokens);
-        return parsed.access || null;
-      }
+      // Token is stored directly under 'access' key by AuthContext
+      return localStorage.getItem('access') || null;
     } catch {
-      console.error('Failed to parse tokens from localStorage');
+      console.error('Failed to read access token from localStorage');
     }
     return null;
   }, []);

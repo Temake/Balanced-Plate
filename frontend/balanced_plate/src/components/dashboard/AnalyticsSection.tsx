@@ -154,7 +154,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
         {type === 'timing' && 'Upload meals to receive personalized meal timing recommendations.'}
       </p>
       <Button 
-        onClick={() => navigate('/analyse-food')}
+        onClick={() => navigate('/analyze-food')}
         variant="outline"
         className="gap-2"
       >
@@ -296,7 +296,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
               Upload and analyze meals to receive personalized timing recommendations
             </p>
             <Button 
-              onClick={() => navigate('/analyse-food')}
+              onClick={() => navigate('/analyze-food')}
               variant="outline"
               size="sm"
               className="gap-2"

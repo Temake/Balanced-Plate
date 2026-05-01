@@ -84,6 +84,11 @@ const TestimonialsSection: React.FC = () => {
   };
 
   const currentTestimonial = testimonials[currentIndex];
+  const avatarInitials = currentTestimonial.name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2);
 
   return (
     <section id="testimonials" className="relative py-20 lg:py-32 overflow-hidden">
@@ -141,8 +146,9 @@ const TestimonialsSection: React.FC = () => {
               {/* Author */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-2xl">
-                    {currentTestimonial.avatar}
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 text-lg font-bold text-white shadow-lg">
+                    {avatarInitials}
+                    <span className="hidden">{currentTestimonial.avatar}</span>
                   </div>
                   <div>
                     <div className="font-semibold text-white text-lg">

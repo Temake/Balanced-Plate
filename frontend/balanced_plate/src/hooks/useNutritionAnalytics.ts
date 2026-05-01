@@ -165,6 +165,14 @@ const getMealType = (hour: number): string => {
   return 'Snack';
 };
 
+// Compute trend based on current value vs target
+const computeTrend = (value: number, target: number): 'up' | 'down' | 'stable' => {
+  const ratio = target > 0 ? value / target : 0;
+  if (ratio >= 0.9) return 'up';      // meeting or exceeding target
+  if (ratio < 0.5) return 'down';     // well below target
+  return 'stable';                     // on track
+};
+
 // Calculate summary from food group data
 const calculateSummary = (foodGroupData: any): NutritionSummary => {
   // Default targets (these could come from user profile settings)
@@ -175,51 +183,67 @@ const calculateSummary = (foodGroupData: any): NutritionSummary => {
     fats: 65
   };
 
+  const calorieValue = Math.round(
+    (foodGroupData?.total_carbs_grams || 0) * 4 + 
+    (foodGroupData?.total_protein_grams || 0) * 4 + 
+    (foodGroupData?.total_fat_grams || 0) * 9
+  );
+  const proteinValue = foodGroupData?.total_protein_grams || 0;
+  const carbsValue = foodGroupData?.total_carbs_grams || 0;
+  const fatsValue = foodGroupData?.total_fat_grams || 0;
+
   return {
     calories: {
-      value: Math.round((foodGroupData?.total_carbs_grams || 0) * 4 + 
-                        (foodGroupData?.total_protein_grams || 0) * 4 + 
-                        (foodGroupData?.total_fat_grams || 0) * 9),
+      value: calorieValue,
       target: targets.calories,
-      trend: 'stable' as const
+      trend: computeTrend(calorieValue, targets.calories)
     },
     protein: {
-      value: foodGroupData?.total_protein_grams || 0,
+      value: proteinValue,
       target: targets.protein,
-      trend: 'up' as const
+      trend: computeTrend(proteinValue, targets.protein)
     },
     carbs: {
-      value: foodGroupData?.total_carbs_grams || 0,
+      value: carbsValue,
       target: targets.carbs,
-      trend: 'stable' as const
+      trend: computeTrend(carbsValue, targets.carbs)
     },
     fats: {
-      value: foodGroupData?.total_fat_grams || 0,
+      value: fatsValue,
       target: targets.fats,
-      trend: 'down' as const
+      trend: computeTrend(fatsValue, targets.fats)
     }
   };
 };
 
-// Calculate weekly score from balance data
-const calculateWeeklyScore = (balanceData: WeeklyBalanceData[]): WeeklyScoreData => {
+// Calculate weekly score from balance data and real analysis count
+const calculateWeeklyScore = (
+  balanceData: WeeklyBalanceData[], 
+  analysesCount: number = 0
+): WeeklyScoreData => {
   const scores = balanceData.map(d => d.balance).filter(s => s > 0);
   const currentScore = scores.length > 0 
     ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
     : 0;
   
   const streak = scores.filter(s => s >= 70).length;
-  const bestDayIdx = scores.indexOf(Math.max(...scores));
+  const bestDayIdx = scores.length > 0 ? scores.indexOf(Math.max(...scores)) : -1;
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  
+  // Days with data = days that had at least one analysis (score > 0)
+  const daysWithData = scores.length;
+  const goalsMet = scores.filter(s => s >= 80).length;
   
   return {
     currentScore,
-    previousScore: Math.max(currentScore - 6, 0),
+    // Previous score: use 0 when no real comparison data exists
+    // (a proper implementation would fetch previous week's average)
+    previousScore: 0,
     streak,
-    bestDay: days[bestDayIdx] || 'Saturday',
-    totalMealsAnalyzed: scores.length * 3,
-    goalsMet: scores.filter(s => s >= 80).length,
-    totalGoals: 7
+    bestDay: bestDayIdx >= 0 ? days[bestDayIdx] : 'N/A',
+    totalMealsAnalyzed: analysesCount,
+    goalsMet,
+    totalGoals: Math.max(daysWithData, 1),
   };
 };
 
@@ -347,8 +371,8 @@ const fetchAnalyticsData = async (userId: number, dateRange: DateRange): Promise
       api.get(`/analytics/nutrition/${userId}/food-group-percentage/`, { params: { range: rangeParam } }),
       api.get(`/analytics/nutrition/${userId}/daily-balance-score/`, { params: { range: rangeParam } }),
       api.get('/analytics/meal-timing/', { params: { range: rangeParam } }),
-      api.get('/results/', { params: { page_size: 10, ...dateParams } }),
-      api.get('/recommendations/', { params: { page_size: 5 } }),
+      api.get('/results/', { params: { limit: 20, ...dateParams } }),
+      api.get('/recommendations/', { params: { limit: 5 } }),
     ]);
 
   // Extract successful responses or use null
@@ -388,7 +412,7 @@ const fetchAnalyticsData = async (userId: number, dateRange: DateRange): Promise
     foodGroups: transformedFoodGroups,
     weeklyBalance: transformedWeeklyBalance,
     mealTiming: transformedMealTiming,
-    weeklyScore: calculateWeeklyScore(transformedWeeklyBalance),
+    weeklyScore: calculateWeeklyScore(transformedWeeklyBalance, analysesData.length),
     recommendations,
     timingRecommendations,
     weeklyRecommendations: weeklyRecsData,

@@ -25,7 +25,7 @@ class ListAnalysis(PaginationMixin, views.APIView):
         responses={200: FoodAnalysisSerializer.List(many=True)}
     )
     def get(self, request, *args, **kwargs):
-        analyses = FoodAnalysis.objects.filter(owner=request.user)
+        analyses = FoodAnalysis.objects.filter(owner=request.user).order_by('-date_added')
         
         # Filter by date range if provided
         start_date = request.query_params.get('start_date')
