@@ -49,10 +49,6 @@ export interface SignupCredentials{
 }
 export interface SignupResponse{
   user: User;
-  token: {
-    access: string;
-    refresh: string;
-  };
   message?:{
     phone_number:string,
     password:string,

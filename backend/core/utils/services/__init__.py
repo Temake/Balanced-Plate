@@ -34,6 +34,9 @@ class GeminiBaseService:
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=contents,
+            config=types.GenerateContentConfig(
+                http_options=types.HttpOptions(timeout=60_000),  # 60 second timeout
+            ) if types else None,
         )
 
         response_text = response.text.strip()

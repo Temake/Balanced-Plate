@@ -27,7 +27,7 @@ services:
     depends_on:
       - db
       - redis
-    command: celery -A config worker -Q beats,email-notification,recommendations -l info --pool=solo
+    command: celery -A config worker -Q beats,email-notification,recommendations,analysis -l info --pool=solo
     volumes:
       - .:/app
     networks:

@@ -15,6 +15,10 @@ class DetectedFoodSerializer(serializers.ModelSerializer):
             "protein",
             "carbs",
             "fat",
+            "dairy",
+            "vegetable",
+            "fruit",
+            "micronutrients",
         ]
 
 

@@ -34,8 +34,9 @@ const analysesQueryKey = ['foodAnalyses'];
 
 // Fetch paginated food analyses
 const fetchAnalyses = async (page: number, pageSize: number = 8): Promise<PaginatedResponse<FoodAnalysis>> => {
+  const offset = (page - 1) * pageSize;
   const response = await api.get('/results/', {
-    params: { page, page_size: pageSize },
+    params: { limit: pageSize, offset },
   });
   return response.data;
 };
@@ -318,12 +319,19 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
   const queryClient = useQueryClient();
   const { uploadFile } = useFiles();
   const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
-
-  // Fetch analyses with React Query
+  // Fetch analyses with React Query — poll every 5s if any are pending
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: [...analysesQueryKey, page],
     queryFn: () => fetchAnalyses(page),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: (query) => {
+      // Auto-poll while any analyses are still processing
+      const results = query.state.data?.results;
+      const hasPending = results?.some(
+        (a) => a.analysis_status === 'analysis_pending' || a.analysis_status === 'analysis_processing'
+      );
+      return hasPending ? 5000 : false;
+    },
   });
 
   // Handle WebSocket notifications - auto-open modal when analysis completes

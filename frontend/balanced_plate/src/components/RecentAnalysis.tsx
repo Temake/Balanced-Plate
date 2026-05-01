@@ -29,7 +29,7 @@ interface RecentAnalysisProps {
 // Fetch recent analyses
 const fetchRecentAnalyses = async (limit: number = 5): Promise<FoodAnalysis[]> => {
   const response = await api.get<PaginatedResponse<FoodAnalysis>>('/results/', {
-    params: { page_size: limit },
+    params: { limit },
   });
   return response.data.results || [];
 };
@@ -217,6 +217,14 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
     queryKey: ['recentAnalyses', limit],
     queryFn: () => fetchRecentAnalyses(limit),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: (query) => {
+      // Auto-poll while any analyses are still processing
+      const results = query.state.data;
+      const hasPending = results?.some(
+        (a) => a.analysis_status === 'analysis_pending' || a.analysis_status === 'analysis_processing'
+      );
+      return hasPending ? 5000 : false;
+    },
   });
 
   // Calculate stats from real data
@@ -254,7 +262,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                <div className="w-11 h-11 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md">
@@ -293,7 +301,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 p-3 sm:p-4 group cursor-pointer">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 p-3 sm:p-4 group cursor-pointer">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative">

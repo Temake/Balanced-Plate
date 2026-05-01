@@ -9,14 +9,15 @@ import {
   ChevronDown,
   Leaf,
   Brain,
-  TrendingUp
+  TrendingUp,
+  Target
 } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   const floatingIcons = [
-    { icon: Leaf, color: 'from-green-400 to-emerald-500', position: 'top-20 left-10', delay: '0s' },
-    { icon: Brain, color: 'from-purple-400 to-indigo-500', position: 'top-40 right-20', delay: '0.5s' },
-    { icon: TrendingUp, color: 'from-blue-400 to-cyan-500', position: 'bottom-32 left-20', delay: '1s' },
+    { icon: Leaf, color: 'from-green-400 to-emerald-500', position: 'top-24 left-8 xl:left-16', delay: '0s' },
+    { icon: Brain, color: 'from-purple-400 to-indigo-500', position: 'top-44 right-8 xl:right-16', delay: '0.5s' },
+    { icon: TrendingUp, color: 'from-blue-400 to-cyan-500', position: 'bottom-36 left-10 xl:left-24', delay: '1s' },
   ];
 
   return (
@@ -25,8 +26,8 @@ const HeroSection: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
       
       {/* Gradient Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-green-400/30 to-emerald-500/30 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-green-300/25 blur-3xl animate-pulse lg:h-96 lg:w-96" />
+      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl animate-pulse lg:h-96 lg:w-96" style={{ animationDelay: '1s' }} />
       
       {/* Floating Icons */}
       {floatingIcons.map((item, idx) => (
@@ -45,7 +46,7 @@ const HeroSection: React.FC = () => {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] lg:gap-12 xl:gap-20">
           {/* Left Content */}
           <div className="text-center lg:text-left">
             {/* Badge */}
@@ -123,7 +124,7 @@ const HeroSection: React.FC = () => {
           {/* Right Content - App Preview */}
           <div className="relative">
             {/* Main Phone Mockup */}
-            <div className="relative mx-auto w-72 sm:w-80 lg:w-96">
+            <div className="relative mx-auto w-72 sm:w-80 lg:w-88 xl:w-96">
               {/* Phone Frame */}
               <div className="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl shadow-gray-900/30">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10" />
@@ -141,7 +142,15 @@ const HeroSection: React.FC = () => {
                     </div>
 
                     {/* Food Image */}
-                    <div className="relative bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-2xl aspect-square mb-4 flex items-center justify-center overflow-hidden">
+                    <div className="relative bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-2xl aspect-square mb-4 flex items-center justify-center overflow-hidden text-transparent">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative h-28 w-28 rounded-full bg-white shadow-inner dark:bg-gray-100">
+                          <div className="absolute left-5 top-5 h-10 w-10 rounded-full bg-emerald-400" />
+                          <div className="absolute right-5 top-6 h-9 w-9 rounded-full bg-orange-400" />
+                          <div className="absolute bottom-5 left-8 h-9 w-16 rounded-full bg-amber-300" />
+                          <div className="absolute inset-3 rounded-full border border-gray-200" />
+                        </div>
+                      </div>
                       <div className="text-6xl">🍱</div>
                       <div className="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
@@ -178,7 +187,8 @@ const HeroSection: React.FC = () => {
 
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-3 text-white mt-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-transparent [&_span]:hidden">
+                            <Target className="h-5 w-5 text-white" />
                             <span className="text-lg">🎯</span>
                           </div>
                           <div>
@@ -193,9 +203,10 @@ const HeroSection: React.FC = () => {
               </div>
 
               {/* Floating Cards */}
-              <div className="absolute -left-16 top-1/4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 animate-float hidden lg:block">
+              <div className="absolute -left-8 top-1/4 hidden max-w-[13rem] animate-float rounded-2xl border border-gray-100 bg-white p-4 shadow-xl shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-800 dark:shadow-none xl:-left-16 xl:block">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center text-transparent [&_span]:hidden">
+                    <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <span className="text-xl">🥗</span>
                   </div>
                   <div>
@@ -205,7 +216,7 @@ const HeroSection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="absolute -right-12 bottom-1/3 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 animate-float hidden lg:block" style={{ animationDelay: '1s' }}>
+              <div className="absolute -right-8 bottom-1/3 hidden max-w-[12rem] animate-float rounded-2xl border border-gray-100 bg-white p-4 shadow-xl shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-800 dark:shadow-none xl:-right-12 xl:block" style={{ animationDelay: '1s' }}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center">
                     <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -221,7 +232,7 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 animate-bounce">
+        <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 animate-bounce xl:flex">
           <span className="text-sm text-gray-500 dark:text-gray-400">Scroll to explore</span>
           <ChevronDown className="w-5 h-5 text-gray-400" />
         </div>

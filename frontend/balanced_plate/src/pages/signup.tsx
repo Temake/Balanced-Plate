@@ -107,7 +107,7 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 px-4 py-10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
@@ -262,17 +262,17 @@ export default function SignUp() {
                             <Button
                               variant={"outline"}
                               className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                "w-full justify-start pl-3 text-left font-normal text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 dark:hover:bg-gray-700",
+                                !field.value && "text-gray-500 dark:text-gray-300"
                               )}
                               disabled={isSubmitting}
                             >
                               {field.value ? field.value : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              <CalendarIcon className="ml-auto h-4 w-4 text-gray-500 opacity-100 dark:text-gray-300" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 dark:border-gray-700" align="start">
                           {/* Custom Calendar with Year/Month Dropdowns */}
                           <CustomCalendar
                             value={field.value}
