@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="X-UA-Compatible"
+      content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Balanced Plate</title>
+  </head>
+  <body style="margin: 0; padding: 0">
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        width: 100%;
+        max-width: 500px;
+        background-color: #fff;
+        font-size: 14px;
+        line-height: 15px;
+        color: #555555;
+        font-family: -apple-system, BlinkMacSystemFont,
+          'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+          'Cantarell', 'Fira Sans', 'Droid Sans',
+          'Helvetica Neue', sans-serif;
+        margin: 0 auto;
+      ">
+      <tr>
+        <td
+          align="center"
+          style="padding: 2em 0">
+
+          <table
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="
+              max-width: 630px;
+              background: #fff;
+              border-radius: 16px;
+              border: 1px solid #e7e7e7;
+              padding: 2.5rem 2rem;
+              color: #262626;
+            ">
+            <tr>
+              <td
+                align="left"
+                style="padding-bottom: 1em">
+                <h1
+                  style="
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin: 10px 0;
+                    padding: 0;
+                  ">
+                  {{subject}}
+                </h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                align="left"
+                style="padding-bottom: 1em">
+                <p style="font-size: 18px; margin: 0">
+                  Hi {{name | default:"there"}},
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="left">
+                {% block content %}{% endblock %}
+              </td>
+            </tr>
+          </table>
+
+          <table
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="
+              max-width: 600px;
+              margin: 24px auto 0 auto;
+            ">
+            <tr
+              style="height: 36px"
+              align="center">
+              <td style="padding: 5px 0">
+                © Balanced Plate AI {% now "Y" %}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
