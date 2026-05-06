@@ -1,7 +1,6 @@
 from loguru import logger
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.core.cache import cache
 from django.contrib.auth.hashers import make_password
 
 from rest_framework import status, response, views
@@ -23,11 +22,15 @@ from core.account.serializers import (
     UserSerializer, 
     TokenSerializer,
     AuthSerializer,
-    PasswordResetSerializer
+    PasswordResetSerializer,
+    SignupVerificationSerializer,
+    EmailVerificationSerializer
 )
-from core.utils import exceptions
+from core.utils import exceptions, enums
 from core.utils.permissions import IsGuestUser, IsOTPVerified
-from core.utils.helpers import email as email_client, authenticators
+from core.utils.helpers import  authenticators, message_templates as mailer
+from core.utils.tasks import mail as mail_tasks
+from config.celery.queue import CeleryQueue
 
 
 @extend_schema(tags=["Account"])
@@ -39,7 +42,7 @@ class CreateUser(views.APIView):
         auth=[],
         description="endpoint for user creation",
         request=UserSerializer.Create,
-        responses={201: AuthSerializer.AccountRetrieve},
+        responses={201: AuthSerializer.RegistrationResponse},
     )
     def post(self, request):
         serializer = UserSerializer.Create(data=request.data)
@@ -47,20 +50,22 @@ class CreateUser(views.APIView):
         account = serializer.save()
         logger.info(f"created user with email {account.email}")
 
-        auth_token = account.retrieve_auth_token()
-
-        logger.info("CREATING SESSION FOR THE NEW USER")
-        UserSession.objects.create(
-            user=account,
-            refresh=auth_token["refresh"],
-            access=auth_token["access"],
-            ip_address=request.META.get("REMOTE_ADDR"),
-            user_agent=request.META.get("HTTP_USER_AGENT"),
-            is_active=True,
+        otp = authenticators.OTPHelpers.cache_otp(
+            account.email,
+            authenticators.OTP_PURPOSE_SIGNUP,
+            settings.SIGNUP_OTP_TTL_SECONDS,
+        )
+        message = mailer.MessageTemplates.signup_email_verification_email(otp)
+        mail_tasks.send_email_to_address.apply_async(
+            (account.email, "Verify Your Email", message, account.first_name),
+            queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
         )
 
         serializer = UserSerializer.Retrieve(instance=account)
-        response_data = {"user": serializer.data}
+        response_data = {
+            "user": serializer.data,
+            "message": "verification otp sent to your email",
+        }
         return response.Response(response_data, status=status.HTTP_201_CREATED)
     
 
@@ -119,6 +124,22 @@ class Login(views.APIView):
             raise exceptions.CustomException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 message="Invalid credentials"
+            )
+
+        if not account.is_email_verified:
+            otp = authenticators.OTPHelpers.cache_otp(
+                account.email,
+                authenticators.OTP_PURPOSE_SIGNUP,
+                settings.SIGNUP_OTP_TTL_SECONDS,
+            )
+            message = mailer.MessageTemplates.signup_email_verification_email(otp)
+            mail_tasks.send_email_to_address.apply_async(
+                (account.email, "Verify Your Email", message, account.first_name),
+                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            )
+            raise exceptions.CustomException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                message="Email not verified. OTP sent to your email",
             )
 
         auth_token = account.retrieve_auth_token()
@@ -207,78 +228,88 @@ class TokenRefresh(views.APIView):
             )
         
 
-@extend_schema(
-    tags=["Auth"],
-    auth=[],
-    methods=["POST"],
-    description="endpoint for verifying user email before sending otp",
-    request=PasswordResetSerializer.VerifyEmail,
-    responses={200: None},
-)
-@api_view(["POST", ])
-@permission_classes([IsGuestUser, ])
-def verify_email(request):
-    serializer = PasswordResetSerializer.VerifyEmail(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data["email"]
-    try:
-        user = Account.objects.get(email=email)
-        otp = authenticators.generate_otp(email)
-        client = email_client.PasswordResetEmail(user, otp)
-        client.send_mail()
-        return response.Response(
-            data={"message": "otp sent to your email"}, status=status.HTTP_200_OK 
-        )
-    except Account.DoesNotExist:
-        raise exceptions.CustomException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message="invalid credentials"
+@extend_schema(tags=["Auth"])
+class InitiatePasswordReset(views.APIView):
+    http_method_names = ["post"]
+    permission_classes = [IsGuestUser, ]
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for initiating password reset by sending otp",
+        request=PasswordResetSerializer.Initiate,
+        responses={200: None},
+    )
+    def post(self, request):
+        serializer = PasswordResetSerializer.Initiate(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        try:
+            user = Account.objects.get(email=email)
+            authenticators.OTPHelpers.clear_otp_verified(
+                email,
+                authenticators.OTP_PURPOSE_PASSWORD_RESET,
             )
-
-
-@extend_schema(
-    tags=["Auth"],
-    auth=[],
-    methods=["POST"],
-    parameters=[
-        OpenApiParameter(
-            name="email",
-            type=str,
-            location=OpenApiParameter.QUERY,
-            description="email of the user to verify otp for",
-            required=True,
-        ),
-    ],
-    description="endpoint that verifies if the inputed otp is the same as the generated otp",
-    request=PasswordResetSerializer.VerifyOTP,
-    responses={200: None},
-)
-@api_view(["POST", ])
-@permission_classes([IsGuestUser, ])
-def verify_otp(request):
-    serializer = PasswordResetSerializer.VerifyOTP(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    otp = serializer.validated_data["otp"]
-    email = request.query_params.get("email")
-    try:
-        user = Account.objects.get(email=email)
-        cached_otp = cache.get(f"{email}_otp")
-        if cached_otp and cached_otp == otp:
-            cache.delete(f"{email}_otp")
-            cache.set(f"{email}_otp_verified", True, 300)
+            otp = authenticators.OTPHelpers.cache_otp(
+                email,
+                authenticators.OTP_PURPOSE_PASSWORD_RESET,
+                settings.PASSWORD_RESET_OTP_TTL_SECONDS,
+            )
+            message = mailer.MessageTemplates.password_reset_email(otp)
+            mail_tasks.send_email_to_address.apply_async(
+                (user.email, "Reset Your Password", message, user.first_name),
+                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            )
             return response.Response(
-                data={"message": "otp verified"}, status=status.HTTP_200_OK
+                data={"message": "otp sent to your email"}, status=status.HTTP_200_OK 
             )
-        else:
+        except Account.DoesNotExist:
             raise exceptions.CustomException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    message="invalid otp"
+                    message="invalid credentials"
                 )
-    except Account.DoesNotExist:
-        raise exceptions.CustomException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message="invalid credentials"
-            )
+
+
+@extend_schema(tags=["Auth"])
+class FinalizePasswordReset(views.APIView):
+    http_method_names = ["post"]
+    permission_classes = [IsGuestUser, ]
+
+    @extend_schema(
+        auth=[],
+        description="endpoint that verifies password reset otp",
+        request=PasswordResetSerializer.Finalize,
+        responses={200: None},
+    )
+    def post(self, request):
+        serializer = PasswordResetSerializer.Finalize(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+        try:
+            Account.objects.get(email=email)
+            if authenticators.OTPHelpers.verify_otp(
+                email,
+                authenticators.OTP_PURPOSE_PASSWORD_RESET,
+                settings.PASSWORD_RESET_OTP_TTL_SECONDS,
+                otp,
+            ):
+                authenticators.OTPHelpers.mark_otp_verified(
+                    email,
+                    authenticators.OTP_PURPOSE_PASSWORD_RESET,
+                )
+                return response.Response(
+                    data={"message": "otp verified"}, status=status.HTTP_200_OK
+                )
+            else:
+                raise exceptions.CustomException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        message="invalid or expired otp"
+                    )
+        except Account.DoesNotExist:
+            raise exceptions.CustomException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    message="invalid credentials"
+                )
     
 
 @extend_schema(tags=["Account"])
@@ -336,7 +367,117 @@ class ChangePassword(UpdateAPIView):
         
         user.password = make_password(new_password)
         user.save()
+        authenticators.OTPHelpers.clear_otp_verified(
+            user.email,
+            authenticators.OTP_PURPOSE_PASSWORD_RESET,
+        )
         return response.Response({
             'message': 'password changed successfully!'}, 
             status=status.HTTP_200_OK
         )
+
+
+@extend_schema(tags=["Auth"])
+class FinalizeEmailVerification(views.APIView):
+    http_method_names = ["post"]
+    permission_classes = [IsGuestUser, ]
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for finalizing email verification",
+        request=EmailVerificationSerializer.Finalize,
+        responses={200: None},
+    )
+    def post(self, request):
+        serializer = EmailVerificationSerializer.Finalize(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+
+        try:
+            account = Account.objects.get(email=email)
+            if account.is_email_verified:
+                return response.Response(
+                    data={"message": "email already verified"},
+                    status=status.HTTP_200_OK,
+                )
+
+            if authenticators.OTPHelpers.verify_otp(
+                email,
+                authenticators.OTP_PURPOSE_SIGNUP,
+                settings.SIGNUP_OTP_TTL_SECONDS,
+                otp,
+            ):
+                account.is_email_verified = True
+                account.save(update_fields=["is_email_verified"])
+                return response.Response(
+                    data={"message": "email verified"},
+                    status=status.HTTP_200_OK,
+                )
+
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid or expired otp",
+            )
+        except Account.DoesNotExist:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid credentials",
+            )
+
+
+@extend_schema(tags=["Auth"])
+class ResendSignupOtp(views.APIView):
+    http_method_names = ["post"]
+    permission_classes = [IsGuestUser, ]
+
+    @extend_schema(
+        auth=[],
+        description="endpoint for resending signup email otp",
+        request=SignupVerificationSerializer.ResendOTP,
+        responses={200: None},
+    )
+    def post(self, request):
+        serializer = SignupVerificationSerializer.ResendOTP(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        purpose = serializer.validated_data["purpose"]
+
+        try:
+            account = Account.objects.get(email=email)
+
+            if purpose == enums.OTPPurpose.SIGNUP.value:
+                if account.is_email_verified:
+                    raise exceptions.CustomException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        message="email already verified",
+                    )
+                otp = authenticators.OTPHelpers.cache_otp(
+                    email,
+                    authenticators.OTP_PURPOSE_SIGNUP,
+                    settings.SIGNUP_OTP_TTL_SECONDS,
+                )
+                message = mailer.MessageTemplates.signup_email_verification_email(otp)
+                subject = "Verify Your Email"
+            else:
+                otp = authenticators.OTPHelpers.cache_otp(
+                    email,
+                    authenticators.OTP_PURPOSE_PASSWORD_RESET,
+                    settings.PASSWORD_RESET_OTP_TTL_SECONDS,
+                )
+                message = mailer.MessageTemplates.password_reset_email(otp)
+                subject = "Reset Your Password"
+
+            mail_tasks.send_email_to_address.apply_async(
+                (account.email, subject, message, account.first_name),
+                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            )
+            return response.Response(
+                data={"message": "verification otp sent to your email"},
+                status=status.HTTP_200_OK,
+            )
+        except Account.DoesNotExist:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid credentials",
+            )
