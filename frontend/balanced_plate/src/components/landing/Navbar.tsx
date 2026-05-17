@@ -98,26 +98,26 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="lg:hidden mt-3 rounded-2xl border border-gray-200/80 bg-white/95 px-3 py-4 shadow-2xl shadow-gray-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/30">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-green-50 hover:text-green-600 dark:text-gray-200 dark:hover:bg-green-900/20 dark:hover:text-green-400"
                 >
                   {link.name}
                 </a>
               ))}
-              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+              <div className="mt-4 flex flex-col gap-2 border-t border-gray-200/80 pt-4 dark:border-white/10">
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="secondary" className="w-full justify-center">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white">
+                  <Button className="w-full justify-center bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-emerald-700 hover:shadow-green-500/35">
                     Get Started Free
                   </Button>
                 </Link>
