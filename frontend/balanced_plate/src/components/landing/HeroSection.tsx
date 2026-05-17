@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Camera, 
   Sparkles, 
   ArrowRight, 
-  Play,
   ChevronDown,
   Leaf,
   Brain,
@@ -86,6 +86,7 @@ const HeroSection: React.FC = () => {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
+              {/*
               <Button 
                 variant="outline" 
                 size="lg"
@@ -94,16 +95,28 @@ const HeroSection: React.FC = () => {
                 <Play className="w-5 h-5 mr-2 text-green-600" />
                 Watch Demo
               </Button>
+              */}
             </div>
 
             {/* Social Proof */}
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
               <div className="flex -space-x-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-900 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700"
-                  />
+                {[
+                  { name: 'Ava', image: 'https://randomuser.me/api/portraits/women/44.jpg' },
+                  { name: 'Noah', image: 'https://randomuser.me/api/portraits/men/32.jpg' },
+                  { name: 'Mia', image: 'https://randomuser.me/api/portraits/women/68.jpg' },
+                  { name: 'Liam', image: 'https://randomuser.me/api/portraits/men/75.jpg' },
+                  { name: 'Zoe', image: 'https://randomuser.me/api/portraits/women/12.jpg' },
+                ].map((user) => (
+                  <Avatar
+                    key={user.name}
+                    className="h-10 w-10 border-2 border-white bg-white shadow-sm dark:border-gray-900 dark:bg-gray-900"
+                  >
+                    <AvatarImage src={user.image} alt={user.name} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-xs font-semibold text-white">
+                      {user.name.slice(0, 1)}
+                    </AvatarFallback>
+                  </Avatar>
                 ))}
               </div>
               <div className="text-sm">
