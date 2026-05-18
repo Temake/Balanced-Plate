@@ -134,7 +134,7 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number | undefined, _name: string | undefined, props: any) => [`${value ?? 0} items (${props.payload.percentage}%)`, props.payload.foodClass]}
+                formatter={(value: any, _name: any, props: any) => [`${value ?? 0} items (${props.payload.percentage}%)`, props.payload.foodClass]}
               />
             </PieChart>
           ) : (

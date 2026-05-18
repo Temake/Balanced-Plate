@@ -73,7 +73,7 @@ const MicronutrientChart: React.FC<MicronutrientChartProps> = ({ className = '' 
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
               wrapperClassName="dark:[&_.recharts-tooltip-wrapper]:!bg-gray-800 dark:[&_.recharts-tooltip-wrapper]:!border-gray-600 dark:[&_.recharts-tooltip-wrapper]:!text-white"
-              formatter={(value: number | undefined, name: string | undefined, props: any) => [
+              formatter={(value: any, name: any, props: any) => [
                 `${value ?? 0}% (${props.payload.current}${props.payload.unit})`,
                 name ?? ''
               ]}
