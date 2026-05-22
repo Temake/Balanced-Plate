@@ -4,7 +4,8 @@ import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
 import { FoodGallery } from "@/components/dashboard";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Camera, History, Images, TrendingUp } from "lucide-react";
+import { Camera, Images } from "lucide-react";
+// import { History, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
 const AnalyseFood: React.FC = () => {
@@ -44,7 +45,7 @@ const AnalyseFood: React.FC = () => {
           </div>
 
           {/* Feature Highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
             <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
               <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
                 <Camera className="w-5 h-5 text-white" />
@@ -72,7 +73,7 @@ const AnalyseFood: React.FC = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">View history & trends over time</p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Main Content Grid */}
