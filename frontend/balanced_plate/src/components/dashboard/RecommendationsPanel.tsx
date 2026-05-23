@@ -128,7 +128,7 @@ const getPriorityBadge = (priority: string) => {
   switch (priority) {
     case 'high':
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-sm">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-gradient-to-r from-red-500 to-rose-500 text-white">
           <Zap className="w-2.5 h-2.5" />
           Urgent
         </span>
@@ -152,7 +152,6 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   timeFilter = 'week'
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
   // Sync local state with prop when it changes from parent
@@ -218,23 +217,17 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   const IconComponent = config.icon;
 
   return (
-    <div 
-      className={`relative overflow-hidden rounded-2xl h-full group ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`relative overflow-hidden rounded-2xl h-full group ${className}`}>
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-cyan-500/5 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-cyan-900/20" />
-      <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full ${config.bgGlow} blur-3xl transition-all duration-700 ${isHovered ? 'opacity-60 scale-110' : 'opacity-30'}`} />
-      <div className={`absolute -bottom-24 -left-24 w-48 h-48 rounded-full ${config.bgGlow} blur-3xl transition-all duration-700 ${isHovered ? 'opacity-40 scale-110' : 'opacity-20'}`} />
       
-      <div className="relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-gray-700/50 h-full flex flex-col shadow-xl shadow-gray-200/50 dark:shadow-none">
+      <div className="relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-gray-700/50 h-full flex flex-col">
         {/* Header */}
         <div className="p-4 pb-2">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="relative">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 {highPriorityCount > 0 && (
@@ -314,7 +307,7 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
               className={`${config.lightBg} rounded-xl p-4 h-full transition-all duration-500 border border-white/50 dark:border-gray-600/30`}
             >
               <div className="flex items-start gap-3 mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}>
                   <IconComponent className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">

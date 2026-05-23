@@ -48,7 +48,7 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 h-full ${className}`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 h-full ${className}`}>
         <div className="space-y-4 animate-pulse">
           <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded" />
           <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-xl" />
@@ -65,7 +65,7 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
   // Empty state when no data
   if (!hasData) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 ${className}`}>
         <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />
@@ -77,7 +77,7 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
               <Trophy className="w-12 h-12 text-amber-400" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg">
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-amber-500" />
             </div>
           </div>
@@ -100,7 +100,7 @@ const HealthInsights: React.FC<HealthInsightsProps> = ({
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 ${className}`}>
       {/* Header */}
       <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">

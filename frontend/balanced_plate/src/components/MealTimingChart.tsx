@@ -48,7 +48,7 @@ mealTimingData
     .map(data => ({ hour: data.hour, type: data.mealType, calories: data.calories }));
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white flex items-center">
           <Clock className="mr-2 sm:mr-3 text-green-600 dark:text-green-400" size={20} />

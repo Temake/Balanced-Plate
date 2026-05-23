@@ -31,7 +31,7 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             onClick={() => onChange(option.value)}
             className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
               value === option.value
-                ? 'bg-green-500 text-white shadow-sm'
+                ? 'bg-green-500 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >

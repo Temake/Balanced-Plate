@@ -6,41 +6,13 @@ import {
   Camera, 
   Sparkles, 
   ArrowRight, 
-  ChevronDown,
-  Leaf,
-  Brain,
-  TrendingUp,
   Target
 } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
-  const floatingIcons = [
-    { icon: Leaf, color: 'from-green-400 to-emerald-500', position: 'top-24 left-8 xl:left-16', delay: '0s' },
-    { icon: Brain, color: 'from-purple-400 to-indigo-500', position: 'top-44 right-8 xl:right-16', delay: '0.5s' },
-    { icon: TrendingUp, color: 'from-blue-400 to-cyan-500', position: 'bottom-36 left-10 xl:left-24', delay: '1s' },
-  ];
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 lg:pt-20">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
-      
-      {/* Gradient Orbs */}
-      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-green-300/25 blur-3xl animate-pulse lg:h-96 lg:w-96" />
-      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl animate-pulse lg:h-96 lg:w-96" style={{ animationDelay: '1s' }} />
-      
-      {/* Floating Icons */}
-      {floatingIcons.map((item, idx) => (
-        <div
-          key={idx}
-          className={`absolute ${item.position} hidden lg:block animate-float`}
-          style={{ animationDelay: item.delay }}
-        >
-          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg opacity-80`}>
-            <item.icon className="w-7 h-7 text-white" />
-          </div>
-        </div>
-      ))}
+      <div className="absolute inset-0 bg-gray-50 dark:bg-gray-900" />
 
       {/* Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
@@ -79,7 +51,7 @@ const HeroSection: React.FC = () => {
               <Link to="/signup">
                 <Button 
                   size="lg"
-                  className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-xl shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transition-all duration-300 hover:scale-105"
                 >
                   <Camera className="w-5 h-5 mr-2" />
                   Start Analyzing Free
@@ -110,7 +82,7 @@ const HeroSection: React.FC = () => {
                 ].map((user) => (
                   <Avatar
                     key={user.name}
-                    className="h-10 w-10 border-2 border-white bg-white shadow-sm dark:border-gray-900 dark:bg-gray-900"
+                    className="h-10 w-10 border-2 border-white bg-white dark:border-gray-900 dark:bg-gray-900"
                   >
                     <AvatarImage src={user.image} alt={user.name} className="object-cover" />
                     <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-xs font-semibold text-white">
@@ -139,9 +111,9 @@ const HeroSection: React.FC = () => {
             {/* Main Phone Mockup */}
             <div className="relative mx-auto w-72 sm:w-80 lg:w-88 xl:w-96">
               {/* Phone Frame */}
-              <div className="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl shadow-gray-900/30">
+              <div className="relative bg-gray-900 rounded-[3rem] p-3">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10" />
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-900 rounded-[2.5rem] overflow-hidden aspect-[9/19]">
+                <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden aspect-[9/19]">
                   {/* App Screen Content */}
                   <div className="p-4 h-full flex flex-col">
                     {/* Status Bar */}
@@ -155,9 +127,9 @@ const HeroSection: React.FC = () => {
                     </div>
 
                     {/* Food Image */}
-                    <div className="relative bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 rounded-2xl aspect-square mb-4 flex items-center justify-center overflow-hidden text-transparent">
+                    <div className="relative bg-gray-100 dark:bg-gray-700 rounded-2xl aspect-square mb-4 flex items-center justify-center overflow-hidden text-transparent">
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="relative h-28 w-28 rounded-full bg-white shadow-inner dark:bg-gray-100">
+                        <div className="relative h-28 w-28 rounded-full bg-white dark:bg-gray-100">
                           <div className="absolute left-5 top-5 h-10 w-10 rounded-full bg-emerald-400" />
                           <div className="absolute right-5 top-6 h-9 w-9 rounded-full bg-orange-400" />
                           <div className="absolute bottom-5 left-8 h-9 w-16 rounded-full bg-amber-300" />
@@ -173,7 +145,7 @@ const HeroSection: React.FC = () => {
 
                     {/* Nutrition Stats */}
                     <div className="space-y-2 flex-1">
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Calories</span>
                           <span className="text-sm font-bold text-gray-900 dark:text-white">485 kcal</span>
@@ -189,7 +161,7 @@ const HeroSection: React.FC = () => {
                           { label: 'Carbs', value: '45g', color: 'from-amber-400 to-orange-500' },
                           { label: 'Fat', value: '18g', color: 'from-pink-400 to-rose-500' },
                         ].map((item) => (
-                          <div key={item.label} className="bg-white dark:bg-gray-800 rounded-lg p-2 text-center shadow-sm">
+                          <div key={item.label} className="bg-white dark:bg-gray-800 rounded-lg p-2 text-center">
                             <div className={`text-xs font-bold bg-gradient-to-r ${item.color} bg-clip-text text-transparent`}>
                               {item.value}
                             </div>
@@ -214,53 +186,10 @@ const HeroSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Floating Cards */}
-              <div className="absolute -left-8 top-1/4 hidden max-w-[13rem] animate-float rounded-2xl border border-gray-100 bg-white p-4 shadow-xl shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-800 dark:shadow-none xl:-left-16 xl:block">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center text-transparent [&_span]:hidden">
-                    <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <span className="text-xl">🥗</span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">Great Choice!</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">+15 Balance Points</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute -right-8 bottom-1/3 hidden max-w-[12rem] animate-float rounded-2xl border border-gray-100 bg-white p-4 shadow-xl shadow-gray-200/50 dark:border-gray-700 dark:bg-gray-800 dark:shadow-none xl:-right-12 xl:block" style={{ animationDelay: '1s' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center">
-                    <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">AI Tip</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Add more greens</div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 animate-bounce xl:flex">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Scroll to explore</span>
-          <ChevronDown className="w-5 h-5 text-gray-400" />
-        </div>
       </div>
-
-      {/* Custom Animation Styles */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   );
 };

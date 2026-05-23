@@ -253,7 +253,7 @@ const FoodImageCard: React.FC<FoodImageCardProps> = ({ analysis, onClick }) => {
       className={`
         relative aspect-square rounded-xl overflow-hidden cursor-pointer
         group transition-all duration-300
-        ${!isProcessing && !isFailed ? 'hover:ring-2 hover:ring-green-500 hover:shadow-lg' : ''}
+        ${!isProcessing && !isFailed ? 'hover:ring-2 hover:ring-green-500' : ''}
         ${isProcessing ? 'opacity-80' : ''}
         ${isFailed ? 'opacity-60' : ''}
       `}
@@ -387,12 +387,12 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
   const hasPrev = !!data?.previous;
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
       {/* Header */}
       <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
               <Camera className="w-5 h-5 text-white" />
             </div>
             <div>

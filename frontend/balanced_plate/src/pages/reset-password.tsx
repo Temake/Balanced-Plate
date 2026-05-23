@@ -73,11 +73,11 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
+          <div className="mx-auto w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full flex items-center justify-center mb-4 relative overflow-hidden">
             {/* AI Circuit Pattern Background */}
             <div className="absolute inset-0 opacity-20">
               <svg className="w-full h-full" viewBox="0 0 80 80" fill="none">
@@ -117,7 +117,7 @@ const ResetPassword = () => {
         </div>
 
         {/* Reset Password Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-100 dark:border-gray-700">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">Reset Password</h2>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
             Please enter your new password
@@ -189,7 +189,7 @@ const ResetPassword = () => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-green-600 dark:bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 flex items-center justify-center mt-6"
+                className="w-full bg-green-600 dark:bg-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 flex items-center justify-center mt-6"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">

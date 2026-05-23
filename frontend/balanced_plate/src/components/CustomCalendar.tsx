@@ -75,7 +75,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({ value, onChange }) => {
           d === selectedDay &&
           year === initialDate.getFullYear() &&
           month === initialDate.getMonth()
-            ? "bg-green-500 text-white shadow-sm" : "bg-gray-100 text-gray-900 hover:bg-green-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+            ? "bg-green-500 text-white" : "bg-gray-100 text-gray-900 hover:bg-green-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
         } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
         disabled={disabled}
         onClick={() => handleDayClick(d)}

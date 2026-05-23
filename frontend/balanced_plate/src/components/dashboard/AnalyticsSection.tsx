@@ -99,7 +99,7 @@ const tabs: Tab[] = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
         <p className="font-medium text-gray-900 dark:text-white">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
@@ -327,7 +327,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
                         <p className="font-medium text-gray-900 dark:text-white">{data.hour}</p>
                         <p className="text-sm text-green-600 dark:text-green-400">{data.calories} calories</p>
                         {data.mealType && (
@@ -377,7 +377,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
         <div className="flex items-center gap-4 mb-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
@@ -389,7 +389,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
       {/* Header with tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between p-4 sm:p-5 pb-0">

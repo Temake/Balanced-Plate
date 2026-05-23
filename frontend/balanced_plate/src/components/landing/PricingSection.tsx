@@ -103,7 +103,7 @@ const PricingSection: React.FC = () => {
             }`}
           >
             <div
-              className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform ${
+              className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
                 isYearly ? 'translate-x-7' : 'translate-x-1'
               }`}
             />
@@ -125,14 +125,14 @@ const PricingSection: React.FC = () => {
               key={idx}
               className={`relative rounded-3xl p-8 ${
                 plan.highlighted
-                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-2xl shadow-green-500/25 scale-105 lg:scale-110 z-10'
-                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl'
+                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white scale-105 lg:scale-110 z-10'
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
               }`}
             >
               {/* Badge */}
               {plan.badge && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="px-4 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold shadow-lg">
+                  <div className="px-4 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-bold">
                     {plan.badge}
                   </div>
                 </div>

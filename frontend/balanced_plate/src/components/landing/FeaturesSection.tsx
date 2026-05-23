@@ -69,12 +69,7 @@ const FeaturesSection: React.FC = () => {
     <section id="features" className="relative py-20 lg:py-32 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
-      
-      {/* Decorative Elements */}
-      <div className="absolute top-20 left-0 w-72 h-72 bg-green-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-0 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 mb-6">
@@ -100,13 +95,13 @@ const FeaturesSection: React.FC = () => {
           {features.map((feature, idx) => (
             <div
               key={idx}
-              className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 hover:border-green-200 dark:hover:border-green-800 transition-all duration-300 hover:-translate-y-1"
+              className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 border border-gray-100 dark:border-gray-700 hover:border-green-200 dark:hover:border-green-800 transition-all duration-300 hover:-translate-y-1"
             >
               {/* Hover Gradient */}
               <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`} />
               
               {/* Icon */}
-              <div className={`relative w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`relative w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                 <feature.icon className="w-7 h-7 text-white" />
               </div>
 

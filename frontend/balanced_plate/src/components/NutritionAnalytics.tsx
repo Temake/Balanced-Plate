@@ -41,19 +41,19 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
   const [chartType, setChartType] = useState<string>('bar');
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-4">
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white flex items-center">
           <BarChart3 className="mr-2 sm:mr-3 text-purple-600 dark:text-green-500" size={20} />
           Nutrition Analytics
         </h2>
-        
+
         <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
           <button
             onClick={() => setChartType('bar')}
             className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-              chartType === 'bar' 
-                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400 shadow' 
+              chartType === 'bar'
+                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400'
                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
             }`}
           >
@@ -62,8 +62,8 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
           <button
             onClick={() => setChartType('pie')}
             className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-              chartType === 'pie' 
-                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400 shadow' 
+              chartType === 'pie'
+                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400'
                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
             }`}
           >
@@ -72,8 +72,8 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
           <button
             onClick={() => setChartType('line')}
             className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-              chartType === 'line' 
-                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400 shadow' 
+              chartType === 'line'
+                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-green-400'
                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'
             }`}
           >
@@ -88,9 +88,9 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
           {chartType === 'bar' ? (
             <BarChart data={foodClassData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="foodClass" 
-                stroke="#666" 
+              <XAxis
+                dataKey="foodClass"
+                stroke="#666"
                 fontSize={10}
                 angle={-45}
                 textAnchor="end"
@@ -98,8 +98,8 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                 className="dark:stroke-gray-400"
               />
               <YAxis stroke="#666" fontSize={10} className="dark:stroke-gray-400" />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #ccc',
                   borderRadius: '8px',
@@ -107,8 +107,8 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                 }}
                 wrapperClassName="dark:[&_.recharts-tooltip-wrapper]:!bg-gray-800 dark:[&_.recharts-tooltip-wrapper]:!border-gray-600 dark:[&_.recharts-tooltip-wrapper]:!text-white"
               />
-              <Bar 
-                dataKey="count" 
+              <Bar
+                dataKey="count"
                 radius={[4, 4, 0, 0]}
               >
                 {foodClassData.map((entry: FoodClassData, index: number) => (
@@ -133,7 +133,7 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
+              <Tooltip
                 formatter={(value: any, _name: any, props: any) => [`${value ?? 0} items (${props.payload.percentage}%)`, props.payload.foodClass]}
               />
             </PieChart>
@@ -142,8 +142,8 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-600" />
               <XAxis dataKey="day" stroke="#666" fontSize={10} className="dark:stroke-gray-400" />
               <YAxis stroke="#666" fontSize={10} domain={[0, 100]} className="dark:stroke-gray-400" />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #ccc',
                   borderRadius: '8px',
@@ -152,18 +152,18 @@ const NutritionAnalytics: React.FC<NutritionAnalyticsProps> = ({ className = '' 
                 wrapperClassName="dark:[&_.recharts-tooltip-wrapper]:!bg-gray-800 dark:[&_.recharts-tooltip-wrapper]:!border-gray-600 dark:[&_.recharts-tooltip-wrapper]:!text-white"
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="balanced" 
-                stroke="#10b981" 
+              <Line
+                type="monotone"
+                dataKey="balanced"
+                stroke="#10b981"
                 strokeWidth={3}
                 dot={{ fill: '#10b981', r: 6 }}
                 name="Balance Score"
               />
-              <Line 
-                type="monotone" 
-                dataKey="target" 
-                stroke="#ef4444" 
+              <Line
+                type="monotone"
+                dataKey="target"
+                stroke="#ef4444"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}

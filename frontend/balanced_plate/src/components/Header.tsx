@@ -152,7 +152,7 @@ const Header: React.FC = () => {
       {/* Slide-in Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 z-50 md:hidden transform transition-transform duration-300 ease-out shadow-2xl",
+          "fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 z-50 md:hidden transform transition-transform duration-300 ease-out",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

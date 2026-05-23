@@ -296,7 +296,7 @@ const AnalysisHistory: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow max-w-7xl">
@@ -361,7 +361,7 @@ const AnalysisHistory: React.FC = () => {
                   onClick={() => setStatusFilter(sf.value)}
                   className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-all ${
                     statusFilter === sf.value
-                      ? 'bg-green-500 text-white shadow-sm'
+                      ? 'bg-green-500 text-white'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -420,7 +420,7 @@ const AnalysisHistory: React.FC = () => {
                   className={`
                     bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700
                     p-4 flex items-center gap-4 transition-all duration-200
-                    ${isCompleted ? 'cursor-pointer hover:shadow-md hover:border-green-300 dark:hover:border-green-700' : ''}
+                    ${isCompleted ? 'cursor-pointer hover:border-green-300 dark:hover:border-green-700' : ''}
                     ${isProcessing ? 'opacity-80' : ''}
                     ${isFailed ? 'opacity-70 border-red-200 dark:border-red-800' : ''}
                   `}

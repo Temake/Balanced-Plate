@@ -142,7 +142,7 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
@@ -152,7 +152,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header />
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Profile Hero */}
@@ -160,13 +160,13 @@ const Profile = () => {
           <div className="h-32 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-2xl" />
           <div className="absolute -bottom-12 left-6 flex items-end gap-4">
             <div className="relative">
-              <Avatar className="w-28 h-28 border-4 border-white dark:border-gray-900 shadow-xl">
+              <Avatar className="w-28 h-28 border-4 border-white dark:border-gray-900">
                 <AvatarImage src="/abstract-profile.png" alt={`${user.first_name} ${user.last_name}`} />
                 <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-green-500 to-emerald-600 text-white">
                   {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <label className="absolute bottom-1 right-1 w-9 h-9 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform border-2 border-gray-100 dark:border-gray-700">
+              <label className="absolute bottom-1 right-1 w-9 h-9 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform border-2 border-gray-100 dark:border-gray-700">
                 {isUploadingAvatar ? (
                   <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                 ) : (
@@ -215,7 +215,7 @@ const Profile = () => {
 
         {/* Editable Fields Grid */}
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <User className="w-4 h-4 text-green-500" />
               Personal Information
@@ -246,7 +246,7 @@ const Profile = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-500" />
               Location
@@ -278,7 +278,7 @@ const Profile = () => {
         </div>
 
         {/* Account Info */}
-        <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Shield className="w-4 h-4 text-purple-500" />
             Account Details

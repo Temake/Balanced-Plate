@@ -191,7 +191,7 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
   const isProcessing = uploadStatus === 'uploading' || uploadStatus === 'analyzing';
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
       <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6 flex items-center">
         <Camera className="mr-2 sm:mr-3 text-blue-600 dark:text-blue-400" size={20} />
         Capture Your Meal

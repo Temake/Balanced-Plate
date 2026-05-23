@@ -18,16 +18,13 @@ const Recipes = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col'>
+    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col'>
       <Header />
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-lg w-full text-center">
-          <div className="relative mb-8">
-            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-orange-400 to-rose-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-orange-500/25 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-              <CookingPot className="w-16 h-16 text-white" />
-            </div>
-            <div className="absolute top-0 right-1/4 w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center animate-pulse">
-              <ChefHat className="w-5 h-5 text-white" />
+          <div className="mb-8">
+            <div className="w-32 h-32 mx-auto bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl flex items-center justify-center transition-transform duration-500">
+              <CookingPot className="w-16 h-16 text-gray-700 dark:text-gray-200" />
             </div>
           </div>
           
@@ -41,7 +38,7 @@ const Recipes = () => {
             preferences and health goals. Cook smarter, eat better.
           </p>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-8">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-2">
               <Bell className="w-5 h-5 text-orange-500" />
               Get Notified When We Launch
