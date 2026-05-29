@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from core.utils import enums
 from config.celery.queue import CeleryQueue
 from celery.schedules import crontab
+import sentry_sdk
 
 from .. import env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -334,6 +335,15 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+sentry_sdk.init(
+    dsn="https://1dee5c434e783fffa8db4a619178d1ff@o4511473649057792.ingest.de.sentry.io/4511473672126544",
+    send_default_pii=True,
+    enable_logs=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+)
 
 
 
