@@ -106,6 +106,29 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
         blank=True,
         max_length=50,
     )
+    dietary_goal = models.CharField(
+        _("Dietary Goal"),
+        choices=[
+            ("weight_loss", "Weight Management"),
+            ("muscle_gain", "Muscle Building & Strength"),
+            ("energy_focus", "Stable Energy & Focus"),
+            ("general_health", "General Wellness"),
+        ],
+        default="general_health",
+        max_length=30,
+    )
+    dietary_preference = models.CharField(
+        _("Dietary Preference"),
+        choices=[
+            ("none", "No restrictions"),
+            ("vegetarian", "Vegetarian"),
+            ("vegan", "Vegan"),
+            ("keto", "Keto-friendly"),
+            ("gluten_free", "Gluten-Free"),
+        ],
+        default="none",
+        max_length=30,
+    )
     is_banned = models.BooleanField(
         _("User account has been banned"), null=False, blank=False, default=False
     )

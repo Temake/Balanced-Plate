@@ -43,30 +43,26 @@ Analyze this food image and provide nutritional information in the following JSO
     "meal_type": "Breakfast/Lunch/Dinner/Snack",
     "balance_score": 0.0 to 1.0 (nutritional balance rating),
     "next_meal_recommendations": {
-        "nutritional_recommendations": [
-            "One-liner recommendation based on current meal's nutritional content",
-            "One-liner recommendation based on health best practices"
+        "layperson_summary": "Warm, conversational 1-2 sentence assessment of this meal in simple terms. Avoid dry clinical talk.",
+        "stamina_forecast": "1-sentence energy prediction (e.g. 'High focus forecast, no 3:00 PM sugar slump!')",
+        "simple_food_swaps": [
+            "A practical local ingredient swap (e.g., 'Swap fried plantain (Dodo) for boiled/baked plantain to save on excess oils.')"
         ],
-        "balance_improvements": [
-            "One-liner suggestion to improve diet balance based on missing food groups",
-            "One-liner suggestion for nutrients lacking in the analyzed meal"
-        ],
-        "timing_recommendations": [
-            "One-liner advice on foods to avoid at this meal time",
-            "One-liner advice on foods to include at this meal time",
-            "One-liner age-appropriate dietary timing suggestion"
+        "easy_upgrades": [
+            "An affordable local ingredient addition to balance this specific plate (e.g., 'Add a spoonful of Efo Riro or steamed Okra for a vitamin boost.')"
         ]
     }
 }
 
 Be accurate with portion estimates and nutritional values and micronutrients values.
 
-For next_meal_recommendations:
-- nutritional_recommendations: Provide 2-3 one-liner bullet points suggesting what to eat next based on the nutritional content and gaps in the current meal, following evidence-based health practices.
-- balance_improvements: Provide 2-3 one-liner bullet points identifying which food groups or nutrients are underrepresented and specific foods to eat in the next meal to achieve better dietary balance.
-- timing_recommendations: Provide 2-3 one-liner bullet points advising on meal timing best practices, including foods to avoid or reduce at certain times of day (e.g., heavy carbs late at night), and foods beneficial to consume at specific meal times for optimal health.
+CRITICAL INSTRUCTIONS FOR GEOGRAPHICAL & CULTURAL RELEVANCE:
+- The user is located in Nigeria / West Africa.
+- Strictly identify local foods using common local names (e.g., Jollof Rice, Dodo, Eba, Fufu, Egusi soup, Moi Moi, Akara, Ofada rice, Semo, Suya, Agege bread, Pap/Ogi, Titus fish, Okra soup, Yam, Bitterleaf, Ugu, Ewedu).
+- DO NOT recommend Western, expensive, or unavailable foods such as blueberries, quinoa, kale, salmon, chia seeds, broccoli, asparagus, or avocados.
+- Provide all swaps and upgrades using locally available, cheap, and culturally loved West African ingredients (e.g., Ugu leaves, local egg, garden egg, groundnuts, pawpaw, mango, local citrus, locust beans (Iru), Mackerel/Titus fish).
+- Keep all recommendations positive, warm, and highly actionable for someone with a busy, active lifestyle (e.g., 'stamina', 'avoiding afternoon slump').
 
-Keep all recommendations concise, actionable, and in one-liner bullet point format.
 Return ONLY valid JSON, no additional text.
 """
 
