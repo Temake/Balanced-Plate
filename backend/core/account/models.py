@@ -129,6 +129,15 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
         default="none",
         max_length=30,
     )
+    health_conditions = models.JSONField(
+        _("Health Conditions"),
+        default=list,
+        blank=True,
+    )
+    onboarding_completed = models.BooleanField(
+        _("Onboarding Completed?"),
+        default=False,
+    )
     is_banned = models.BooleanField(
         _("User account has been banned"), null=False, blank=False, default=False
     )

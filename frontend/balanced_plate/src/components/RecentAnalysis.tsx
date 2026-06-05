@@ -100,8 +100,12 @@ const getMealGradient = (index: number) => {
   return gradients[index % gradients.length];
 };
 
-// Get meal name from detected foods
+// Get meal name from food_name or detected foods
 const getMealName = (analysis: FoodAnalysis): string => {
+  // Prefer the new AI-generated food_name
+  if (analysis.food_name) {
+    return analysis.food_name;
+  }
   if (analysis.detected_foods && analysis.detected_foods.length > 0) {
     const topFood = analysis.detected_foods[0];
     if (analysis.detected_foods.length > 1) {
@@ -132,7 +136,7 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-orange-500" />
-            Analysis Details
+            {analysis.food_name || 'Analysis Details'}
           </DialogTitle>
         </DialogHeader>
 
@@ -155,6 +159,31 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
               </span>
             </div>
           </div>
+
+          {/* Conversational Feedback */}
+          {analysis.conversational_feedback && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800/40">
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {analysis.conversational_feedback}
+              </p>
+            </div>
+          )}
+
+          {/* Actionable Suggestion */}
+          {analysis.actionable_suggestion && (
+            <div className="bg-amber-50 dark:bg-amber-900/15 rounded-lg p-3 border border-amber-100 dark:border-amber-800/30">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">💡 Quick Tip</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.actionable_suggestion}</p>
+            </div>
+          )}
+
+          {/* Alternative Suggestion */}
+          {analysis.alternative_suggestion && (
+            <div className="bg-blue-50 dark:bg-blue-900/15 rounded-lg p-3 border border-blue-100 dark:border-blue-800/30">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-0.5">🔄 Healthier Swap</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.alternative_suggestion}</p>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
@@ -389,16 +418,22 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
                             {mealName}
                           </h4>
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <Clock className="w-3 h-3" />
-                            {formatRelativeTime(analysis.date_added)}
-                          </span>
-                          <span className={`flex items-center gap-1 text-xs font-medium ${config.text}`}>
-                            <TrendingUp className="w-3 h-3" />
-                            {balanceScore.toFixed(0)}%
-                          </span>
-                        </div>
+                        {analysis.conversational_feedback ? (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                            {analysis.conversational_feedback}
+                          </p>
+                        ) : (
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                              <Clock className="w-3 h-3" />
+                              {formatRelativeTime(analysis.date_added)}
+                            </span>
+                            <span className={`flex items-center gap-1 text-xs font-medium ${config.text}`}>
+                              <TrendingUp className="w-3 h-3" />
+                              {balanceScore.toFixed(0)}%
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Calories & Score */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/api/constants';
 
@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { loadCurrentUser, setAuthStatus, user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'ok' | 'redirect'>('loading');
+  const location = useLocation();
 
   useEffect(() => {
     const init = async () => {
@@ -41,14 +42,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (status === 'redirect') {
     return <Navigate to="/login" replace />;
+  }
+
+  // Redirect to onboarding if user hasn't completed it
+  // (but don't redirect if they're already on the onboarding page)
+  if (
+    user &&
+    user.onboarding_completed === false &&
+    location.pathname !== '/onboarding'
+  ) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;

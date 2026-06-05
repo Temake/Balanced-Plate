@@ -1,7 +1,7 @@
 import React, { createContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
-import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse } from '../api/types'
+import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse, OnboardingData } from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,8 +17,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const loadCurrentUser = useCallback(async () => {
-    if (user) return;
-    
     setIsLoading(true);
     try {
       const { data } = await api.get('/accounts/me/');
@@ -27,7 +25,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
@@ -188,6 +186,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
   };
 
+  const completeOnboarding = async (data: OnboardingData): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.patch<User>('/accounts/me/complete-onboarding/', {
+        dietary_goal: data.dietary_goal,
+        dietary_preference: data.dietary_preference,
+        health_conditions: data.health_conditions,
+      });
+      setUser(response.data);
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to save preferences. Please try again.';
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      }
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     forgetPassword,
@@ -202,6 +223,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearError,
     loadCurrentUser,
     setAuthStatus,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -25,7 +25,7 @@ import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
 import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import Header from '@/components/Header';
+import Header, { BOTTOM_NAV_HEIGHT } from '@/components/Header';
 
 type StatusFilter = 'all' | 'analysis_completed' | 'analysis_processing' | 'analysis_pending' | 'analysis_failed';
 
@@ -296,7 +296,7 @@ const AnalysisHistory: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
       <Header />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow max-w-7xl">

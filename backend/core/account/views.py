@@ -96,8 +96,27 @@ class RetrieveUpdateUser(views.APIView):
         serializer.is_valid(raise_exception=True)
         account = serializer.save()
         serializer = UserSerializer.Retrieve(instance=account)
-        response_data = {"message": "details successfully updated", "data": serializer.data}
-        return response.Response(data=response_data, status=status.HTTP_200_OK)
+        return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=["Account"])
+class CompleteOnboarding(views.APIView):
+    http_method_names = ["patch"]
+    permission_classes = [IsAuthenticated, ]
+
+    @extend_schema(
+        description="endpoint for saving onboarding preferences",
+        request=UserSerializer.Onboarding,
+        responses={200: UserSerializer.Retrieve},
+    )
+    def patch(self, request):
+        serializer = UserSerializer.Onboarding(
+            instance=request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        account = serializer.save(onboarding_completed=True)
+        serializer = UserSerializer.Retrieve(instance=account)
+        return response.Response(data=serializer.data, status=status.HTTP_200_OK)
     
 
 @extend_schema(tags=["Auth"])

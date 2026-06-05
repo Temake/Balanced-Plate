@@ -15,9 +15,10 @@ export interface User {
   account_type:string
   country:string,
   state?:string
-
-  
-  
+  dietary_goal?: string;
+  dietary_preference?: string;
+  health_conditions?: string[];
+  onboarding_completed?: boolean;
 }
 
 export interface LoginCredentials {
@@ -68,6 +69,12 @@ export interface ResponseError{
     }
   
 }
+export interface OnboardingData {
+  dietary_goal: string;
+  dietary_preference: string;
+  health_conditions: string[];
+}
+
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -82,6 +89,7 @@ export interface AuthContextType {
   clearError: () => void;
   loadCurrentUser: () => Promise<void>;
   setAuthStatus: (status: boolean) => void;
+  completeOnboarding: (data: OnboardingData) => Promise<void>;
 }
 
 
@@ -140,6 +148,10 @@ export interface FoodAnalysis {
   is_mock_data: boolean;
   analysis_status: 'analysis_pending' | 'analysis_processing' | 'analysis_completed' | 'analysis_failed';
   error_message: string | null;
+  food_name: string | null;
+  conversational_feedback: string | null;
+  actionable_suggestion: string | null;
+  alternative_suggestion: string | null;
   detected_foods: DetectedFood[];
   total_calories: string;
   total_protein: string;

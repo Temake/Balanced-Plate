@@ -103,6 +103,10 @@ class UserSerializer:
                 "country",
                 "state",
                 "city",
+                "dietary_goal",
+                "dietary_preference",
+                "health_conditions",
+                "onboarding_completed",
             ]
         
         def validate_phone_number(self, value):
@@ -118,6 +122,30 @@ class UserSerializer:
             except NumberParseException as err:
                 message = err._msg
                 raise serializers.ValidationError(message, "invalid phone number")
+            return value
+
+        def validate_health_conditions(self, value):
+            if value is None:
+                return []
+            if not isinstance(value, list):
+                raise serializers.ValidationError("Health conditions must be a list.")
+            return value
+
+    class Onboarding(serializers.ModelSerializer):
+
+        class Meta:
+            model = Account
+            fields = [
+                "dietary_goal",
+                "dietary_preference",
+                "health_conditions",
+            ]
+
+        def validate_health_conditions(self, value):
+            if value is None:
+                return []
+            if not isinstance(value, list):
+                raise serializers.ValidationError("Health conditions must be a list.")
             return value
         
 

@@ -105,30 +105,6 @@ const HowItWorksSection: React.FC = () => {
             ))}
           </div>
         </div>
-
-{/* Demo Video Placeholder - Commented out until video is ready
-        <div className="mt-16 lg:mt-24 relative">
-          <div className="relative aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4 mx-auto cursor-pointer hover:bg-white/20 transition-colors group">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-white/80 text-lg">Watch How It Works</p>
-              </div>
-            </div>
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-            </div>
-          </div>
-        </div>
-        */}
       </div>
     </section>
   );

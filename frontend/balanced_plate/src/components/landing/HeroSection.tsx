@@ -58,16 +58,6 @@ const HeroSection: React.FC = () => {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              {/*
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="w-full sm:w-auto h-14 px-8 text-base border-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                <Play className="w-5 h-5 mr-2 text-green-600" />
-                Watch Demo
-              </Button>
-              */}
             </div>
 
             {/* Social Proof */}

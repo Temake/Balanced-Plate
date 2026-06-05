@@ -1,4 +1,4 @@
-import Header from "@/components/Header"
+import Header, { BOTTOM_NAV_HEIGHT } from "@/components/Header"
 import { Brain, Bell, Sparkles, BookOpen, Lightbulb, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -18,7 +18,7 @@ const Learn = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
       <Header />
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-lg w-full text-center">
