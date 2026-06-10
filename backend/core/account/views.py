@@ -151,6 +151,8 @@ class Login(views.APIView):
                 authenticators.OTP_PURPOSE_SIGNUP,
                 settings.SIGNUP_OTP_TTL_SECONDS,
             )
+            print(otp)
+            
             message = mailer.MessageTemplates.signup_email_verification_email(otp)
             mail_tasks.send_email_to_address.apply_async(
                 (account.email, "Verify Your Email", message, account.first_name),

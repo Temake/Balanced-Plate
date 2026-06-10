@@ -96,9 +96,9 @@ export default function SignUp() {
         gender: data.gender,
         country: data.country
       });
-      setSuccessMessage("Sign up successful!");
+      setSuccessMessage("Sign up successful! Check your email for the verification code.");
       form.reset();
-      navigate("/login")
+      navigate("/verify-account", { state: { email: data.email } })
     } catch (err) {
       console.error("Error during signup:", err);
     } finally {

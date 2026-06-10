@@ -50,11 +50,11 @@ export interface SignupCredentials{
 }
 export interface SignupResponse{
   user: User;
-  message?:{
-    phone_number:string,
-    password:string,
-    email?:string
-}
+  message?: string | {
+    phone_number?: string | string[],
+    password?: string | string[],
+    email?: string | string[]
+  }
 
 }
 
@@ -80,6 +80,8 @@ export interface AuthContextType {
   isLoading: boolean;
   forgetPassword: (email: string) => Promise<string>;
   otpVerify: (email: string, otpCode: string) => Promise<string>;
+  verifyAccount: (email: string, otpCode: string) => Promise<string>;
+  resendAccountVerificationOtp: (email: string) => Promise<string>;
   resetPassword: (email: string, password: string, confirmPassword: string) => Promise<string>;
   SignUp: (credentials: SignupCredentials) => Promise<SignupResponse>;
   isAuthenticated: boolean;
@@ -166,6 +168,34 @@ export interface FoodAnalysisListResponse {
   next: string | null;
   previous: string | null;
   results: FoodAnalysis[];
+}
+
+// ============ Meal Plan Types ============
+
+export interface MealEntry {
+  id: number;
+  day: string;
+  meal_type: string;
+  food_name: string;
+  description: string;
+  prep_time_minutes: number | null;
+  health_notes: string;
+  is_ai_generated: boolean;
+  date_added: string;
+}
+
+export interface MealPlan {
+  id: number;
+  week_start_date: string;
+  budget_level: 'low' | 'medium' | 'flexible';
+  is_ai_generated: boolean;
+  entries: MealEntry[];
+  date_added: string;
+}
+
+export interface GenerateMealPlanRequest {
+  week_start_date: string;
+  budget_level: string;
 }
 
 // ============ Weekly Recommendation Types ============
@@ -268,4 +298,29 @@ export interface AnalysisFailedEvent extends WebSocketEvent {
     id: number;
     timestamp: string;
   };
+}
+
+// ============ Cooking Assistant Types ============
+
+export interface CookingIngredient {
+  name: string;
+  quantity: string;
+  is_essential: boolean;
+}
+
+export interface CookingStep {
+  step_number: number;
+  instruction: string;
+  duration_minutes: number | null;
+  tip: string | null;
+}
+
+export interface CookingGuide {
+  dish_name: string;
+  servings: number;
+  total_prep_time_minutes: number;
+  difficulty: string;
+  ingredients: CookingIngredient[];
+  steps: CookingStep[];
+  health_notes: string | null;
 }

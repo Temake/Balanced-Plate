@@ -73,7 +73,9 @@ CORE_APPS = [
     "core.analytics.apps.AnalyticsConfig",
     "core.utils.apps.UtilsConfig",
     "core.recommendations.apps.RecommendationsConfig",
-    "core.websocket.apps.WebsocketConfig"
+    "core.websocket.apps.WebsocketConfig",
+    "core.meal_plan.apps.MealPlanConfig",
+    "core.cooking.apps.CookingConfig",
 ]
 
 INSTALLED_APPS += CORE_APPS
@@ -310,7 +312,13 @@ CELERY_BEAT_SCHEDULE = {
 
 REDIS_HOST = env.str("REDIS_HOST", default="localhost")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
-REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
+REDIS_URL = env.str("REDIS_URL",default="")
+REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="")
+
+# if REDIS_PASSWORD:
+#     REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+# else:
+#     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
 
 
 CACHES = {

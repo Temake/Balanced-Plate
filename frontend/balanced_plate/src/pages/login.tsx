@@ -57,6 +57,10 @@ export default function LoginPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error("Error during login:", err);
+      const message = err instanceof Error ? err.message.toLowerCase() : "";
+      if (message.includes("email not verified")) {
+        navigate("/verify-account", { state: { email: data.email } });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -165,6 +169,12 @@ export default function LoginPage() {
             Don't have an account?{" "}
             <a href="/signup" className="text-black  hover:text-gray-500 dark:text-green-600 font-medium transition-colors">
               Sign up for free
+            </a>
+          </p>
+          <p className="text-center text-sm text-gray-600 dark:text-white mt-3">
+            Need to verify your account?{" "}
+            <a href="/verify-account" className="text-black  hover:text-gray-500 dark:text-green-600 font-medium transition-colors">
+              Enter your code
             </a>
           </p>
         </div>

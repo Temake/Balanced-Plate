@@ -180,10 +180,12 @@ const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   const highPriorityCount = sortedRecommendations.filter(r => r.priority === 'high').length;
 
   const nextTip = () => {
+    if (sortedRecommendations.length === 0) return;
     setActiveIndex((prev) => (prev + 1) % sortedRecommendations.length);
   };
 
   const prevTip = () => {
+    if (sortedRecommendations.length === 0) return;
     setActiveIndex((prev) => (prev - 1 + sortedRecommendations.length) % sortedRecommendations.length);
   };
 

@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       setError(errorMessage);
       setIsAuthenticated(false);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -84,9 +84,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       let errorMessage = 'SignUp failed. Please try again.';
 
       if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: {phone_number:string,password:string,email:string} } } }).response;
-        errorMessage = response?.data?.message?.phone_number || response?.data?.message?.password || response?.data?.message?.email || errorMessage;
-        errorMessage = errorMessage[0];
+        const response = (error as { response?: { data?: { detail?: string; message?: string | {phone_number?: string | string[]; password?: string | string[]; email?: string | string[]} } } }).response;
+        const message = response?.data?.message;
+        if (typeof message === 'string') {
+          errorMessage = message;
+        } else if (message) {
+          const fieldError = message.phone_number || message.password || message.email;
+          errorMessage = Array.isArray(fieldError) ? fieldError[0] : fieldError || errorMessage;
+        } else {
+          errorMessage = response?.data?.detail || errorMessage;
+        }
       }
       setError(errorMessage);
       setIsAuthenticated(false);
@@ -133,6 +140,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (typeof error === 'object' && error && 'response' in error) {
         const response = (error as { response?: { data?: { message?: string } } }).response;
         errorMessage = response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyAccount = async (email: string, otpCode: string): Promise<string> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.post('/auth/signup/verify-otp/', {
+        email,
+        otp: Number(otpCode),
+      });
+      const msg: string = response.data?.message || 'Email verified successfully.';
+      return msg;
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to verify your account. Please try again.';
+
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendAccountVerificationOtp = async (email: string): Promise<string> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.post('/auth/signup/resend-otp/', {
+        email,
+        purpose: 'signup',
+      });
+      const msg: string = response.data?.message || 'Verification OTP sent to your email.';
+      return msg;
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to resend verification code. Please try again.';
+
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
       }
 
       setError(errorMessage);
@@ -213,6 +272,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     forgetPassword,
     otpVerify,
+    verifyAccount,
+    resendAccountVerificationOtp,
     resetPassword,
     SignUp,
     isLoading,

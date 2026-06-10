@@ -15,7 +15,13 @@ import {
   User,
   Globe,
   Shield,
-  Sparkles
+  Sparkles,
+  Leaf,
+  Target,
+  Utensils,
+  HeartPulse,
+  ChevronDown,
+  Loader2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
@@ -109,6 +115,194 @@ const EditableField: React.FC<EditableFieldProps> = ({ label, value, field, icon
   );
 };
 
+// ─── Dropdown Select Field ───────────────────────────────────────────────────
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  field: string;
+  icon: React.ReactNode;
+  options: SelectOption[];
+  onSave: (field: string, value: string) => Promise<void>;
+}
+
+const SelectField: React.FC<SelectFieldProps> = ({ label, value, field, icon, options, onSave }) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = e.target.value;
+    if (newValue === value) return;
+    setIsSaving(true);
+    try {
+      await onSave(field, newValue);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="group relative bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+          <div className="relative">
+            <select
+              value={value || ''}
+              onChange={handleChange}
+              disabled={isSaving}
+              className="w-full appearance-none bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 pr-9 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all cursor-pointer disabled:opacity-60"
+            >
+              {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      {isSaving && (
+        <div className="absolute inset-0 rounded-xl bg-emerald-500/5 animate-pulse pointer-events-none" />
+      )}
+    </div>
+  );
+};
+
+// ─── Chip Multi-Select ───────────────────────────────────────────────────────
+
+interface ChipOption {
+  label: string;
+  value: string;
+}
+
+interface ChipSelectorProps {
+  label: string;
+  icon: React.ReactNode;
+  options: ChipOption[];
+  selected: string[];
+  noneValue: string;
+  onSave: (field: string, value: string[]) => Promise<void>;
+  field: string;
+}
+
+const ChipSelector: React.FC<ChipSelectorProps> = ({ label, icon, options, selected, noneValue, onSave, field }) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleToggle = async (chipValue: string) => {
+    let newSelected: string[];
+    if (chipValue === noneValue) {
+      newSelected = [noneValue];
+    } else {
+      const without = selected.filter(s => s !== noneValue);
+      if (without.includes(chipValue)) {
+        newSelected = without.filter(s => s !== chipValue);
+        if (newSelected.length === 0) newSelected = [noneValue];
+      } else {
+        newSelected = [...without, chipValue];
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      await onSave(field, newSelected);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="group relative bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0 mt-0.5">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">{label}</p>
+          <div className="flex flex-wrap gap-2">
+            {options.map(opt => {
+              const isActive = selected.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => handleToggle(opt.value)}
+                  disabled={isSaving}
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 disabled:opacity-60 ${
+                    isActive
+                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
+                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      {isSaving && (
+        <div className="absolute top-3 right-3">
+          <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Option Maps ─────────────────────────────────────────────────────────────
+
+const DIETARY_GOAL_OPTIONS: SelectOption[] = [
+  { label: 'Weight Loss', value: 'weight_loss' },
+  { label: 'Muscle Building', value: 'muscle_gain' },
+  { label: 'Stable Energy', value: 'energy_focus' },
+  { label: 'General Wellness', value: 'general_health' },
+  { label: 'Eat Healthier', value: 'eat_healthier' },
+  { label: 'Maintain Weight', value: 'maintain' },
+];
+
+const DIET_TYPE_OPTIONS: SelectOption[] = [
+  { label: 'No Restrictions', value: 'none' },
+  { label: 'Vegetarian', value: 'vegetarian' },
+  { label: 'Vegan', value: 'vegan' },
+  { label: 'Keto-Friendly', value: 'keto' },
+  { label: 'Gluten-Free', value: 'gluten_free' },
+];
+
+const HEALTH_CONDITION_OPTIONS: ChipOption[] = [
+  { label: 'Diabetes', value: 'diabetes' },
+  { label: 'Hypertension', value: 'hypertension' },
+  { label: 'None', value: 'none' },
+];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const getPersonalizationTags = (preference?: string, conditions?: string[]): string[] => {
+  const tags: string[] = [];
+  const prefLabel = DIET_TYPE_OPTIONS.find(o => o.value === preference)?.label;
+  if (prefLabel && preference !== 'none') tags.push(`${prefLabel} diet`);
+  if (conditions) {
+    conditions
+      .filter(c => c !== 'none')
+      .forEach(c => {
+        const label = HEALTH_CONDITION_OPTIONS.find(o => o.value === c)?.label;
+        if (label) tags.push(`${label} management`);
+      });
+  }
+  return tags;
+};
+
 const Profile = () => {
   const { user, loadCurrentUser } = useAuth();
   const { uploadFile } = useFiles();
@@ -122,6 +316,16 @@ const Profile = () => {
     } catch {
       toast.error(`Failed to update ${field.replace('_', ' ')}`);
       throw new Error('Update failed');
+    }
+  };
+
+  const handleChipSave = async (field: string, value: string[]) => {
+    try {
+      await api.patch(`/accounts/${user?.id}/`, { [field]: value });
+      await loadCurrentUser();
+      toast.success(`${field.replace(/_/g, ' ')} updated successfully!`);
+    } catch {
+      toast.error(`Failed to update ${field.replace(/_/g, ' ')}`);
     }
   };
 
@@ -242,6 +446,64 @@ const Profile = () => {
                 icon={<Phone className="w-5 h-5" />}
                 onSave={handleFieldSave}
                 type="tel"
+              />
+            </div>
+          </div>
+
+          {/* Health & Diet Preferences */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+            {/* Subtle decorative gradient */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full pointer-events-none" />
+
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Leaf className="w-4 h-4 text-emerald-500" />
+              Health & Diet Preferences
+            </h2>
+
+            {/* AI Personalization Banner */}
+            {(() => {
+              const tags = getPersonalizationTags(user.dietary_preference, user.health_conditions);
+              if (tags.length === 0) return null;
+              return (
+                <div className="mb-4 flex items-start gap-2.5 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200/60 dark:border-emerald-700/40 rounded-xl px-4 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">AI Personalized</p>
+                    <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5 leading-relaxed">
+                      Your AI is tailored for: <span className="font-medium">{tags.join(', ')}</span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="space-y-3">
+              <SelectField
+                label="Dietary Goal"
+                value={user.dietary_goal || 'general_health'}
+                field="dietary_goal"
+                icon={<Target className="w-5 h-5" />}
+                options={DIETARY_GOAL_OPTIONS}
+                onSave={handleFieldSave}
+              />
+              <SelectField
+                label="Diet Type"
+                value={user.dietary_preference || 'none'}
+                field="dietary_preference"
+                icon={<Utensils className="w-5 h-5" />}
+                options={DIET_TYPE_OPTIONS}
+                onSave={handleFieldSave}
+              />
+              <ChipSelector
+                label="Health Conditions"
+                icon={<HeartPulse className="w-5 h-5" />}
+                options={HEALTH_CONDITION_OPTIONS}
+                selected={user.health_conditions && user.health_conditions.length > 0 ? user.health_conditions : ['none']}
+                noneValue="none"
+                field="health_conditions"
+                onSave={handleChipSave}
               />
             </div>
           </div>
