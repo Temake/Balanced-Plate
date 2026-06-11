@@ -4,7 +4,7 @@ import Header, { BOTTOM_NAV_HEIGHT } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { recipes } from '@/data/recipes';
 import type { Recipe } from '@/data/recipes';
-import { CookingPot, Clock, Search, X, ChefHat } from 'lucide-react';
+import { CookingPot, Clock, Search, X, ChefHat, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -36,11 +36,11 @@ interface RecipeCardProps {
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onCook }) => (
   <div className="group flex flex-col rounded-xl border border-gray-200/80 dark:border-gray-700/50 bg-white dark:bg-gray-800/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-300/50 dark:hover:border-emerald-600/30 hover:-translate-y-0.5">
-    {/* Emoji hero */}
-    <div className="flex items-center justify-center h-28 sm:h-32 bg-gray-50 dark:bg-gray-800/80 transition-colors group-hover:bg-emerald-50/50 dark:group-hover:bg-emerald-950/20">
-      <span className="text-5xl sm:text-6xl transition-transform duration-300 group-hover:scale-110">
-        {recipe.emoji}
-      </span>
+    {/* Icon hero */}
+    <div className="flex items-center justify-center h-28 sm:h-32 bg-gray-50 dark:bg-gray-800/80 transition-colors group-hover:bg-emerald-50/50 dark:group-hover:bg-emerald-950/20 text-gray-500 dark:text-gray-400">
+      <div className="transition-transform duration-300 group-hover:scale-110 group-hover:text-emerald-500">
+        <recipe.icon className="w-16 h-16 sm:w-20 sm:h-20" strokeWidth={1.5} />
+      </div>
     </div>
 
     {/* Content */}
@@ -98,6 +98,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onCook }) => (
 const Recipes: React.FC = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [customDish, setCustomDish] = useState('');
   const [category, setCategory] = useState<Category>('All');
 
   const filteredRecipes = useMemo(() => {
@@ -120,6 +121,11 @@ const Recipes: React.FC = () => {
   }, [search, category]);
 
   const handleCook = (id: string) => navigate(`/cook/${id}`);
+  const handleCustomCook = () => {
+    const dish = customDish.trim();
+    if (!dish) return;
+    navigate(`/cook/custom?dish=${encodeURIComponent(dish)}`);
+  };
 
   return (
     <div className={cn('min-h-screen bg-background flex flex-col', BOTTOM_NAV_HEIGHT, 'md:pb-0')}>
@@ -157,6 +163,43 @@ const Recipes: React.FC = () => {
               <X className="w-4 h-4 text-gray-400" />
             </button>
           )}
+        </div>
+
+        {/* ─── Custom AI Dish ─── */}
+        <div className="mb-5 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+          <div className="mb-3 flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+                Cook anything with AI
+              </h2>
+              <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                Type any dish and get ingredients plus step-by-step preparation guidance.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={customDish}
+              onChange={(event) => setCustomDish(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') handleCustomCook();
+              }}
+              placeholder="e.g. Afang soup, masa, spaghetti jollof"
+              className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-emerald-800 dark:bg-gray-900 dark:text-white"
+            />
+            <Button
+              onClick={handleCustomCook}
+              disabled={!customDish.trim()}
+              className="gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              <ChefHat className="h-4 w-4" />
+              Generate Guide
+            </Button>
+          </div>
         </div>
 
         {/* ─── Category Tabs ─── */}

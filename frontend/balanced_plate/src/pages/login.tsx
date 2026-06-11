@@ -67,17 +67,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-20 h-20 bg-emerald-600 dark:bg-emerald-500 rounded-full flex items-center justify-center mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
+            Balanced Plate<span className="text-emerald-600 dark:text-emerald-500">.AI</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Your AI-powered nutrition companion</p>
+          <p className="text-gray-600 dark:text-gray-400">Your Nigerian food accountability companion</p>
         </div>
 
         {/* Login Card */}
@@ -142,12 +142,12 @@ export default function LoginPage() {
                 )}
               />
               <div className="flex flex-row justify-end items-end-safe mt-0.5 my-2 text-sm text-gray-600 ">
-                <a href="/forget-password" className="text-black dark:text-green-600 hover:text-gray-500 dark:hover:text-gray-300 font-medium transition-colors">Forgot your password?</a>
+                <a href="/forget-password" className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-medium transition-colors">Forgot your password?</a>
               </div>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -167,16 +167,11 @@ export default function LoginPage() {
           {/* Signup Link */}
           <p className="text-center text-sm text-gray-600 dark:text-white mt-6">
             Don't have an account?{" "}
-            <a href="/signup" className="text-black  hover:text-gray-500 dark:text-green-600 font-medium transition-colors">
+            <a href="/signup" className="text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors">
               Sign up for free
             </a>
           </p>
-          <p className="text-center text-sm text-gray-600 dark:text-white mt-3">
-            Need to verify your account?{" "}
-            <a href="/verify-account" className="text-black  hover:text-gray-500 dark:text-green-600 font-medium transition-colors">
-              Enter your code
-            </a>
-          </p>
+        
         </div>
 
 

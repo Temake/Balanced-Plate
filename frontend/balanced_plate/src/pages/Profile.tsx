@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Header, { BOTTOM_NAV_HEIGHT } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
 import { useFiles } from '@/hooks/useFiles';
+import { useHealthReport, buildTextSummary } from '@/hooks/useHealthReport';
 import api from '@/api/axios';
+import type { PaginatedResponse, WeeklyRecommendation } from '@/api/types';
 import { 
   MapPin, 
   Calendar, 
@@ -21,10 +23,15 @@ import {
   Utensils,
   HeartPulse,
   ChevronDown,
-  Loader2
+  Loader2,
+  FileText,
+  Download,
+  Eye,
+  History
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
 interface EditableFieldProps {
   label: string;
@@ -303,6 +310,189 @@ const getPersonalizationTags = (preference?: string, conditions?: string[]): str
   return tags;
 };
 
+const formatWeekRange = (recommendation: WeeklyRecommendation) => {
+  const start = new Date(recommendation.week_start_date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const end = new Date(recommendation.week_end_date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  return `${start} - ${end}`;
+};
+
+const buildRecommendationSummary = (recommendation: WeeklyRecommendation) => {
+  const lines: string[] = [];
+  lines.push('BALANCED PLATE - WEEKLY FOOD SUMMARY');
+  lines.push(`Week: ${formatWeekRange(recommendation)}`);
+  lines.push('');
+
+  if (recommendation.health_report) {
+    lines.push(recommendation.health_report);
+    lines.push('');
+  }
+
+  if (recommendation.priority_actions?.length) {
+    lines.push('Priority Actions');
+    recommendation.priority_actions.forEach((action, index) => {
+      lines.push(`${index + 1}. ${action}`);
+    });
+    lines.push('');
+  }
+
+  if (recommendation.weekly_goals?.length) {
+    lines.push('Weekly Goals');
+    recommendation.weekly_goals.forEach((goal, index) => {
+      lines.push(`${index + 1}. ${goal}`);
+    });
+    lines.push('');
+  }
+
+  if (!recommendation.health_report && !recommendation.priority_actions?.length && !recommendation.weekly_goals?.length) {
+    lines.push('No detailed summary is available for this week yet.');
+  }
+
+  return lines.join('\n');
+};
+
+const downloadTextReport = (fileName: string, text: string) => {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+};
+
+const WeeklyFoodSummaries: React.FC = () => {
+  const { user } = useAuth();
+  const { data: currentReport, isLoading: isCurrentLoading } = useHealthReport();
+  const [selectedId, setSelectedId] = useState<string>('current');
+
+  const { data: historicalReports = [], isLoading: isHistoryLoading } = useQuery({
+    queryKey: ['profileWeeklySummaries', user?.id],
+    queryFn: async () => {
+      const { data } = await api.get<PaginatedResponse<WeeklyRecommendation>>('/recommendations/', {
+        params: { limit: 12 },
+      });
+      return data.results ?? [];
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const currentSummaryText = currentReport
+    ? buildTextSummary(currentReport, user?.first_name)
+    : 'Your current weekly report is still being prepared.';
+
+  const selectedHistorical = historicalReports.find((report) => String(report.id) === selectedId);
+  const previewText = selectedId === 'current'
+    ? currentSummaryText
+    : selectedHistorical
+      ? buildRecommendationSummary(selectedHistorical)
+      : 'Select a weekly summary to preview it.';
+
+  const handleDownload = () => {
+    const suffix = selectedId === 'current'
+      ? 'current-week'
+      : selectedHistorical?.week_start_date ?? 'weekly-summary';
+    downloadTextReport(`balanced-plate-${suffix}.txt`, previewText);
+  };
+
+  return (
+    <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-4 h-4 text-emerald-500" />
+            Weekly Food Summaries
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Preview and download your current or historical weekly food reports.
+          </p>
+        </div>
+        <button
+          onClick={handleDownload}
+          disabled={isCurrentLoading || (selectedId !== 'current' && !selectedHistorical)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        >
+          <Download className="w-4 h-4" />
+          Download
+        </button>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+        <div className="space-y-2">
+          <button
+            onClick={() => setSelectedId('current')}
+            className={`w-full rounded-xl border p-3 text-left transition-all ${
+              selectedId === 'current'
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-emerald-200 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4" />
+              <span className="text-sm font-semibold">Current Week</span>
+            </div>
+            <p className="mt-1 text-xs opacity-75">Live summary from your latest activity</p>
+          </button>
+
+          <div className="pt-2">
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <History className="w-3.5 h-3.5" />
+              History
+            </p>
+            {isHistoryLoading ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-700/50" />
+                ))}
+              </div>
+            ) : historicalReports.length > 0 ? (
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {historicalReports.map((report) => (
+                  <button
+                    key={report.id}
+                    onClick={() => setSelectedId(String(report.id))}
+                    className={`w-full rounded-xl border p-3 text-left transition-all ${
+                      selectedId === String(report.id)
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                        : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-emerald-200 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold">{formatWeekRange(report)}</p>
+                    <p className="mt-1 text-xs opacity-75">{report.status}</p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-gray-200 p-3 text-sm text-gray-400 dark:border-gray-700">
+                No historical summaries yet.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+            <Eye className="w-4 h-4 text-emerald-500" />
+            Preview
+          </div>
+          <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-4 text-xs leading-relaxed text-gray-700 dark:bg-gray-950/70 dark:text-gray-300">
+            {isCurrentLoading && selectedId === 'current' ? 'Preparing preview...' : previewText}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Profile = () => {
   const { user, loadCurrentUser } = useAuth();
   const { uploadFile } = useFiles();
@@ -538,6 +728,8 @@ const Profile = () => {
             </div>
           </div>
         </div>
+
+        <WeeklyFoodSummaries />
 
         {/* Account Info */}
         <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">

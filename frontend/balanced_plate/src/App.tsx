@@ -10,7 +10,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import Dashboard from "./pages/dashboard";
 import LandingPage from "./pages/LandingPage";
 import AnalyseFood from "./pages/AnalyseFood";
-import Learn from "./pages/Learn";
+// import Learn from "./pages/Learn";
 import Shopping from "./pages/Shopping";
 import Profile from "./pages/Profile";
 import Recipes from "./pages/Recipes";
@@ -51,7 +51,8 @@ function App() {
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
           <Route path="/analyze-food" element={<ProtectedRoute><AnalyseFood/></ProtectedRoute>}/>
-          <Route path="/learn" element={<ProtectedRoute><Learn/></ProtectedRoute>}/>
+          {/* Explore/Learn is paused for now. */}
+          {/* <Route path="/learn" element={<ProtectedRoute><Learn/></ProtectedRoute>}/> */}
           <Route path="/shopping" element={<ProtectedRoute><Shopping/></ProtectedRoute>}/>
           <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
           <Route path="/recipes" element={<ProtectedRoute><Recipes/></ProtectedRoute>}/>
@@ -63,6 +64,7 @@ function App() {
           {/* Future Routes */}
           <Route path="/meal-plan" element={<ProtectedRoute><MealPlanner/></ProtectedRoute>}/>
           {/* <Route path="/articles/:id" element={<ProtectedRoute><ArticleDetail/></ProtectedRoute>}/> */}
+          <Route path="/cook" element={<ProtectedRoute><CookingAssistant/></ProtectedRoute>}/>
           <Route path="/cook/:id" element={<ProtectedRoute><CookingAssistant/></ProtectedRoute>}/>
           <Route path="/health-report" element={<ProtectedRoute><HealthReport/></ProtectedRoute>}/>
 

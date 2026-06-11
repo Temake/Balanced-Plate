@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
-import { Home, Camera, CalendarDays, BookOpen, User, User2Icon, LogOut, Leaf } from 'lucide-react'
+import { Home, Camera, CalendarDays, User, User2Icon, LogOut, Leaf, ChefHat } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -21,8 +21,18 @@ const navItems = [
   { name: 'Home', icon: Home, path: '/dashboard' },
   { name: 'Scan Food', mobileLabel: 'Scan', icon: Camera, path: '/analyze-food' },
   { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
-  { name: 'Explore', icon: BookOpen, path: '/learn' },
+  // Explore is paused for now.
+  // { name: 'Explore', icon: BookOpen, path: '/learn' },
   { name: 'Profile', icon: User, path: '/profile' },
+]
+
+const mobileNavItems = [
+  { name: 'Home', icon: Home, path: '/dashboard' },
+  { name: 'Scan', icon: Camera, path: '/analyze-food' },
+  { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
+  { name: 'Cook', icon: ChefHat, path: '/recipes', activePaths: ['/recipes', '/cook'] },
+  // Explore is paused for now.
+  // { name: 'Explore', icon: BookOpen, path: '/learn' },
 ]
 
 const Header: React.FC = () => {
@@ -130,9 +140,11 @@ const Header: React.FC = () => {
       {isAuthenticated && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
           <div className="flex items-center justify-around h-16 px-2 pb-[env(safe-area-inset-bottom)]">
-            {navItems.map((item) => {
+            {mobileNavItems.map((item) => {
               const Icon = item.icon
-              const active = isActivePath(item.path)
+              const active = item.activePaths
+                ? item.activePaths.some((path) => location.pathname.startsWith(path))
+                : isActivePath(item.path)
               const label = item.mobileLabel || item.name
               return (
                 <Link

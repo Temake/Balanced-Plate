@@ -198,6 +198,19 @@ export interface GenerateMealPlanRequest {
   budget_level: string;
 }
 
+export interface GenerateDayMealPlanRequest extends GenerateMealPlanRequest {
+  day: string;
+}
+
+export interface UpsertMealEntryRequest extends GenerateMealPlanRequest {
+  day: string;
+  meal_type: string;
+  food_name: string;
+  description?: string;
+  prep_time_minutes?: number | null;
+  health_notes?: string;
+}
+
 // ============ Weekly Recommendation Types ============
 
 export interface WeeklyRecommendation {

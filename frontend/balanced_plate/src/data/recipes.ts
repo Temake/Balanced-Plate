@@ -1,3 +1,15 @@
+import { 
+  type LucideIcon, 
+  UtensilsCrossed, 
+  Soup, 
+  Flame, 
+  LeafyGreen, 
+  Beef, 
+  Pizza, 
+  Banana, 
+  CupSoda 
+} from 'lucide-react';
+
 export interface Recipe {
   id: string;
   name: string;
@@ -8,7 +20,7 @@ export interface Recipe {
   dietaryTags: string[];
   healthNotes: string;
   category: 'Soups' | 'Rice Dishes' | 'Swallow' | 'Snacks' | 'Proteins' | 'Drinks';
-  emoji: string;
+  icon: LucideIcon;
 }
 
 export const recipes: Recipe[] = [
@@ -24,7 +36,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Rich in lycopene from tomatoes. Use brown rice for extra fibre and a lower glycaemic index.',
     category: 'Rice Dishes',
-    emoji: '🍚',
+    icon: UtensilsCrossed,
   },
   {
     id: 'egusi-soup',
@@ -38,7 +50,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Melon seeds are packed with healthy fats, magnesium, and zinc. Pair with a small portion of swallow for balanced macros.',
     category: 'Soups',
-    emoji: '🥣',
+    icon: Soup,
   },
   {
     id: 'pepper-soup',
@@ -52,7 +64,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'The warming spices aid digestion and may help relieve cold symptoms. Very low in calories when made with lean protein.',
     category: 'Soups',
-    emoji: '🌶️',
+    icon: Flame,
   },
   {
     id: 'moi-moi',
@@ -66,7 +78,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Excellent plant-based protein source. Black-eyed peas provide iron, folate, and soluble fibre for heart health.',
     category: 'Snacks',
-    emoji: '🫘',
+    icon: Soup, // Used to be Beans
   },
   {
     id: 'efo-riro',
@@ -80,7 +92,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Loaded with vitamins A, C, and K from leafy greens. Use minimal palm oil and lean proteins for a heart-healthy version.',
     category: 'Soups',
-    emoji: '🥬',
+    icon: LeafyGreen,
   },
   {
     id: 'fried-rice',
@@ -94,7 +106,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Adding mixed vegetables boosts micronutrient content. Swap white rice for cauliflower rice to cut carbs significantly.',
     category: 'Rice Dishes',
-    emoji: '🍛',
+    icon: UtensilsCrossed,
   },
   {
     id: 'suya',
@@ -108,7 +120,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Lean beef provides iron and B12. The groundnut-based yaji spice adds healthy fats. Watch sodium levels in commercial blends.',
     category: 'Proteins',
-    emoji: '🥩',
+    icon: Beef,
   },
   {
     id: 'akara',
@@ -122,7 +134,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Rich in plant protein and fibre. For a healthier version, try air-frying to reduce oil absorption significantly.',
     category: 'Snacks',
-    emoji: '🫓',
+    icon: Pizza, // Used to be Flatbread/Akara
   },
   {
     id: 'plantain-porridge',
@@ -136,7 +148,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Plantains are an excellent source of potassium, vitamin A, and complex carbohydrates for sustained energy.',
     category: 'Swallow',
-    emoji: '🍌',
+    icon: Banana,
   },
   {
     id: 'ogbono-soup',
@@ -150,7 +162,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Ogbono seeds contain soluble fibre that aids digestion and may help regulate blood sugar levels. Rich in healthy fats.',
     category: 'Soups',
-    emoji: '🥣',
+    icon: Soup,
   },
   {
     id: 'beans-porridge',
@@ -164,7 +176,7 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Beans are one of the best sources of plant protein and soluble fibre. Supports heart health and blood sugar management.',
     category: 'Swallow',
-    emoji: '🫘',
+    icon: UtensilsCrossed, // Used to be Beans
   },
   {
     id: 'zobo-drink',
@@ -178,6 +190,6 @@ export const recipes: Recipe[] = [
     healthNotes:
       'Hibiscus is rich in antioxidants and vitamin C. Studies suggest it may help lower blood pressure. Sweeten with honey instead of sugar.',
     category: 'Drinks',
-    emoji: '🥤',
+    icon: CupSoda,
   },
 ];

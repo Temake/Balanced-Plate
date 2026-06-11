@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Leaf, ArrowRight, ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { 
+  Leaf, ArrowRight, ArrowLeft, Check, Loader2,
+  TrendingDown, Dumbbell, Zap, HeartPulse,
+  Utensils, Carrot, Egg, WheatOff,
+  Droplet, Activity, Stethoscope, Pill, AlertTriangle, AlertCircle, MapPin
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { OnboardingData } from '@/api/types';
 
-// ── Step data ──
+
 
 const goals = [
-  { id: 'weight_loss', emoji: '🏃', label: 'Lose weight', desc: 'Shed excess body fat while eating Nigerian meals you love' },
-  { id: 'muscle_gain', emoji: '💪', label: 'Build muscle', desc: 'Gain lean mass with proper protein from local foods' },
-  { id: 'energy_focus', emoji: '⚡', label: 'More energy', desc: 'Stay sharp and energized throughout a busy day' },
-  { id: 'general_health', emoji: '🌿', label: 'Eat healthier', desc: 'General wellness — eat balanced without stress' },
+  { id: 'weight_loss', icon: TrendingDown, label: 'Lose weight', desc: 'Shed excess body fat while eating Nigerian meals you love' },
+  { id: 'muscle_gain', icon: Dumbbell, label: 'Build muscle', desc: 'Gain lean mass with proper protein from local foods' },
+  { id: 'energy_focus', icon: Zap, label: 'More energy', desc: 'Stay sharp and energized throughout a busy day' },
+  { id: 'general_health', icon: HeartPulse, label: 'Eat healthier', desc: 'General wellness — eat balanced without stress' },
 ];
 
 const dietPreferences = [
-  { id: 'none', emoji: '🍽️', label: 'No restriction', desc: 'I eat everything' },
-  { id: 'vegetarian', emoji: '🥬', label: 'Vegetarian', desc: 'No meat, but eggs and dairy OK' },
-  { id: 'vegan', emoji: '🌱', label: 'Vegan', desc: 'Purely plant-based' },
-  { id: 'keto', emoji: '🥑', label: 'Keto / Low-carb', desc: 'Minimal carbs, high fat' },
-  { id: 'gluten_free', emoji: '🌾', label: 'Gluten-free', desc: 'Avoid wheat and gluten products' },
+  { id: 'none', icon: Utensils, label: 'No restriction', desc: 'I eat everything' },
+  { id: 'vegetarian', icon: Carrot, label: 'Vegetarian', desc: 'No meat, but eggs and dairy OK' },
+  { id: 'vegan', icon: Leaf, label: 'Vegan', desc: 'Purely plant-based' },
+  { id: 'keto', icon: Egg, label: 'Keto / Low-carb', desc: 'Minimal carbs, high fat' },
+  { id: 'gluten_free', icon: WheatOff, label: 'Gluten-free', desc: 'Avoid wheat and gluten products' },
 ];
 
 const healthConditions = [
-  { id: 'none', emoji: '✅', label: 'None' },
-  { id: 'diabetes', emoji: '🩸', label: 'Diabetes' },
-  { id: 'hypertension', emoji: '❤️‍🩹', label: 'High blood pressure' },
-  { id: 'cholesterol', emoji: '🫀', label: 'High cholesterol' },
-  { id: 'pcos', emoji: '🩺', label: 'PCOS' },
-  { id: 'ulcer', emoji: '🤢', label: 'Ulcer' },
-  { id: 'kidney', emoji: '🫘', label: 'Kidney issues' },
-  { id: 'allergy', emoji: '⚠️', label: 'Food allergies' },
+  { id: 'none', icon: Check, label: 'None' },
+  { id: 'diabetes', icon: Droplet, label: 'Diabetes' },
+  { id: 'hypertension', icon: Activity, label: 'High blood pressure' },
+  { id: 'cholesterol', icon: HeartPulse, label: 'High cholesterol' },
+  { id: 'pcos', icon: Stethoscope, label: 'PCOS' },
+  { id: 'ulcer', icon: Pill, label: 'Ulcer' },
+  { id: 'kidney', icon: AlertCircle, label: 'Kidney issues' },
+  { id: 'allergy', icon: AlertTriangle, label: 'Food allergies' },
 ];
 
 // ── Component ──
@@ -140,7 +145,7 @@ const OnboardingPage: React.FC = () => {
           {step === 0 && (
             <div className="text-center animate-fade-in">
               <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🇳🇬</span>
+                <MapPin className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
                 Welcome to Balanced Plate
@@ -174,7 +179,11 @@ const OnboardingPage: React.FC = () => {
                         : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-700'
                     }`}
                   >
-                    <span className="text-2xl">{goal.emoji}</span>
+                    <goal.icon className={`w-6 h-6 shrink-0 ${
+                      selectedGoal === goal.id
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-gray-400 dark:text-gray-500'
+                    }`} />
                     <div>
                       <div className="text-sm font-semibold text-gray-900 dark:text-white">{goal.label}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{goal.desc}</div>
@@ -208,7 +217,11 @@ const OnboardingPage: React.FC = () => {
                         : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-700'
                     }`}
                   >
-                    <span className="text-2xl">{pref.emoji}</span>
+                    <pref.icon className={`w-6 h-6 shrink-0 ${
+                      selectedDiet === pref.id
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-gray-400 dark:text-gray-500'
+                    }`} />
                     <div>
                       <div className="text-sm font-semibold text-gray-900 dark:text-white">{pref.label}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{pref.desc}</div>
@@ -244,7 +257,11 @@ const OnboardingPage: React.FC = () => {
                           : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-700'
                       }`}
                     >
-                      <span className="text-lg">{cond.emoji}</span>
+                      <cond.icon className={`w-5 h-5 shrink-0 ${
+                        isSelected
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`} />
                       <span className="text-sm font-medium text-gray-900 dark:text-white">{cond.label}</span>
                       {isSelected && (
                         <Check className="w-3.5 h-3.5 text-emerald-600 ml-auto flex-shrink-0" />

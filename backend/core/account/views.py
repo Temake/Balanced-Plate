@@ -478,6 +478,7 @@ class ResendSignupOtp(views.APIView):
                     authenticators.OTP_PURPOSE_SIGNUP,
                     settings.SIGNUP_OTP_TTL_SECONDS,
                 )
+                print(otp)
                 message = mailer.MessageTemplates.signup_email_verification_email(otp)
                 subject = "Verify Your Email"
             else:

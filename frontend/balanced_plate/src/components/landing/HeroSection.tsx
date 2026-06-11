@@ -6,7 +6,8 @@ import {
   Camera, 
   Sparkles, 
   ArrowRight, 
-  Target
+  MessageCircle,
+  CalendarCheck
 } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
@@ -25,7 +26,7 @@ const HeroSection: React.FC = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 mb-6">
               <Sparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
               <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                AI-Powered Nutrition Analysis
+                Nigerian Food Accountability AI
               </span>
             </div>
 
@@ -34,7 +35,7 @@ const HeroSection: React.FC = () => {
               <span className="text-gray-900 dark:text-white">Transform Your</span>
               <br />
               <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                Eating Habits
+                Daily Food Choices
               </span>
               <br />
               <span className="text-gray-900 dark:text-white">With AI</span>
@@ -42,8 +43,8 @@ const HeroSection: React.FC = () => {
 
             {/* Subheadline */}
             <p className="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Simply snap a photo of your meal and get instant nutritional insights, 
-              personalized recommendations, and track your journey to a healthier lifestyle.
+              Snap your meal, get friendly Nigerian-style feedback, plan your week, cook with AI,
+              and keep downloadable summaries of your eating patterns.
             </p>
 
             {/* CTA Buttons */}
@@ -54,7 +55,7 @@ const HeroSection: React.FC = () => {
                   className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transition-all duration-300 hover:scale-105"
                 >
                   <Camera className="w-5 h-5 mr-2" />
-                  Start Analyzing Free
+                  Start Tracking Free
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
@@ -133,23 +134,24 @@ const HeroSection: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Nutrition Stats */}
+                    {/* Accountability Feedback */}
                     <div className="space-y-2 flex-1">
                       <div className="bg-white dark:bg-gray-800 rounded-xl p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Calories</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">485 kcal</span>
-                        </div>
-                        <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div className="h-full w-3/5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" />
+                        <div className="flex items-start gap-2 mb-2">
+                          <MessageCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
+                          <div>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">Jollof rice with chicken</span>
+                            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 mt-1">
+                              Good plate. Add more vegetables and keep the rice portion moderate today.
+                            </p>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {[
-                          { label: 'Protein', value: '32g', color: 'from-blue-400 to-blue-500' },
-                          { label: 'Carbs', value: '45g', color: 'from-amber-400 to-orange-500' },
-                          { label: 'Fat', value: '18g', color: 'from-pink-400 to-rose-500' },
+                          { label: 'Today', value: '2 meals', color: 'from-emerald-400 to-emerald-500' },
+                          { label: 'Week', value: '4/7 days', color: 'from-amber-400 to-orange-500' },
                         ].map((item) => (
                           <div key={item.label} className="bg-white dark:bg-gray-800 rounded-lg p-2 text-center">
                             <div className={`text-xs font-bold bg-gradient-to-r ${item.color} bg-clip-text text-transparent`}>
@@ -163,12 +165,12 @@ const HeroSection: React.FC = () => {
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-3 text-white mt-2">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-transparent [&_span]:hidden">
-                            <Target className="h-5 w-5 text-white" />
+                            <CalendarCheck className="h-5 w-5 text-white" />
                             <span className="text-lg">🎯</span>
                           </div>
                           <div>
-                            <div className="text-xs opacity-80">Balance Score</div>
-                            <div className="text-lg font-bold">87%</div>
+                            <div className="text-xs opacity-80">Next step</div>
+                            <div className="text-sm font-bold">Plan dinner lighter</div>
                           </div>
                         </div>
                       </div>

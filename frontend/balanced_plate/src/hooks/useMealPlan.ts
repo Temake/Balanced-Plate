@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
-import type { MealPlan, GenerateMealPlanRequest } from '@/api/types';
+import type {
+  MealPlan,
+  GenerateMealPlanRequest,
+  GenerateDayMealPlanRequest,
+  UpsertMealEntryRequest,
+} from '@/api/types';
 
 const MEAL_PLANS_KEY = ['mealPlans'] as const;
 
@@ -43,6 +48,56 @@ export const useGenerateMealPlan = () => {
     mutationFn: async (request) => {
       const { data } = await api.post('/api/meal-plans/generate/', request);
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });
+    },
+  });
+};
+
+/**
+ * Generate AI meals for a single day without replacing the rest of the week.
+ */
+export const useGenerateDayMealPlan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<MealPlan, Error, GenerateDayMealPlanRequest>({
+    mutationFn: async (request) => {
+      const { data } = await api.post('/api/meal-plans/generate-day/', request);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });
+    },
+  });
+};
+
+/**
+ * Create or update one manually managed meal entry.
+ */
+export const useUpsertMealEntry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<MealPlan, Error, UpsertMealEntryRequest>({
+    mutationFn: async (request) => {
+      const { data } = await api.post('/api/meal-plans/entries/', request);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });
+    },
+  });
+};
+
+/**
+ * Delete a single meal entry.
+ */
+export const useDeleteMealEntry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await api.delete(`/api/meal-plans/entries/${id}/delete/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });

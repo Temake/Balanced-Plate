@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BOTTOM_NAV_HEIGHT } from '@/components/Header';
 import { useGenerateCookingGuide } from '@/hooks/useCookingGuide';
@@ -189,9 +189,13 @@ const StepCard: React.FC<StepCardProps> = ({ step, isActive = false }) => (
 const CookingAssistant: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Find recipe from static data
   const recipe = useMemo(() => recipes.find((r) => r.id === id), [id]);
+  const customDish = searchParams.get('dish')?.trim() || '';
+  const dishName = recipe?.name || customDish;
+  const dishEmoji = recipe?.emoji || '🍲';
 
   // AI mutation
   const { mutate, data: guide, isPending, isError, error, reset } = useGenerateCookingGuide();
@@ -204,11 +208,16 @@ const CookingAssistant: React.FC = () => {
 
   // Auto-generate when page loads
   useEffect(() => {
-    if (recipe) {
-      mutate(recipe.name);
+    if (dishName) {
+      setCheckedIngredients(new Set());
+      setCurrentStep(0);
+      setViewAll(false);
+      setIngredientsOpen(true);
+      reset();
+      mutate(dishName);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe?.id]);
+  }, [recipe?.id, customDish]);
 
   const toggleIngredient = (name: string) => {
     setCheckedIngredients((prev) => {
@@ -225,8 +234,8 @@ const CookingAssistant: React.FC = () => {
   const goPrev = () => setCurrentStep((s) => Math.max(0, s - 1));
   const goNext = () => setCurrentStep((s) => Math.min(totalSteps - 1, s + 1));
 
-  // Unknown recipe
-  if (!recipe) {
+  // Unknown recipe/custom dish missing
+  if (!dishName) {
     return (
       <div className={cn('min-h-screen bg-background flex flex-col', BOTTOM_NAV_HEIGHT, 'md:pb-0')}>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
@@ -237,11 +246,11 @@ const CookingAssistant: React.FC = () => {
             Recipe not found
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
-            We couldn't find the recipe you're looking for.
+            We couldn't find that recipe. You can also type any food from the recipes page.
           </p>
           <Button variant="ghost" onClick={goBack} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Back to Recipes
+            Back to Cooking
           </Button>
         </div>
       </div>
@@ -265,7 +274,7 @@ const CookingAssistant: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
-              {recipe.emoji} {recipe.name}
+              {dishEmoji} {dishName}
             </h1>
           </div>
 
@@ -281,7 +290,7 @@ const CookingAssistant: React.FC = () => {
       {/* ─── Content ─── */}
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 sm:px-6 py-4 sm:py-6">
         {/* Loading */}
-        {isPending && <GeneratingAnimation dishName={recipe.name} />}
+        {isPending && <GeneratingAnimation dishName={dishName} />}
 
         {/* Error */}
         {isError && !isPending && (
@@ -289,7 +298,7 @@ const CookingAssistant: React.FC = () => {
             message={error?.message || 'Failed to generate cooking guide. Please try again.'}
             onRetry={() => {
               reset();
-              mutate(recipe.name);
+              mutate(dishName);
             }}
           />
         )}
