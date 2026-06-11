@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '@/api/axios';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
-import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
+import {  normalizeScore } from '@/utils/imageUrl';
 
 interface FoodUploadSectionProps {
   className?: string;
