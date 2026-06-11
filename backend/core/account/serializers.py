@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from phonenumbers import parse, is_valid_number
 from phonenumbers.phonenumberutil import NumberParseException
 from .models import Account, UserSession
+from core.utils import enums
 
 
 
@@ -50,12 +51,8 @@ class UserSerializer:
                 "first_name",
                 "last_name",
                 "phone_number",
-                "is_phone_number_verified",
-                "is_email_verified",
                 "gender",
                 "dob",
-                "is_banned",
-                "account_type",
                 "country",
                 "state",
                 "city",
@@ -102,13 +99,14 @@ class UserSerializer:
                 "first_name",
                 "last_name",
                 "phone_number",
-                "is_phone_number_verified",
-                "is_email_verified",
                 "gender",
-                "is_banned",
                 "country",
                 "state",
                 "city",
+                "dietary_goal",
+                "dietary_preference",
+                "health_conditions",
+                "onboarding_completed",
             ]
         
         def validate_phone_number(self, value):
@@ -124,6 +122,30 @@ class UserSerializer:
             except NumberParseException as err:
                 message = err._msg
                 raise serializers.ValidationError(message, "invalid phone number")
+            return value
+
+        def validate_health_conditions(self, value):
+            if value is None:
+                return []
+            if not isinstance(value, list):
+                raise serializers.ValidationError("Health conditions must be a list.")
+            return value
+
+    class Onboarding(serializers.ModelSerializer):
+
+        class Meta:
+            model = Account
+            fields = [
+                "dietary_goal",
+                "dietary_preference",
+                "health_conditions",
+            ]
+
+        def validate_health_conditions(self, value):
+            if value is None:
+                return []
+            if not isinstance(value, list):
+                raise serializers.ValidationError("Health conditions must be a list.")
             return value
         
 
@@ -145,6 +167,10 @@ class AuthSerializer:
         user = UserSerializer.Retrieve(help_text=_("User details"))
         token = TokenSerializer(help_text=_("JWT token pair"))     
 
+    class RegistrationResponse(serializers.Serializer):
+        user = UserSerializer.Retrieve(help_text=_("User details"))
+        message = serializers.CharField(help_text=_("Response message"))
+
 
     class TokenRefresh(serializers.Serializer):
         refresh = serializers.CharField(
@@ -158,6 +184,17 @@ class AuthSerializer:
 
 
 class PasswordResetSerializer:
+    class Initiate(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+
+    class Finalize(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+        otp = serializers.IntegerField(
+            required=True,
+            write_only=True,
+            help_text=_("OTP sent to user's email")
+        )
+
     class VerifyEmail(serializers.Serializer):
         email = serializers.EmailField(required=True, write_only=True)
 
@@ -180,4 +217,32 @@ class PasswordResetSerializer:
             required=True,
             style={"input_type": "password"},
             help_text=_("Confirm New Password")
+        )
+
+
+class SignupVerificationSerializer:
+    class VerifyOTP(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+        otp = serializers.IntegerField(
+            required=True,
+            write_only=True,
+            help_text=_("OTP sent to user's email")
+        )
+
+    class ResendOTP(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+        purpose = serializers.ChoiceField(
+            required=True,
+            choices=enums.OTPPurpose.choices(),
+            help_text=_("OTP purpose: signup or password_reset"),
+        )
+
+
+class EmailVerificationSerializer:
+    class Finalize(serializers.Serializer):
+        email = serializers.EmailField(required=True, write_only=True)
+        otp = serializers.IntegerField(
+            required=True,
+            write_only=True,
+            help_text=_("OTP sent to user's email")
         )

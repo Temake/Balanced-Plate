@@ -19,7 +19,7 @@ USER'S WEEKLY NUTRITION DATA:
 Please analyze this data and provide a response in the following JSON format:
 {{
     "health_report": {{
-        "summary": "A 2-3 sentence overall assessment of the user's weekly nutrition",
+        "summary": "A warm, conversational 2-3 sentence assessment of the user's weekly nutrition, using positive and encouraging tone.",
         "strengths": [
             "Strength 1 based on the data",
             "Strength 2 based on the data"
@@ -31,50 +31,37 @@ Please analyze this data and provide a response in the following JSON format:
         "balance_assessment": "Assessment of their overall dietary balance based on the balance_score"
     }},
     "recommendations": {{
-        "nutrition_recommendations": [
-            "Specific actionable recommendation based on their macro intake",
-            "Recommendation to address any nutritional gaps",
-            "Recommendation for optimal macro balance"
+        "weekly_micro_wins": [
+            "A specific positive dietary achievement this week (e.g. 'You successfully added Ugu leaves or Ewedu to 4 out of 7 dinners! 🎉')"
         ],
-        "meal_timing_recommendations": [
-            "Recommendation based on their meal type distribution",
-            "Suggestion for improving meal timing patterns",
-            "Advice on meal frequency and timing"
+        "naija_grocery_list": [
+            "A highly actionable list of 3-4 affordable, local West African ingredients to pick up (e.g. 'Scent leaves, Titus fish, Unpolished Ofada rice')"
         ],
-        "micronutrient_recommendations": [
-            "Recommendation to address low micronutrient levels",
-            "Suggestion for foods rich in lacking micronutrients",
-            "Advice on micronutrient balance"
+        "weekly_actionable_swaps": [
+            "A practical diet swap for the week (e.g. 'Swap white garri for wheat or yellow garri at least twice to lower the glycaemic spike.')"
         ],
-        "weekly_meal_plan_suggestions": [
-            "Day-specific meal suggestion to improve balance",
-            "Suggestion for days with low balance scores",
-            "General weekly planning advice"
-        ],
-        "lifestyle_recommendations": [
-            "Holistic health recommendation based on eating patterns",
-            "Suggestion for sustainable dietary habits"
+        "stamina_coaching": [
+            "1-sentence actionable tip to maintain high stamina during busy work weeks (e.g. 'Eat a lighter carb meal like boiled yam & egg for breakfast instead of heavy bread to power your morning Lagos hustle.')"
         ]
     }},
     "priority_actions": [
-        "Most important action to take this week",
-        "Second priority action",
-        "Third priority action"
+        "Most important local action to take this week",
+        "Second priority local action",
+        "Third priority local action"
     ],
     "weekly_goals": [
-        "Specific measurable goal for the upcoming week",
+        "Specific measurable local goal for the upcoming week",
         "Second weekly goal",
         "Third weekly goal"
     ]
 }}
 
-Guidelines:
-- Be specific and actionable in all recommendations
-- Reference the actual numbers from the data where relevant
-- Consider dietary balance, timing, and micronutrient needs
-- Provide realistic, achievable suggestions
-- Keep recommendations concise (one-liner bullet points)
-- Focus on gradual improvement rather than drastic changes
+CRITICAL INSTRUCTIONS FOR GEOGRAPHICAL & CULTURAL RELEVANCE:
+- The user is located in Nigeria / West Africa.
+- Strictly analyze their data and build goals and shopping lists around local ingredients (e.g., Jollof Rice, Dodo, Eba, Fufu, Egusi, Semo, Amala, Ofada rice, Pap/Ogi, Beans, Yam, Sweet Potatoes, Titus fish, Okra, Efo Riro, Ewedu, Ugu, Scent leaf, Garden egg, Groundnuts, Local Eggs, Mango, Pawpaw).
+- DO NOT recommend Western, expensive, or imported foods like blueberries, quinoa, kale, salmon, chia seeds, broccoli, asparagus, or avocados.
+- Focus recommendations on addressing key regional health concerns such as high blood pressure, diabetes, high-carb slumps, and cardiovascular health in a practical, encouraging, and friendly local tone ("Naija", "stamina", "traffic hustle").
+- Keep all recommendations concise, realistic, and highly actionable.
 
 Return ONLY valid JSON, no additional text.
 """

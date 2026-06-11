@@ -1,17 +1,18 @@
-import Header from "@/components/Header"
+import Header, { BOTTOM_NAV_HEIGHT } from "@/components/Header"
 import React from "react";
 import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
 import { FoodGallery } from "@/components/dashboard";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Camera, History, Images, TrendingUp } from "lucide-react";
+import { Camera, Images } from "lucide-react";
+// import { History, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
 const AnalyseFood: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
+    <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
       <Header />
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow max-w-7xl">
@@ -20,7 +21,7 @@ const AnalyseFood: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
                 Analyse Food
@@ -32,11 +33,11 @@ const AnalyseFood: React.FC = () => {
             
             {/* Quick Stats */}
             {/* <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI-Powered</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <Zap className="w-4 h-4 text-green-500" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Instant Results</span>
               </div>
@@ -44,7 +45,7 @@ const AnalyseFood: React.FC = () => {
           </div>
 
           {/* Feature Highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
             <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
               <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
                 <Camera className="w-5 h-5 text-white" />
@@ -72,7 +73,7 @@ const AnalyseFood: React.FC = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">View history & trends over time</p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Main Content Grid */}
@@ -86,7 +87,7 @@ const AnalyseFood: React.FC = () => {
             {/* Food Gallery - Below Upload Section */}
             <div className="relative">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                   <Images className="w-5 h-5 text-white" />
                 </div>
                 <div>

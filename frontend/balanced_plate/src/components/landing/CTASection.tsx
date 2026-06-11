@@ -11,9 +11,6 @@ const CTASection: React.FC = () => {
       
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-60 h-60 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
       </div>
 
       {/* Pattern Overlay */}
@@ -45,7 +42,7 @@ const CTASection: React.FC = () => {
           <Link to="/signup">
             <Button 
               size="lg"
-              className="w-full sm:w-auto h-14 px-8 text-base bg-white text-green-600 hover:bg-gray-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+              className="w-full sm:w-auto h-14 px-8 text-base bg-white text-green-600 hover:bg-gray-100 transition-all duration-300 hover:scale-105"
             >
               <Camera className="w-5 h-5 mr-2" />
               Get Started Free

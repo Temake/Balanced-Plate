@@ -19,7 +19,9 @@ urlpatterns = [
     path("api/", include("core.file_storage.urls")),
     path("api/", include("core.results.urls")),
     path("api/", include("core.analytics.urls")),
-    path("api/", include("core.recommendations.urls"))
+    path("api/", include("core.recommendations.urls")),
+    path("api/", include("core.meal_plan.urls")),
+    path("api/", include("core.cooking.urls")),
 ]
 
 if not settings.PRODUCTION:

@@ -64,14 +64,14 @@ const HowItWorksSection: React.FC = () => {
             {steps.map((step, idx) => (
               <div key={idx} className="relative">
                 {/* Card */}
-                <div className={`relative bg-gradient-to-br ${step.bgColor} rounded-3xl p-8 lg:p-10 border border-gray-100 dark:border-gray-700 group hover:shadow-xl transition-all duration-300`}>
+                <div className={`relative bg-gradient-to-br ${step.bgColor} rounded-3xl p-8 lg:p-10 border border-gray-100 dark:border-gray-700 group transition-all duration-300`}>
                   {/* Step Number */}
-                  <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                  <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white font-bold text-lg`}>
                     {step.number}
                   </div>
 
                   {/* Icon */}
-                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                     <step.icon className="w-10 h-10 text-white" />
                   </div>
 
@@ -87,7 +87,7 @@ const HowItWorksSection: React.FC = () => {
                 {/* Arrow - Desktop */}
                 {idx < steps.length - 1 && (
                   <div className="hidden lg:flex absolute top-28 -right-6 w-12 h-12 items-center justify-center z-10">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center border border-gray-100 dark:border-gray-700">
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700">
                       <ArrowRight className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
@@ -96,7 +96,7 @@ const HowItWorksSection: React.FC = () => {
                 {/* Arrow - Mobile */}
                 {idx < steps.length - 1 && (
                   <div className="lg:hidden flex justify-center my-4">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center border border-gray-100 dark:border-gray-700 rotate-90">
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700 rotate-90">
                       <ArrowRight className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
@@ -105,30 +105,6 @@ const HowItWorksSection: React.FC = () => {
             ))}
           </div>
         </div>
-
-{/* Demo Video Placeholder - Commented out until video is ready
-        <div className="mt-16 lg:mt-24 relative">
-          <div className="relative aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4 mx-auto cursor-pointer hover:bg-white/20 transition-colors group">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-white/80 text-lg">Watch How It Works</p>
-              </div>
-            </div>
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-            </div>
-          </div>
-        </div>
-        */}
       </div>
     </section>
   );

@@ -99,18 +99,13 @@ const TestimonialsSection: React.FC = () => {
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:50px_50px]" />
       </div>
-
-      {/* Gradient Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
             <Star className="w-4 h-4 text-yellow-400" fill="currentColor" />
             <span className="text-sm font-medium text-white/90">
-              Loved by Thousands
+              Loved by our Users
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -125,7 +120,7 @@ const TestimonialsSection: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-white/20">
             {/* Quote Icon */}
-            <div className="absolute -top-6 left-8 w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-xl">
+            <div className="absolute -top-6 left-8 w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
               <Quote className="w-6 h-6 text-white" />
             </div>
 
@@ -146,7 +141,7 @@ const TestimonialsSection: React.FC = () => {
               {/* Author */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 text-lg font-bold text-white shadow-lg">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 text-lg font-bold text-white">
                     {avatarInitials}
                     <span className="hidden">{currentTestimonial.avatar}</span>
                   </div>
@@ -208,20 +203,7 @@ const TestimonialsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-8 lg:gap-12">
-          {[
-            { label: 'App Store', rating: '4.9' },
-            { label: 'Play Store', rating: '4.8' },
-            { label: 'Product Hunt', rating: '#1 Product' },
-            { label: 'Trustpilot', rating: 'Excellent' },
-          ].map((badge, idx) => (
-            <div key={idx} className="text-center">
-              <div className="text-2xl font-bold text-white">{badge.rating}</div>
-              <div className="text-sm text-white/60">{badge.label}</div>
-            </div>
-          ))}
-        </div>
+     
       </div>
     </section>
   );

@@ -13,3 +13,8 @@ class UserGenderType(BaseEnum):
     MALE = "Male"
     FEMALE = "Female"
     OTHER = "Other"
+
+
+class OTPPurpose(BaseEnum):
+    SIGNUP = "signup"
+    PASSWORD_RESET = "password_reset"

@@ -32,7 +32,7 @@ const MicronutrientChart: React.FC<MicronutrientChartProps> = ({ className = '' 
   }));
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 ${className}`}>
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white flex items-center">
           <Pill className="mr-2 sm:mr-3 text-blue-600 dark:text-blue-400" size={20} />
@@ -73,7 +73,7 @@ const MicronutrientChart: React.FC<MicronutrientChartProps> = ({ className = '' 
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
               wrapperClassName="dark:[&_.recharts-tooltip-wrapper]:!bg-gray-800 dark:[&_.recharts-tooltip-wrapper]:!border-gray-600 dark:[&_.recharts-tooltip-wrapper]:!text-white"
-              formatter={(value: number | undefined, name: string | undefined, props: any) => [
+              formatter={(value: any, name: any, props: any) => [
                 `${value ?? 0}% (${props.payload.current}${props.payload.unit})`,
                 name ?? ''
               ]}

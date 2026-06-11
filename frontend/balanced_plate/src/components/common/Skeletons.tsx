@@ -11,7 +11,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className }) => (
 
 // Card skeleton for dashboard sections
 export const CardSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6', className)}>
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6', className)}>
     <div className="flex items-center gap-3 mb-4">
       <Skeleton className="w-10 h-10 rounded-lg" />
       <div className="flex-1">
@@ -25,7 +25,7 @@ export const CardSkeleton: React.FC<{ className?: string }> = ({ className }) =>
 
 // Analytics chart skeleton
 export const ChartSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6', className)}>
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6', className)}>
     <div className="flex items-center justify-between mb-6">
       <Skeleton className="h-6 w-40" />
       <div className="flex gap-2">
@@ -55,7 +55,7 @@ export const RecommendationSkeleton: React.FC = () => (
 
 // Recommendations panel skeleton
 export const RecommendationsPanelSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6', className)}>
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6', className)}>
     <div className="flex items-center justify-between mb-6">
       <Skeleton className="h-6 w-48" />
       <Skeleton className="h-8 w-24 rounded-full" />
@@ -86,7 +86,7 @@ export const FoodImageSkeleton: React.FC = () => (
 
 // Food upload section skeleton
 export const FoodUploadSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6', className)}>
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6', className)}>
     <div className="flex items-center justify-between mb-6">
       <Skeleton className="h-6 w-36" />
       <Skeleton className="h-9 w-28 rounded-lg" />
@@ -105,7 +105,7 @@ export const FoodUploadSkeleton: React.FC<{ className?: string }> = ({ className
 
 // Weekly score skeleton
 export const WeeklyScoreSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white', className)}>
+  <div className={cn('bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white', className)}>
     <div className="flex items-center justify-between mb-4">
       <Skeleton className="h-6 w-32 bg-white/20" />
       <Skeleton className="w-8 h-8 rounded-full bg-white/20" />
@@ -124,7 +124,7 @@ export const WeeklyScoreSkeleton: React.FC<{ className?: string }> = ({ classNam
 
 // Recent analysis skeleton
 export const RecentAnalysisSkeleton: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6', className)}>
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6', className)}>
     <Skeleton className="h-6 w-40 mb-6" />
     <div className="flex gap-4">
       <Skeleton className="w-24 h-24 rounded-lg flex-shrink-0" />

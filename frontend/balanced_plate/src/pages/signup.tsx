@@ -96,9 +96,9 @@ export default function SignUp() {
         gender: data.gender,
         country: data.country
       });
-      setSuccessMessage("Sign up successful!");
+      setSuccessMessage("Sign up successful! Check your email for the verification code.");
       form.reset();
-      navigate("/login")
+      navigate("/verify-account", { state: { email: data.email } })
     } catch (err) {
       console.error("Error during signup:", err);
     } finally {
@@ -107,23 +107,23 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 px-4 py-10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
+    <div className="min-h-screen bg-background px-4 py-10 flex items-center justify-center">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+          <div className="mx-auto w-20 h-20 bg-emerald-600 dark:bg-emerald-500 rounded-full flex items-center justify-center mb-4">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
+            Balanced Plate<span className="text-emerald-600 dark:text-emerald-500">.AI</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">Your AI-powered nutrition companion</p>
+          <p className="text-gray-600 dark:text-gray-400">Your Nigerian food accountability companion</p>
         </div>
 
   
       
         {/* Signup Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-100 dark:border-gray-700">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 text-center">Create Account</h2>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
             Get started with your healthy journey today
@@ -332,7 +332,7 @@ export default function SignUp() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-green-600  dark:bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
+                className="w-full bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -352,7 +352,7 @@ export default function SignUp() {
           {/* Login Link */}
           <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
             Already have an account?{" "}
-            <a href="/login" className="text-black dark:text-green-500 hover:text-gray-500 dark:hover:text-green-400 font-medium transition-colors">
+            <a href="/login" className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-medium transition-colors">
               Sign in instead
             </a>
           </p>

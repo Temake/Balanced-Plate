@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Activity, 
-  Clock, 
-  Star, 
-  TrendingUp, 
+import {
+  Activity,
+  Clock,
+  Star,
+  TrendingUp,
   ChevronRight,
   Flame,
   Sparkles,
@@ -100,8 +100,12 @@ const getMealGradient = (index: number) => {
   return gradients[index % gradients.length];
 };
 
-// Get meal name from detected foods
+// Get meal name from food_name or detected foods
 const getMealName = (analysis: FoodAnalysis): string => {
+  // Prefer the new AI-generated food_name
+  if (analysis.food_name) {
+    return analysis.food_name;
+  }
   if (analysis.detected_foods && analysis.detected_foods.length > 0) {
     const topFood = analysis.detected_foods[0];
     if (analysis.detected_foods.length > 1) {
@@ -132,7 +136,7 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-orange-500" />
-            Analysis Details
+            {analysis.food_name || 'Analysis Details'}
           </DialogTitle>
         </DialogHeader>
 
@@ -155,6 +159,31 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
               </span>
             </div>
           </div>
+
+          {/* Conversational Feedback */}
+          {analysis.conversational_feedback && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800/40">
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {analysis.conversational_feedback}
+              </p>
+            </div>
+          )}
+
+          {/* Actionable Suggestion */}
+          {analysis.actionable_suggestion && (
+            <div className="bg-amber-50 dark:bg-amber-900/15 rounded-lg p-3 border border-amber-100 dark:border-amber-800/30">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-0.5">💡 Quick Tip</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.actionable_suggestion}</p>
+            </div>
+          )}
+
+          {/* Alternative Suggestion */}
+          {analysis.alternative_suggestion && (
+            <div className="bg-blue-50 dark:bg-blue-900/15 rounded-lg p-3 border border-blue-100 dark:border-blue-800/30">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-0.5">🔄 Healthier Swap</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.alternative_suggestion}</p>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
@@ -253,8 +282,6 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
     <div className={`relative overflow-hidden rounded-2xl ${className}`}>
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900" />
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-500/10 to-cyan-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
       <div className="relative border border-gray-200/60 dark:border-gray-700/60 rounded-2xl backdrop-blur-sm">
         {/* Header Section */}
@@ -262,10 +289,10 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                <div className="w-11 h-11 rounded-xl bg-orange-500 flex items-center justify-center">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
                   <Sparkles className="w-3 h-3 text-amber-500" />
                 </div>
               </div>
@@ -345,17 +372,17 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
                 const isHovered = hoveredMeal === analysis.id;
                 const mealName = getMealName(analysis);
                 const calories = parseFloat(analysis.total_calories);
-                
+
                 return (
-                  <div 
+                  <div
                     key={analysis.id}
                     onClick={() => setSelectedAnalysis(analysis)}
                     onMouseEnter={() => setHoveredMeal(analysis.id)}
                     onMouseLeave={() => setHoveredMeal(null)}
                     className={`
                       relative group rounded-xl p-3 transition-all duration-300 cursor-pointer
-                      ${isHovered 
-                        ? 'bg-white dark:bg-gray-700/80 shadow-lg shadow-gray-200/50 dark:shadow-none scale-[1.02]' 
+                      ${isHovered
+                        ? 'bg-white dark:bg-gray-700/80 scale-[1.02]'
                         : 'bg-gray-50/80 dark:bg-gray-700/40 hover:bg-white dark:hover:bg-gray-700/60'
                       }
                     `}
@@ -364,16 +391,16 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
                       {/* Meal Avatar with Gradient or Image */}
                       <div className="relative flex-shrink-0">
                         {analysis.image_url ? (
-                          <div className={`w-12 h-12 rounded-xl overflow-hidden shadow-md transition-transform duration-300 ${isHovered ? 'scale-110 rotate-3' : ''}`}>
-                            <img 
-                              src={getImageUrl(analysis.image_url)} 
+                          <div className={`w-12 h-12 rounded-xl overflow-hidden transition-transform duration-300 ${isHovered ? 'scale-110 rotate-3' : ''}`}>
+                            <img
+                              src={getImageUrl(analysis.image_url)}
                               alt={mealName}
                               className="w-full h-full object-cover"
                             />
                           </div>
                         ) : (
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getMealGradient(index)} flex items-center justify-center shadow-md transition-transform duration-300 ${isHovered ? 'scale-110 rotate-3' : ''}`}>
-                            <span className="text-white font-bold text-lg drop-shadow-sm">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getMealGradient(index)} flex items-center justify-center transition-transform duration-300 ${isHovered ? 'scale-110 rotate-3' : ''}`}>
+                            <span className="text-white font-bold text-lg">
                               {mealName.charAt(0)}
                             </span>
                           </div>
@@ -391,16 +418,22 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
                             {mealName}
                           </h4>
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <Clock className="w-3 h-3" />
-                            {formatRelativeTime(analysis.date_added)}
-                          </span>
-                          <span className={`flex items-center gap-1 text-xs font-medium ${config.text}`}>
-                            <TrendingUp className="w-3 h-3" />
-                            {balanceScore.toFixed(0)}%
-                          </span>
-                        </div>
+                        {analysis.conversational_feedback ? (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                            {analysis.conversational_feedback}
+                          </p>
+                        ) : (
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                              <Clock className="w-3 h-3" />
+                              {formatRelativeTime(analysis.date_added)}
+                            </span>
+                            <span className={`flex items-center gap-1 text-xs font-medium ${config.text}`}>
+                              <TrendingUp className="w-3 h-3" />
+                              {balanceScore.toFixed(0)}%
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Calories & Score */}
@@ -411,7 +444,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
                             <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-0.5">cal</span>
                           </p>
                         </div>
-                        
+
                         <div className={`
                           px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-300
                           ${config.bgLight} ${config.text}
@@ -436,7 +469,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
         {/* Footer Action */}
         {onViewAll && (
           <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-            <button 
+            <button
               onClick={onViewAll}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-700/50 hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-900/20 dark:hover:to-teal-900/20 border border-gray-200/50 dark:border-gray-600/50 transition-all duration-300 group"
             >

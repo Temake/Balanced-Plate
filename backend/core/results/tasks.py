@@ -20,6 +20,14 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         file_obj.currently_under_processing = True
         file_obj.save(update_fields=["currently_under_processing"])
 
+        # Build user health profile for personalized AI feedback
+        user = file_obj.owner
+        user_profile = {
+            "dietary_goal": getattr(user, "dietary_goal", "general_health"),
+            "dietary_preference": getattr(user, "dietary_preference", "none"),
+            "health_conditions": getattr(user, "health_conditions", []),
+        }
+
         analysis = FoodAnalysis.objects.filter(food_image=file_obj).first()
         if not analysis:
             analysis = FoodAnalysis.objects.create(
@@ -36,15 +44,19 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
         else:
             if not settings.USING_MANAGED_STORAGE:
                 image_path = file_obj.file.path
-                result, is_mock = gemini_service.analyze_image(image_path)
+                result, is_mock = gemini_service.analyze_image(image_path, user_profile=user_profile)
             else:
                 image_url = file_obj.file.url
-                result, is_mock = gemini_service.analyze_image_from_url(image_url)
+                result, is_mock = gemini_service.analyze_image_from_url(image_url, user_profile=user_profile)
 
         # Save analysis results
         analysis.meal_type = result.get("meal_type")
         analysis.balance_score = result.get("balance_score")
         analysis.next_meal_recommendations = result.get("next_meal_recommendations", {})
+        analysis.food_name = result.get("food_name")
+        analysis.conversational_feedback = result.get("conversational_feedback")
+        analysis.actionable_suggestion = result.get("actionable_suggestion")
+        analysis.alternative_suggestion = result.get("alternative_suggestion")
         analysis.is_mock_data = is_mock
         analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_COMPLETED.value
         analysis.save()

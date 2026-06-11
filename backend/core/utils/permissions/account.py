@@ -1,6 +1,6 @@
-from django.core.cache import cache
 from rest_framework.permissions import BasePermission
 from core.utils import enums
+from core.utils.helpers import authenticators
 
 
 class IsGuestUser(BasePermission):
@@ -21,4 +21,9 @@ class IsOTPVerified(BasePermission):
 
     def has_permission(self, request, view):
         email = request.query_params.get("email")
-        return cache.get(f"{email}_otp_verified")
+        if not email:
+            return False
+        return authenticators.OTPHelpers.is_otp_verified(
+            email,
+            authenticators.OTP_PURPOSE_PASSWORD_RESET,
+        )
