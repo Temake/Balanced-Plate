@@ -52,11 +52,11 @@ const ForgetPasswordPage = () => {
 };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mb-4 relative overflow-hidden">
+          <div className="mx-auto w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center mb-4 relative overflow-hidden">
             {/* AI Circuit Pattern Background */}
             <div className="absolute inset-0 opacity-20">
               <svg className="w-full h-full" viewBox="0 0 80 80" fill="none">
@@ -163,9 +163,9 @@ const ForgetPasswordPage = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Balanced Plate<span className="text-green-600 dark:text-green-500 ">.AI</span>
+            Balanced Plate<span className="text-emerald-600 dark:text-emerald-500 ">.AI</span>
           </h1>
-          <p className="text-gray-600 dark:text-white">Your AI-powered nutrition companion</p>
+          <p className="text-gray-600 dark:text-gray-400">Your Nigerian food accountability companion</p>
         </div>
 
         {/* Forget Password Card */}
@@ -216,7 +216,7 @@ const ForgetPasswordPage = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-green-600 text-white py-6 rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 flex items-center justify-center"
+                className="w-full bg-emerald-600 text-white py-6 rounded-lg font-semibold hover:bg-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 flex items-center justify-center"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -239,7 +239,7 @@ const ForgetPasswordPage = () => {
             Remember your password?{" "}
             <a
               href="/login"
-              className="text-green-600 hover:text-green-500 font-medium transition-colors"
+              className="text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
             >
               Back to login
             </a>
@@ -253,15 +253,15 @@ const ForgetPasswordPage = () => {
           </p>
           <div className="flex justify-center space-x-6 text-xs text-gray-400">
             <div className="flex items-center space-x-1">
-              <span className="text-green-600">🔒</span>
+              <span className="text-emerald-600">🔒</span>
               <span>Encrypted</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="text-green-600">⚡</span>
+              <span className="text-emerald-600">⚡</span>
               <span>Quick Process</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="text-green-600">✉️</span>
+              <span className="text-emerald-600">✉️</span>
               <span>Email Verification</span>
             </div>
           </div>

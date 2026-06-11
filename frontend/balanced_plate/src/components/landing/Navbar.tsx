@@ -19,7 +19,6 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Features', href: '#features' },
     { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Testimonials', href: '#testimonials' },
   ];
 
   return (
@@ -44,7 +43,7 @@ const Navbar: React.FC = () => {
                 Balanced Plate
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
-                AI-POWERED NUTRITION
+                FOOD ACCOUNTABILITY
               </span>
             </div>
           </Link>

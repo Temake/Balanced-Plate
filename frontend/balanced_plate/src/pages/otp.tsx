@@ -42,15 +42,15 @@ const Otp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-20 h-20 bg-emerald-600 dark:bg-emerald-500 rounded-full flex items-center justify-center mb-4">
             <CheckCircle2 className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Balanced Plate
-            <span className="text-green-600 dark:text-green-500">.AI</span>
+            <span className="text-emerald-600 dark:text-emerald-500">.AI</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Enter the verification code
@@ -102,7 +102,7 @@ const Otp = () => {
 
           <Button
             onClick={onVerify}
-            className="w-full bg-green-400"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
             disabled={!otp || otp.length < 6}
           >
             Verify OTP
@@ -112,7 +112,7 @@ const Otp = () => {
             Need help?{" "}
             <a
               href="/login"
-              className="text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 font-medium"
+              className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-medium"
             >
               Sign in instead
             </a>
@@ -124,3 +124,4 @@ const Otp = () => {
 };
 
 export default Otp;
+

@@ -16,13 +16,13 @@ import type { FoodAnalysis } from "@/api/types";
 import {
   ArrowRight,
   BarChart3,
-  BookOpen,
   CalendarDays,
   Camera,
   ChefHat,
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  FileText,
   RefreshCw,
   Sparkles,
   Utensils,
@@ -264,10 +264,10 @@ const Dashboard: React.FC = () => {
               icon={ClipboardList}
             />
             <QuickLinkCard
-              to="/learn"
-              label="Read Tips"
-              description="Simple food swaps and habits."
-              icon={BookOpen}
+              to="/health-report"
+              label="Health Report"
+              description="Preview your weekly food summary."
+              icon={FileText}
             />
             <QuickLinkCard
               to="/recipes"
