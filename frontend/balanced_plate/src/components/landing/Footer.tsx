@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
                   Balanced Plate
                 </span>
                 <span className="text-[10px] text-gray-400 -mt-1 font-medium tracking-wide">
-                  AI-POWERED NUTRITION
+                  FOOD ACCOUNTABILITY
                 </span>
               </div>
             </Link>

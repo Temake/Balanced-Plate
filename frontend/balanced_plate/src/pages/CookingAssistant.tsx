@@ -195,7 +195,6 @@ const CookingAssistant: React.FC = () => {
   const recipe = useMemo(() => recipes.find((r) => r.id === id), [id]);
   const customDish = searchParams.get('dish')?.trim() || '';
   const dishName = recipe?.name || customDish;
-  const dishEmoji = recipe?.emoji || '🍲';
 
   // AI mutation
   const { mutate, data: guide, isPending, isError, error, reset } = useGenerateCookingGuide();
@@ -274,7 +273,7 @@ const CookingAssistant: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
-              {dishEmoji} {dishName}
+              {dishName}
             </h1>
           </div>
 
