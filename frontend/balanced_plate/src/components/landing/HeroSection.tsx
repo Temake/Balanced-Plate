@@ -61,40 +61,6 @@ const HeroSection: React.FC = () => {
               </Link>
             </div>
 
-            {/* Social Proof */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-              <div className="flex -space-x-3">
-                {[
-                  { name: 'Ava', image: 'https://randomuser.me/api/portraits/women/44.jpg' },
-                  { name: 'Noah', image: 'https://randomuser.me/api/portraits/men/32.jpg' },
-                  { name: 'Mia', image: 'https://randomuser.me/api/portraits/women/68.jpg' },
-                  { name: 'Liam', image: 'https://randomuser.me/api/portraits/men/75.jpg' },
-                  { name: 'Zoe', image: 'https://randomuser.me/api/portraits/women/12.jpg' },
-                ].map((user) => (
-                  <Avatar
-                    key={user.name}
-                    className="h-10 w-10 border-2 border-white bg-white dark:border-gray-900 dark:bg-gray-900"
-                  >
-                    <AvatarImage src={user.image} alt={user.name} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-xs font-semibold text-white">
-                      {user.name.slice(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-              </div>
-              <div className="text-sm">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  <span className="font-semibold text-gray-900 dark:text-white">4.9/5</span> from 10,000+ users
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Right Content - App Preview */}
