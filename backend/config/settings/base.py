@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from core.utils import enums
 from config.celery.queue import CeleryQueue
 from celery.schedules import crontab
+import sentry_sdk
 
 from .. import env
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -74,6 +75,7 @@ CORE_APPS = [
     "core.utils.apps.UtilsConfig",
     "core.recommendations.apps.RecommendationsConfig",
     "core.websocket.apps.WebsocketConfig",
+    "core.system.apps.SystemConfig",
     "core.meal_plan.apps.MealPlanConfig",
     "core.cooking.apps.CookingConfig",
 ]
@@ -312,7 +314,7 @@ CELERY_BEAT_SCHEDULE = {
 
 REDIS_HOST = env.str("REDIS_HOST", default="localhost")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
-REDIS_URL = env.str("REDIS_URL",default="")
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
 REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="")
 
 # if REDIS_PASSWORD:
@@ -342,6 +344,15 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+sentry_sdk.init(
+    dsn="https://1dee5c434e783fffa8db4a619178d1ff@o4511473649057792.ingest.de.sentry.io/4511473672126544",
+    send_default_pii=True,
+    enable_logs=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+)
 
 
 
