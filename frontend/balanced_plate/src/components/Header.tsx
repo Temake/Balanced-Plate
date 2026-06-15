@@ -1,6 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
-import { Brain, CookingPot, Home, ShoppingCart, User2Icon, Menu, X, LogOut, Camera } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Home, Camera, CalendarDays, User, User2Icon, LogOut, Leaf, ChefHat } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -15,18 +14,29 @@ import { ModeToggle } from '@/components/toggle'
 import { cn } from '@/lib/utils'
 import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu'
 
-const HeadersOptions = [
-  { name: "Dashboard", icon: <Home className='w-5 h-5' />, path: "/dashboard" },
-  { name: "Analyze Food", icon: <Camera className='w-5 h-5' />, path: "/analyze-food" },
-  { name: "Recipes", icon: <CookingPot className='w-5 h-5' />, path: "/recipes" },
-  { name: "Shopping", icon: <ShoppingCart className='w-5 h-5' />, path: "/shopping" },
-  { name: "Learn", icon: <Brain className='w-5 h-5' />, path: "/learn" },
+/** Tailwind class for bottom padding to offset the mobile bottom nav */
+export const BOTTOM_NAV_HEIGHT = 'pb-20'
+
+const navItems = [
+  { name: 'Home', icon: Home, path: '/dashboard' },
+  { name: 'Scan Food', mobileLabel: 'Scan', icon: Camera, path: '/analyze-food' },
+  { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
+  // Explore is paused for now.
+  // { name: 'Explore', icon: BookOpen, path: '/learn' },
+  { name: 'Profile', icon: User, path: '/profile' },
+]
+
+const mobileNavItems = [
+  { name: 'Home', icon: Home, path: '/dashboard' },
+  { name: 'Scan', icon: Camera, path: '/analyze-food' },
+  { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
+  { name: 'Cook', icon: ChefHat, path: '/recipes', activePaths: ['/recipes', '/cook'] },
+  // Explore is paused for now.
+  // { name: 'Explore', icon: BookOpen, path: '/learn' },
 ]
 
 const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth()
-  
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -37,69 +47,55 @@ const Header: React.FC = () => {
     navigate('/login')
   }
 
-  useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => { document.body.style.overflow = 'unset' }
-  }, [isSidebarOpen])
-
-  const closeSidebar = () => setIsSidebarOpen(false)
-
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            
-            <Link to="/dashboard" className="hidden sm:block">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Balanced Plate<span className="text-green-600 dark:text-green-500">.AI</span>
-              </h3>
-            </Link>
-          </div>
+      {/* ─── Top Header (all screens) ─── */}
+      <header className="sticky top-0 z-40 w-full border-b border-gray-200/60 dark:border-gray-800/60 bg-white/80 dark:bg-gray-950/80 backdrop-blur-lg supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-950/60">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
+            <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+              Balanced<span className="text-emerald-600 dark:text-emerald-400"> Plate</span>
+            </span>
+          </Link>
 
+          {/* Desktop Navigation (centered) */}
           {isAuthenticated && (
-            <nav className="hidden md:flex items-center justify-center flex-1 max-w-2xl mx-8">
-              <div className="flex items-center justify-between w-full">
-                {HeadersOptions.map((option) => (
+            <nav className="hidden md:flex items-center gap-1 mx-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const active = isActivePath(item.path)
+                return (
                   <Link
-                    key={option.path}
-                    to={option.path}
+                    key={item.path}
+                    to={item.path}
                     className={cn(
-                      "flex items-center gap-2 px-6 py-2.5 text-sm font-medium transition-all duration-200 whitespace-nowrap min-w-[120px] justify-center rounded-full",
-                      isActivePath(option.path)
-                        ? "text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-300"
-                        : "text-foreground/70 hover:bg-accent/50 hover:text-foreground/80"
+                      'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                      active
+                        ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50'
                     )}
                   >
-                    {option.icon}
-                    {option.name}
+                    <Icon className="h-4 w-4" />
+                    {item.name}
                   </Link>
-                ))}
-              </div>
+                )
+              })}
             </nav>
           )}
 
-          <div className="flex items-center gap-3">
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2 shrink-0">
             <ModeToggle />
+
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                     <Avatar className="h-9 w-9">
                       <AvatarImage src="/abstract-profile.png" alt="Profile" />
-                      <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-sm font-semibold">
                         {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
@@ -128,10 +124,10 @@ const Header: React.FC = () => {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
-                <Button variant="ghost" asChild>
-                  <Link to="/login">Log in</Link>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login" className="text-gray-600 dark:text-gray-300">Log in</Link>
                 </Button>
-                <Button asChild>
+                <Button size="sm" asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
                   <Link to="/signup">Sign up</Link>
                 </Button>
               </div>
@@ -140,104 +136,45 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Overlay */}
-      <div
-        className={cn(
-          "fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300",
-          isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={closeSidebar}
-      />
-
-      {/* Slide-in Sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 z-50 md:hidden transform transition-transform duration-300 ease-out",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b dark:border-gray-800">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-              Balanced Plate<span className="text-green-600">.AI</span>
-            </h3>
-            <Button variant="ghost" size="icon" onClick={closeSidebar}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* User Info */}
-          {isAuthenticated && user && (
-            <div className="p-4 border-b dark:border-gray-800">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src="/abstract-profile.png" />
-                  <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">
-                    {user.first_name?.charAt(0)}{user.last_name?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{user.first_name} {user.last_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {isAuthenticated ? (
-              HeadersOptions.map((option) => (
+      {/* ─── Bottom Tab Navigation (Mobile only, authenticated only) ─── */}
+      {isAuthenticated && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <div className="flex items-center justify-around h-16 px-2 pb-[env(safe-area-inset-bottom)]">
+            {mobileNavItems.map((item) => {
+              const Icon = item.icon
+              const active = item.activePaths
+                ? item.activePaths.some((path) => location.pathname.startsWith(path))
+                : isActivePath(item.path)
+              const label = item.mobileLabel || item.name
+              return (
                 <Link
-                  key={option.path}
-                  to={option.path}
-                  onClick={closeSidebar}
+                  key={item.path}
+                  to={item.path}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                    isActivePath(option.path)
-                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    'flex flex-col items-center justify-center gap-0.5 flex-1 py-1 rounded-lg transition-colors duration-200',
+                    active
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-gray-400 dark:text-gray-500'
                   )}
                 >
-                  {option.icon}
-                  {option.name}
+                  <div className="relative">
+                    <Icon className={cn('h-5 w-5', active && 'stroke-[2.5px]')} />
+                    {active && (
+                      <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    )}
+                  </div>
+                  <span className={cn(
+                    'text-[10px] font-medium leading-tight',
+                    active ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'
+                  )}>
+                    {label}
+                  </span>
                 </Link>
-              ))
-            ) : (
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild onClick={closeSidebar}>
-                  <Link to="/login">Log in</Link>
-                </Button>
-                <Button className="w-full justify-start" asChild onClick={closeSidebar}>
-                  <Link to="/signup">Sign up</Link>
-                </Button>
-              </div>
-            )}
-          </nav>
-
-          {/* Sidebar Footer */}
-          {isAuthenticated && (
-            <div className="p-4 border-t dark:border-gray-800">
-              <Link
-                to="/profile"
-                onClick={closeSidebar}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              >
-                <User2Icon className="w-5 h-5" />
-                Profile Settings
-              </Link>
-              <button
-                onClick={() => { handleLogout(); closeSidebar(); }}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all w-full"
-              >
-                <LogOut className="w-5 h-5" />
-                Log out
-              </button>
-            </div>
-          )}
-        </div>
-      </aside>
+              )
+            })}
+          </div>
+        </nav>
+      )}
     </>
   )
 }

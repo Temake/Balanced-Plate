@@ -1,7 +1,7 @@
 import React, { createContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import api from "../api/axios";
-import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse } from '../api/types'
+import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse, OnboardingData } from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,8 +17,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const loadCurrentUser = useCallback(async () => {
-    if (user) return;
-    
     setIsLoading(true);
     try {
       const { data } = await api.get('/accounts/me/');
@@ -27,7 +25,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
     setIsLoading(true);
@@ -62,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       setError(errorMessage);
       setIsAuthenticated(false);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -86,9 +84,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       let errorMessage = 'SignUp failed. Please try again.';
 
       if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: {phone_number:string,password:string,email:string} } } }).response;
-        errorMessage = response?.data?.message?.phone_number || response?.data?.message?.password || response?.data?.message?.email || errorMessage;
-        errorMessage = errorMessage[0];
+        const response = (error as { response?: { data?: { detail?: string; message?: string | {phone_number?: string | string[]; password?: string | string[]; email?: string | string[]} } } }).response;
+        const message = response?.data?.message;
+        if (typeof message === 'string') {
+          errorMessage = message;
+        } else if (message) {
+          const fieldError = message.phone_number || message.password || message.email;
+          errorMessage = Array.isArray(fieldError) ? fieldError[0] : fieldError || errorMessage;
+        } else {
+          errorMessage = response?.data?.detail || errorMessage;
+        }
       }
       setError(errorMessage);
       setIsAuthenticated(false);
@@ -144,6 +149,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const verifyAccount = async (email: string, otpCode: string): Promise<string> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.post('/auth/signup/verify-otp/', {
+        email,
+        otp: Number(otpCode),
+      });
+      const msg: string = response.data?.message || 'Email verified successfully.';
+      return msg;
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to verify your account. Please try again.';
+
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendAccountVerificationOtp = async (email: string): Promise<string> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.post('/auth/signup/resend-otp/', {
+        email,
+        purpose: 'signup',
+      });
+      const msg: string = response.data?.message || 'Verification OTP sent to your email.';
+      return msg;
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to resend verification code. Please try again.';
+
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const resetPassword = async (email: string, password: string, confirmPassword: string): Promise<string> => {
     setIsLoading(true);
     setError(null);
@@ -188,10 +245,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
   };
 
+  const completeOnboarding = async (data: OnboardingData): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.patch<User>('/accounts/me/complete-onboarding/', {
+        dietary_goal: data.dietary_goal,
+        dietary_preference: data.dietary_preference,
+        health_conditions: data.health_conditions,
+      });
+      setUser(response.data);
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to save preferences. Please try again.';
+      if (typeof error === 'object' && error && 'response' in error) {
+        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
+        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
+      }
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     forgetPassword,
     otpVerify,
+    verifyAccount,
+    resendAccountVerificationOtp,
     resetPassword,
     SignUp,
     isLoading,
@@ -202,6 +284,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearError,
     loadCurrentUser,
     setAuthStatus,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

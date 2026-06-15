@@ -1,28 +1,28 @@
 import React from 'react';
-import { Camera, Brain, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
+import { Camera, MessageCircle, CalendarDays, Sparkles, ArrowRight } from 'lucide-react';
 
 const steps = [
   {
     number: '01',
     icon: Camera,
-    title: 'Snap a Photo',
-    description: 'Take a quick photo of your meal using your phone camera. Our app works with any food - home-cooked or restaurant.',
+    title: 'Scan Your Meal',
+    description: 'Take a quick photo of your food. Balanced Plate identifies the meal and starts your daily accountability record.',
     color: 'from-blue-500 to-cyan-500',
     bgColor: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
   },
   {
     number: '02',
-    icon: Brain,
-    title: 'AI Analysis',
-    description: 'Our advanced AI instantly identifies all food items, calculates portions, and analyzes nutritional content in seconds.',
+    icon: MessageCircle,
+    title: 'Get a Useful Nudge',
+    description: 'Receive short, conversational feedback based on your goal, diet preference, and health conditions.',
     color: 'from-purple-500 to-indigo-500',
     bgColor: 'from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20',
   },
   {
     number: '03',
-    icon: TrendingUp,
-    title: 'Get Insights',
-    description: 'Receive detailed nutrition breakdown, personalized recommendations, and track your progress towards your goals.',
+    icon: CalendarDays,
+    title: 'Plan, Cook, and Share',
+    description: 'Build weekly meal plans, generate cooking steps for any dish, and download weekly food summaries from your profile.',
     color: 'from-green-500 to-emerald-500',
     bgColor: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
   },
@@ -50,8 +50,8 @@ const HowItWorksSection: React.FC = () => {
             How It Works
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Start tracking your nutrition in three simple steps. 
-            No complicated setup, no manual data entry required.
+            Build healthier food habits without turning every meal into homework.
+            Scan, act on one practical tip, and keep your weekly pattern visible.
           </p>
         </div>
 
@@ -105,30 +105,6 @@ const HowItWorksSection: React.FC = () => {
             ))}
           </div>
         </div>
-
-{/* Demo Video Placeholder - Commented out until video is ready
-        <div className="mt-16 lg:mt-24 relative">
-          <div className="relative aspect-video max-w-4xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-4 mx-auto cursor-pointer hover:bg-white/20 transition-colors group">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-white/80 text-lg">Watch How It Works</p>
-              </div>
-            </div>
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-            </div>
-          </div>
-        </div>
-        */}
       </div>
     </section>
   );

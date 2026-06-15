@@ -4,7 +4,6 @@ import {
   HeroSection,
   FeaturesSection,
   HowItWorksSection,
-  TestimonialsSection,
   CTASection,
   Footer,
 } from '@/components/landing';
@@ -17,7 +16,6 @@ const LandingPage: React.FC = () => {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
-        <TestimonialsSection />
         <CTASection />
       </main>
       <Footer />

@@ -21,20 +21,20 @@ const CTASection: React.FC = () => {
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 mb-8">
           <Sparkles className="w-4 h-4 text-white" />
           <span className="text-sm font-medium text-white">
-            Start Your Journey Today
+            Start Your Food Accountability Journey
           </span>
         </div>
 
         {/* Headline */}
         <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-6 leading-tight">
-          Ready to Transform Your
-          <span className="block">Eating Habits?</span>
+          Ready to Make Better
+          <span className="block">Food Choices?</span>
         </h2>
 
         {/* Subheadline */}
         <p className="text-lg sm:text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-          Join thousands of users who have already started their journey to better nutrition. 
-          It only takes 30 seconds to get started.
+          Scan meals, plan your week, cook with AI, and keep weekly summaries
+          you can revisit from your profile.
         </p>
 
         {/* CTA Buttons */}
@@ -78,7 +78,7 @@ const CTASection: React.FC = () => {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>Cancel anytime</span>
+            <span>Built for Nigerian meals</span>
           </div>
         </div>
       </div>

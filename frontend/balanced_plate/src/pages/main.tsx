@@ -1,16 +1,6 @@
-import HeroSection from "@/components/HeroSection";
-import Header from "@/components/Header";
+import { Navigate } from "react-router-dom";
 
-
-
-export default function Main(){
-    return(
-       <>
-       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex px-4">
-
-       <Header/>
-       <HeroSection/>
-       </div>
-       </>
-    )
+// Catch-all page — redirects to landing
+export default function Main() {
+  return <Navigate to="/" replace />;
 }

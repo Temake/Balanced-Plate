@@ -1,14 +1,14 @@
 import React from 'react';
 import { 
   Camera, 
-  Brain, 
+  MessageCircle, 
   TrendingUp, 
-  Utensils, 
-  Target, 
-  Bell,
+  ChefHat, 
+  CalendarDays, 
+  FileText,
   Sparkles,
-  Zap,
-  Shield
+  ClipboardCheck,
+  HeartPulse
 } from 'lucide-react';
 
 interface Feature {
@@ -22,43 +22,43 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: Camera,
-    title: 'Instant Food Recognition',
-    description: 'Simply snap a photo of your meal and our AI instantly identifies all food items with remarkable accuracy.',
+    title: 'Conversational Food Scans',
+    description: 'Snap a Nigerian meal and get clear, friendly feedback with one practical next step instead of a wall of numbers.',
     gradient: 'from-blue-500 to-cyan-500',
     iconColor: 'text-blue-500'
   },
   {
-    icon: Brain,
-    title: 'AI-Powered Analysis',
-    description: 'Advanced machine learning algorithms analyze nutritional content, portion sizes, and meal balance in seconds.',
+    icon: MessageCircle,
+    title: 'Health-Aware Advice',
+    description: 'Personalize guidance for goals, diet type, diabetes, hypertension, keto, and other preferences from your profile.',
     gradient: 'from-purple-500 to-indigo-500',
     iconColor: 'text-purple-500'
   },
   {
-    icon: TrendingUp,
-    title: 'Progress Tracking',
-    description: 'Track your nutrition journey with beautiful charts and insights. See your improvements over time.',
+    icon: CalendarDays,
+    title: 'Flexible Meal Planning',
+    description: 'Plan each day manually, generate one day with AI, or let AI suggest a full Nigerian weekly meal plan.',
     gradient: 'from-green-500 to-emerald-500',
     iconColor: 'text-green-500'
   },
   {
-    icon: Target,
-    title: 'Personalized Goals',
-    description: 'Set custom nutrition goals based on your lifestyle, dietary preferences, and health objectives.',
+    icon: ChefHat,
+    title: 'Cooking Assistant',
+    description: 'Choose a saved recipe or type any dish and get ingredients plus step-by-step preparation guidance.',
     gradient: 'from-orange-500 to-amber-500',
     iconColor: 'text-orange-500'
   },
   {
-    icon: Utensils,
-    title: 'Meal Recommendations',
-    description: 'Get personalized meal suggestions and recipes to help you achieve a more balanced diet.',
+    icon: FileText,
+    title: 'Weekly Food Summaries',
+    description: 'Preview and download current or historical weekly food summaries directly from your profile.',
     gradient: 'from-pink-500 to-rose-500',
     iconColor: 'text-pink-500'
   },
   {
-    icon: Bell,
-    title: 'Smart Reminders',
-    description: 'Never miss a meal with intelligent reminders that adapt to your eating schedule and habits.',
+    icon: TrendingUp,
+    title: 'Accountability Dashboard',
+    description: 'See recent meals, weekly tracking streaks, quick actions, and deeper analytics only when you need them.',
     gradient: 'from-teal-500 to-cyan-500',
     iconColor: 'text-teal-500'
   },
@@ -81,12 +81,12 @@ const FeaturesSection: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Everything You Need for
             <span className="block bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              Better Nutrition
+              Better Food Habits
             </span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Our comprehensive suite of features makes tracking and improving your nutrition 
-            effortless and enjoyable.
+            Balanced Plate helps you make better daily food choices with culturally familiar meals,
+            practical guidance, and simple accountability.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ const FeaturesSection: React.FC = () => {
 
               {/* Arrow */}
               <div className="mt-4 flex items-center gap-2 text-green-600 dark:text-green-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-sm">Learn more</span>
+                <span className="text-sm">Included now</span>
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -127,10 +127,10 @@ const FeaturesSection: React.FC = () => {
         {/* Bottom Stats */}
         <div className="mt-16 lg:mt-24 grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { icon: Zap, value: '< 3s', label: 'Analysis Time' },
-            { icon: Shield, value: '99.9%', label: 'Uptime' },
-            { icon: Camera, value: '500+', label: 'Foods Recognized' },
-            { icon: Brain, value: '95%', label: 'AI Accuracy' },
+            { icon: ClipboardCheck, value: '7 days', label: 'Weekly planning' },
+            { icon: HeartPulse, value: 'Health', label: 'Profile-aware tips' },
+            { icon: Camera, value: 'Photo', label: 'Meal accountability' },
+            { icon: ChefHat, value: 'Any dish', label: 'AI cooking guide' },
           ].map((stat, idx) => (
             <div key={idx} className="text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-100 dark:border-green-800/50">
               <stat.icon className="w-8 h-8 mx-auto mb-3 text-green-600 dark:text-green-400" />

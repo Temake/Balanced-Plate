@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     CreateUser,
     RetrieveUpdateUser,
+    CompleteOnboarding,
     Login,
     Logout,
     TokenRefresh,
@@ -15,6 +16,7 @@ from .views import (
 urlpatterns = [
     path("accounts/", CreateUser.as_view(), name="account-list-create"),
     path("accounts/me/", RetrieveUpdateUser.as_view(), name="retrieve-update-user"),
+    path("accounts/me/complete-onboarding/", CompleteOnboarding.as_view(), name="complete-onboarding"),
     path("accounts/password/reset/", ChangePassword.as_view(), name="change-password"),
     path("auth/login/", Login.as_view(), name="login"),
     path("auth/logout/", Logout.as_view(), name="logout"),

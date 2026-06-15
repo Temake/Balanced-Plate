@@ -1,4 +1,4 @@
-import Header from "@/components/Header"
+import Header, { BOTTOM_NAV_HEIGHT } from "@/components/Header"
 import React from "react";
 import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
@@ -12,7 +12,7 @@ const AnalyseFood: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
       <Header />
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow max-w-7xl">

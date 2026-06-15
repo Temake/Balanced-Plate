@@ -42,6 +42,7 @@ export interface NutritionAnalyticsData {
   recommendations: Recommendation[];
   timingRecommendations: string[];
   weeklyRecommendations: WeeklyRecommendation[];
+  recentAnalyses: FoodAnalysis[];
 }
 
 // Color palette for food groups
@@ -416,6 +417,7 @@ const fetchAnalyticsData = async (userId: number, dateRange: DateRange): Promise
     recommendations,
     timingRecommendations,
     weeklyRecommendations: weeklyRecsData,
+    recentAnalyses: analysesData,
   };
 };
 

@@ -66,6 +66,31 @@ class FoodAnalysis(BaseModelMixin):
         null=True,
         blank=True,
     )
+    food_name = models.CharField(
+        _("Food Name"),
+        max_length=200,
+        null=True,
+        blank=True,
+        help_text=_("AI-identified name of the meal")
+    )
+    conversational_feedback = models.TextField(
+        _("Conversational Feedback"),
+        null=True,
+        blank=True,
+        help_text=_("AI-generated conversational feedback in Nigerian tone")
+    )
+    actionable_suggestion = models.TextField(
+        _("Actionable Suggestion"),
+        null=True,
+        blank=True,
+        help_text=_("One practical tip for the user")
+    )
+    alternative_suggestion = models.TextField(
+        _("Alternative Suggestion"),
+        null=True,
+        blank=True,
+        help_text=_("Optional healthier alternative")
+    )
     push_sent = models.BooleanField(
         _("Is Event Pushed?"),
         default = False
