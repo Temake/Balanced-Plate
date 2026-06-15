@@ -1,3 +1,6 @@
+import resend
+from loguru import logger
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -27,10 +30,16 @@ class EmailClient:
         }
 
         mail_body = render_to_string(self.mail_template, context)
-        send_mail(
-            self.subject,
-            strip_tags(mail_body),
-            "Balancedplate <{sender}>".format(sender=self.sender),
-            [self.receiver_email],
-            html_message=mail_body,
-        )
+        resend.api_key = settings.RESEND_API_KEY
+        try:
+            params = {
+                "from": "Balancedplate <{sender}>".format(sender=self.sender),
+                "to": [self.receiver_email],
+                "subject": self.subject,
+                "html": mail_body,
+            }
+            email = resend.Emails.send(params)
+        except Exception as e:
+            logger.error(f"Failed to send email to {self.receiver_email}: {e}")
+            raise e
+    
