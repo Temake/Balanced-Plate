@@ -314,7 +314,7 @@ CELERY_BEAT_SCHEDULE = {
 
 REDIS_HOST = env.str("REDIS_HOST", default="localhost")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
-REDIS_URL = env.str("REDIS_URL",default="")
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
 REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="")
 
 # if REDIS_PASSWORD:
