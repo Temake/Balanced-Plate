@@ -348,7 +348,7 @@ CHANNEL_LAYERS = {
 # Email settings
 EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="***")
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", True)
-EMAIL_USE_TSL = env.bool("EMAIL_USE_TSL", False)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", False)
 EMAIL_HOST = env.str("EMAIL_HOST", default="***")
 EMAIL_PORT = env.int("EMAIL_PORT", 465)
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="***")
