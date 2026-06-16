@@ -33,9 +33,15 @@ const Otp = () => {
   const onVerify = async () => {
     clearError();
     try {
-      const msg = await otpVerify(email, otp);
+      const hiddenEmail = email.trim();
+      if (!hiddenEmail) {
+        navigate("/forget-password", { replace: true });
+        return;
+      }
+
+      const msg = await otpVerify(hiddenEmail, otp);
       setSuccessMessage(msg);
-      navigate("/reset-password", {state: { email }});
+      navigate("/reset-password", { replace: true, state: { email: hiddenEmail } });
     } catch (err) {
       console.error(err);
     }

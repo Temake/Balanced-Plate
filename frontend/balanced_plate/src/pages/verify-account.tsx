@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AlertCircle, CheckCircle2, MailCheck, RefreshCw } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   InputOTP,
   InputOTPGroup,
@@ -23,22 +22,21 @@ const VerifyAccount = () => {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
 
   const stateEmail = (location.state as { email?: string } | null)?.email;
-  const initialEmail = useMemo(
-    () => stateEmail || searchParams.get("email") || "",
-    [stateEmail, searchParams]
-  );
-
-  const [email, setEmail] = useState(initialEmail);
+  const [email, setEmail] = useState(stateEmail ?? "");
   const [otp, setOtp] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [resendMessage, setResendMessage] = useState("");
 
   useEffect(() => {
-    setEmail(initialEmail);
-  }, [initialEmail]);
+    if (!stateEmail) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setEmail(stateEmail);
+  }, [stateEmail, navigate]);
 
   const onVerify = async () => {
     clearError();
@@ -46,10 +44,13 @@ const VerifyAccount = () => {
     setResendMessage("");
 
     try {
-      const msg = await verifyAccount(email.trim(), otp);
+      const hiddenEmail = email.trim();
+      if (!hiddenEmail) return;
+
+      const msg = await verifyAccount(hiddenEmail, otp);
       setSuccessMessage(msg);
       setTimeout(() => {
-        navigate("/login", { replace: true, state: { verified: true, email } });
+        navigate("/login", { replace: true, state: { verified: true } });
       }, 900);
     } catch (err) {
       console.error(err);
@@ -62,7 +63,10 @@ const VerifyAccount = () => {
     setResendMessage("");
 
     try {
-      const msg = await resendAccountVerificationOtp(email.trim());
+      const hiddenEmail = email.trim();
+      if (!hiddenEmail) return;
+
+      const msg = await resendAccountVerificationOtp(hiddenEmail);
       setResendMessage(msg);
     } catch (err) {
       console.error(err);
@@ -116,20 +120,6 @@ const VerifyAccount = () => {
           )}
 
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Email
-              </label>
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                disabled={isLoading}
-                className="mt-2"
-              />
-            </div>
-
             <div className="flex justify-center">
               <InputOTP
                 maxLength={6}

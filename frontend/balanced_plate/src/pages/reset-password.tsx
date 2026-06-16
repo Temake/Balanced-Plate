@@ -37,6 +37,7 @@ const ResetPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { resetPassword, error } = useAuth();
   const [email, setEmail] = useState("");
+  const [hasEmailState, setHasEmailState] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState("");
@@ -48,15 +49,18 @@ const ResetPassword = () => {
       confirmPassword: "",
     },
   });
- useEffect(() => {
-  const state = location.state as { email: string };
-  if (state?.email) {
-    setEmail(state.email);
-  }
-  else{
-    navigate("/forget-password");
-  }
- }, [location.state,navigate]);
+  useEffect(() => {
+    const state = location.state as { email?: string } | null;
+    const hiddenEmail = state?.email?.trim();
+
+    if (!hiddenEmail) {
+      navigate("/forget-password", { replace: true });
+      return;
+    }
+
+    setEmail(hiddenEmail);
+    setHasEmailState(true);
+  }, [location.state, navigate]);
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsSubmitting(true);
@@ -64,13 +68,21 @@ const ResetPassword = () => {
     try {
       await resetPassword(email, data.password, data.confirmPassword);
       setSuccessMessage("Password Changed Successfully");
-      navigate("/login");
+      navigate("/login", { replace: true });
     } catch (err) {
       console.error("Error resetting password:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!hasEmailState) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
