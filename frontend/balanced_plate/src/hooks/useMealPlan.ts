@@ -16,7 +16,7 @@ export const useMealPlans = () => {
   return useQuery<MealPlan[]>({
     queryKey: MEAL_PLANS_KEY,
     queryFn: async () => {
-      const { data } = await api.get('/api/meal-plans/');
+      const { data } = await api.get('/meal-plans/');
       return Array.isArray(data) ? data : data.results ?? [];
     },
     staleTime: 5 * 60 * 1000,
@@ -30,7 +30,7 @@ export const useMealPlan = (id: number | null) => {
   return useQuery<MealPlan>({
     queryKey: [...MEAL_PLANS_KEY, id],
     queryFn: async () => {
-      const { data } = await api.get(`/api/meal-plans/${id}/`);
+      const { data } = await api.get(`/meal-plans/${id}/`);
       return data;
     },
     enabled: id !== null && id > 0,
@@ -46,7 +46,7 @@ export const useGenerateMealPlan = () => {
 
   return useMutation<MealPlan, Error, GenerateMealPlanRequest>({
     mutationFn: async (request) => {
-      const { data } = await api.post('/api/meal-plans/generate/', request);
+      const { data } = await api.post('/meal-plans/generate/', request);
       return data;
     },
     onSuccess: () => {
@@ -63,7 +63,7 @@ export const useGenerateDayMealPlan = () => {
 
   return useMutation<MealPlan, Error, GenerateDayMealPlanRequest>({
     mutationFn: async (request) => {
-      const { data } = await api.post('/api/meal-plans/generate-day/', request);
+      const { data } = await api.post('/meal-plans/generate-day/', request);
       return data;
     },
     onSuccess: () => {
@@ -80,7 +80,7 @@ export const useUpsertMealEntry = () => {
 
   return useMutation<MealPlan, Error, UpsertMealEntryRequest>({
     mutationFn: async (request) => {
-      const { data } = await api.post('/api/meal-plans/entries/', request);
+      const { data } = await api.post('/meal-plans/entries/', request);
       return data;
     },
     onSuccess: () => {
@@ -97,7 +97,7 @@ export const useDeleteMealEntry = () => {
 
   return useMutation<void, Error, number>({
     mutationFn: async (id) => {
-      await api.delete(`/api/meal-plans/entries/${id}/delete/`);
+      await api.delete(`/meal-plans/entries/${id}/delete/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });
@@ -113,7 +113,7 @@ export const useDeleteMealPlan = () => {
 
   return useMutation<void, Error, number>({
     mutationFn: async (id) => {
-      await api.delete(`/api/meal-plans/${id}/delete/`);
+      await api.delete(`/meal-plans/${id}/delete/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });

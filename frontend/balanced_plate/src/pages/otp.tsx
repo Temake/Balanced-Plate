@@ -62,8 +62,7 @@ const Otp = () => {
             Verify your email
           </h2>
           <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-            We sent a 6-digit code to{" "}
-            <span className="font-medium">{email || "your email"}</span>
+            Enter the 6-digit code we sent to your email.
           </p>
 
           {successMessage && (

@@ -84,7 +84,7 @@ class CookingAssistantService(GeminiBaseService):
                 dietary_preference=dietary_preference,
                 health_conditions=", ".join(health_conditions) if health_conditions else "None",
             )
-            return self.call_gemini(prompt)
+            return self.call_gemini([prompt])
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Gemini response for cooking guide: {e}")

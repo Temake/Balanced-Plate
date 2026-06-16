@@ -11,7 +11,7 @@ export const useGenerateCookingGuide = () => {
       const { data } = await api.post('/cooking/generate/', {
         dish_name: dishName,
       });
-      return data;
+      return data.data ?? data;
     },
   });
 };
