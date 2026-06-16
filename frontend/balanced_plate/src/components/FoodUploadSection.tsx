@@ -7,6 +7,8 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '@/api/axios';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
 import {  normalizeScore } from '@/utils/imageUrl';
+import { queryKeys } from '@/api/queryKeys';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FoodUploadSectionProps {
   className?: string;
@@ -20,6 +22,7 @@ const ANALYSIS_TIMEOUT = 30000;
 
 const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', onUploadComplete }) => {
   const { uploadFile } = useFiles();
+  const { user } = useAuth();
   const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
   const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -34,15 +37,14 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
 
   // Fetch the latest analysis after completion
   const { data: latestAnalysis } = useQuery({
-    queryKey: ['latestAnalysis', latestAnalysisId],
+    queryKey: queryKeys.foodAnalyses.list({ userId: user?.id, limit: 1 }),
     queryFn: async () => {
-      if (!latestAnalysisId) return null;
       const response = await api.get<PaginatedResponse<FoodAnalysis>>('/results/', {
         params: { limit: 1 },
       });
       return response.data.results?.[0] || null;
     },
-    enabled: uploadStatus === 'complete' && !!latestAnalysisId,
+    enabled: uploadStatus === 'complete' && !!latestAnalysisId && !!user?.id,
   });
 
   // Handle WebSocket notifications for analysis completion
@@ -55,9 +57,9 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
       setUploadStatus('complete');
       setLatestAnalysisId(Date.now()); // trigger refetch
       toast.success('Food analysis complete!');
-      queryClient.invalidateQueries({ queryKey: ['foodAnalyses'] });
-      queryClient.invalidateQueries({ queryKey: ['recentAnalyses'] });
-      queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });
       clearAnalysisNotification();
       onUploadComplete?.();
     } else if (analysisFailed && uploadStatus === 'analyzing') {
@@ -111,9 +113,9 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
             console.log('Analysis timeout - assuming complete');
             toast.success('Food analysis complete!');
             setLatestAnalysisId(Date.now());
-            queryClient.invalidateQueries({ queryKey: ['foodAnalyses'] });
-            queryClient.invalidateQueries({ queryKey: ['recentAnalyses'] });
-            queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+            queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
+            queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
+            queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });
             onUploadComplete?.();
             return 'complete';
           }

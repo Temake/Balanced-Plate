@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { nutritionQueryKeys } from '@/hooks/useNutritionAnalytics';
+import { queryKeys } from '@/api/queryKeys';
 import type { 
   WebSocketEvent, 
   RecommendationReadyEvent, 
@@ -85,6 +86,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           }));
           // Invalidate recommendations query to refetch
           queryClient.invalidateQueries({ queryKey: nutritionQueryKeys.weeklyRecommendations() });
+          queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });
           break;
         }
 
@@ -100,6 +102,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           }));
           // Invalidate analytics and analyses queries to refetch
           queryClient.invalidateQueries({ queryKey: nutritionQueryKeys.all });
+          queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
+          queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });
           break;
         }
 

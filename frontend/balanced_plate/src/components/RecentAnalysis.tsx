@@ -19,6 +19,8 @@ import api from '@/api/axios';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
+import { queryKeys } from '@/api/queryKeys';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RecentAnalysisProps {
   className?: string;
@@ -239,12 +241,14 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
 };
 
 const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit = 5, onViewAll }) => {
+  const { user } = useAuth();
   const [hoveredMeal, setHoveredMeal] = useState<number | null>(null);
   const [selectedAnalysis, setSelectedAnalysis] = useState<FoodAnalysis | null>(null);
 
   const { data: analyses = [], isLoading } = useQuery({
-    queryKey: ['recentAnalyses', limit],
+    queryKey: queryKeys.foodAnalyses.list({ userId: user?.id, limit }),
     queryFn: () => fetchRecentAnalyses(limit),
+    enabled: !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: (query) => {
       // Auto-poll while any analyses are still processing

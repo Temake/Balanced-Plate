@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/api/axios';
+import { queryKeys } from '@/api/queryKeys';
 import type { DateRange } from '@/components/dashboard/DateRangeFilter';
 import type { Recommendation } from '@/components/dashboard/RecommendationsPanel';
 import type { 
@@ -326,12 +327,11 @@ const transformWeeklyRecsToRecommendations = (weeklyRecs: WeeklyRecommendation[]
 
 // Query keys for React Query
 export const nutritionQueryKeys = {
-  all: ['nutrition'] as const,
-  analytics: (userId: number, dateRange: DateRange) => [...nutritionQueryKeys.all, 'analytics', userId, dateRange] as const,
-  foodGroups: (userId: number) => [...nutritionQueryKeys.all, 'foodGroups', userId] as const,
-  balanceScore: (userId: number) => [...nutritionQueryKeys.all, 'balanceScore', userId] as const,
-  analyses: (dateRange: DateRange) => [...nutritionQueryKeys.all, 'analyses', dateRange] as const,
-  weeklyRecommendations: () => [...nutritionQueryKeys.all, 'weeklyRecommendations'] as const,
+  all: queryKeys.nutrition.all,
+  analytics: queryKeys.nutrition.analytics,
+  foodGroups: queryKeys.nutrition.foodGroups,
+  balanceScore: queryKeys.nutrition.balanceScore,
+  weeklyRecommendations: () => [...queryKeys.nutrition.all, 'recommendations'] as const,
 };
 
 // Get date range parameters for API calls
@@ -357,37 +357,15 @@ const getDateRangeParams = (dateRange: DateRange): { start_date?: string; end_da
   }
 };
 
-// Fetch all analytics data
-const fetchAnalyticsData = async (userId: number, dateRange: DateRange): Promise<NutritionAnalyticsData> => {
-  // Map frontend date range to backend 'range' parameter
-  const rangeParam = dateRange === 'week' ? 'week' : dateRange === 'month' ? 'month' : dateRange === 'today' ? 'today' : 'all';
-  
-  // Get date params for filtering analyses
-  const dateParams = getDateRangeParams(dateRange);
-  
-  // Fetch all analytics data in parallel
-  const [foodGroupsRes, distributionRes, balanceScoreRes, mealTimingRes, analysesRes, weeklyRecsRes] = 
-    await Promise.allSettled([
-      api.get(`/analytics/nutrition/${userId}/food-group-grams/`, { params: { range: rangeParam } }),
-      api.get(`/analytics/nutrition/${userId}/food-group-percentage/`, { params: { range: rangeParam } }),
-      api.get(`/analytics/nutrition/${userId}/daily-balance-score/`, { params: { range: rangeParam } }),
-      api.get('/analytics/meal-timing/', { params: { range: rangeParam } }),
-      api.get('/results/', { params: { limit: 20, ...dateParams } }),
-      api.get('/recommendations/', { params: { limit: 5 } }),
-    ]);
-
-  // Extract successful responses or use null
-  const foodGroupsData = foodGroupsRes.status === 'fulfilled' ? foodGroupsRes.value.data : null;
-  const distributionData = distributionRes.status === 'fulfilled' ? distributionRes.value.data : null;
-  const balanceScoreData = balanceScoreRes.status === 'fulfilled' ? balanceScoreRes.value.data : null;
-  const mealTimingData = mealTimingRes.status === 'fulfilled' ? mealTimingRes.value.data : null;
-  const analysesData: FoodAnalysis[] = analysesRes.status === 'fulfilled' 
-    ? (analysesRes.value.data.results || analysesRes.value.data || [])
-    : [];
-  const weeklyRecsData: WeeklyRecommendation[] = weeklyRecsRes.status === 'fulfilled'
-    ? (weeklyRecsRes.value.data.results || weeklyRecsRes.value.data || [])
-    : [];
-
+const buildAnalyticsData = (
+  foodGroupsData: any,
+  distributionData: any,
+  balanceScoreData: any,
+  mealTimingData: any,
+  analysesData: FoodAnalysis[],
+  weeklyRecsData: WeeklyRecommendation[],
+  dateRange: DateRange,
+): NutritionAnalyticsData => {
   // Transform data
   const transformedFoodGroups = transformFoodGroupData(foodGroupsData).length > 0 
     ? transformFoodGroupData(foodGroupsData) 
@@ -421,26 +399,134 @@ const fetchAnalyticsData = async (userId: number, dateRange: DateRange): Promise
   };
 };
 
+const getRangeParam = (dateRange: DateRange): string => {
+  if (dateRange === 'week') return 'week';
+  if (dateRange === 'month') return 'month';
+  if (dateRange === 'today') return 'today';
+  return 'all';
+};
+
 export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const userId = user?.id || 0;
+  const enabled = !!userId;
+  const rangeParam = getRangeParam(dateRange);
+  const dateParams = getDateRangeParams(dateRange);
 
-  const query = useQuery({
-    queryKey: nutritionQueryKeys.analytics(user?.id || 0, dateRange),
-    queryFn: () => fetchAnalyticsData(user!.id, dateRange),
-    enabled: !!user?.id,
+  const foodGroupsQuery = useQuery({
+    queryKey: queryKeys.nutrition.foodGroups(userId, rangeParam),
+    queryFn: async () => {
+      const { data } = await api.get(`/analytics/nutrition/${userId}/food-group-grams/`, {
+        params: { range: rangeParam },
+      });
+      return data;
+    },
+    enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes (was cacheTime)
   });
 
+  const distributionQuery = useQuery({
+    queryKey: queryKeys.nutrition.foodGroupPercentages(userId, rangeParam),
+    queryFn: async () => {
+      const { data } = await api.get(`/analytics/nutrition/${userId}/food-group-percentage/`, {
+        params: { range: rangeParam },
+      });
+      return data;
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const balanceScoreQuery = useQuery({
+    queryKey: queryKeys.nutrition.balanceScore(userId, rangeParam),
+    queryFn: async () => {
+      const { data } = await api.get(`/analytics/nutrition/${userId}/daily-balance-score/`, {
+        params: { range: rangeParam },
+      });
+      return data;
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const mealTimingQuery = useQuery({
+    queryKey: queryKeys.nutrition.mealTiming(userId, rangeParam),
+    queryFn: async () => {
+      const { data } = await api.get('/analytics/meal-timing/', {
+        params: { range: rangeParam },
+      });
+      return data;
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const analysesQuery = useQuery({
+    queryKey: queryKeys.foodAnalyses.list({ userId, limit: 20, ...dateParams }),
+    queryFn: async () => {
+      const { data } = await api.get('/results/', {
+        params: { limit: 20, ...dateParams },
+      });
+      return data.results || data || [];
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const weeklyRecsQuery = useQuery({
+    queryKey: queryKeys.nutrition.recommendations(userId, 5),
+    queryFn: async () => {
+      const { data } = await api.get('/recommendations/', {
+        params: { limit: 5 },
+      });
+      return data.results || data || [];
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const data = buildAnalyticsData(
+    foodGroupsQuery.data ?? null,
+    distributionQuery.data ?? null,
+    balanceScoreQuery.data ?? null,
+    mealTimingQuery.data ?? null,
+    analysesQuery.data ?? [],
+    weeklyRecsQuery.data ?? [],
+    dateRange,
+  );
+
+  const isLoading =
+    foodGroupsQuery.isLoading ||
+    distributionQuery.isLoading ||
+    balanceScoreQuery.isLoading ||
+    mealTimingQuery.isLoading ||
+    analysesQuery.isLoading ||
+    weeklyRecsQuery.isLoading;
+
+  const error =
+    foodGroupsQuery.error ||
+    distributionQuery.error ||
+    balanceScoreQuery.error ||
+    mealTimingQuery.error ||
+    analysesQuery.error ||
+    weeklyRecsQuery.error;
+
   const refetch = () => {
-    queryClient.invalidateQueries({ queryKey: nutritionQueryKeys.analytics(user?.id || 0, dateRange) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
   };
 
   return { 
-    data: query.data || null, 
-    isLoading: query.isLoading, 
-    error: query.error?.message || null, 
+    data: enabled ? data : null,
+    isLoading,
+    error: error?.message || null,
     refetch 
   };
 };

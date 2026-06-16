@@ -26,6 +26,8 @@ import { getImageUrl, normalizeScore } from '@/utils/imageUrl';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Header, { BOTTOM_NAV_HEIGHT } from '@/components/Header';
+import { queryKeys } from '@/api/queryKeys';
+import { useAuth } from '@/hooks/useAuth';
 
 type StatusFilter = 'all' | 'analysis_completed' | 'analysis_processing' | 'analysis_pending' | 'analysis_failed';
 
@@ -248,14 +250,16 @@ const AnalysisDetailModal: React.FC<{
 // Main Page
 const AnalysisHistory: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAnalysis, setSelectedAnalysis] = useState<FoodAnalysis | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['analysisHistory', page],
+    queryKey: queryKeys.foodAnalyses.list({ userId: user?.id, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
     queryFn: () => fetchAnalyses(page),
+    enabled: !!user?.id,
     staleTime: 60 * 1000,
     refetchInterval: (query) => {
       const results = query.state.data?.results;

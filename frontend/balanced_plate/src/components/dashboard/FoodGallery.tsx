@@ -24,13 +24,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FoodImageSkeleton } from '@/components/common/Skeletons';
 import { toast } from 'sonner';
+import { queryKeys } from '@/api/queryKeys';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FoodGalleryProps {
   className?: string;
 }
-
-// Query key for food analyses
-const analysesQueryKey = ['foodAnalyses'];
 
 // Fetch paginated food analyses
 const fetchAnalyses = async (page: number, pageSize: number = 8): Promise<PaginatedResponse<FoodAnalysis>> => {
@@ -317,12 +316,15 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
   const [selectedAnalysis, setSelectedAnalysis] = useState<FoodAnalysis | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { uploadFile } = useFiles();
   const { analysisCompleted, analysisFailed, clearAnalysisNotification } = useWebSocket();
   // Fetch analyses with React Query — poll every 5s if any are pending
+  const offset = (page - 1) * 8;
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: [...analysesQueryKey, page],
+    queryKey: queryKeys.foodAnalyses.list({ userId: user?.id, limit: 8, offset }),
     queryFn: () => fetchAnalyses(page),
+    enabled: !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: (query) => {
       // Auto-poll while any analyses are still processing
@@ -358,7 +360,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
       clearAnalysisNotification();
     } else if (analysisFailed) {
       toast.error('Food analysis failed. Please try again.');
-      queryClient.invalidateQueries({ queryKey: analysesQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
       clearAnalysisNotification();
     }
   }, [analysisCompleted, analysisFailed, queryClient, clearAnalysisNotification, refetch]);
@@ -372,7 +374,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
     try {
       await uploadFile(file, 'food image');
       // Refetch to show new image (analysis will be processing)
-      queryClient.invalidateQueries({ queryKey: analysesQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {

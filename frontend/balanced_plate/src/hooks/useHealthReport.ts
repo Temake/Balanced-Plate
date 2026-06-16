@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/api/axios';
+import { queryKeys } from '@/api/queryKeys';
 import type {
   FoodAnalysis,
   PaginatedResponse,
@@ -282,7 +283,7 @@ export const useHealthReport = () => {
   const userId = user?.id;
 
   const analysesQuery = useQuery({
-    queryKey: ['healthReportAnalyses'],
+    queryKey: queryKeys.healthReport.analyses(userId || 0, 50),
     queryFn: async () => {
       const { data } = await api.get<PaginatedResponse<FoodAnalysis>>('/results/', {
         params: { limit: 50 },
@@ -294,7 +295,7 @@ export const useHealthReport = () => {
   });
 
   const recommendationsQuery = useQuery({
-    queryKey: ['healthReportRecs'],
+    queryKey: queryKeys.healthReport.recommendations(userId || 0, 1),
     queryFn: async () => {
       const { data } = await api.get<PaginatedResponse<WeeklyRecommendation>>(
         '/recommendations/',
@@ -307,7 +308,7 @@ export const useHealthReport = () => {
   });
 
   const foodGroupsQuery = useQuery({
-    queryKey: ['healthReportFoodGroups'],
+    queryKey: queryKeys.healthReport.foodGroups(userId || 0),
     queryFn: async () => {
       const { data } = await api.get<FoodGroupGramsResponse>(
         `/analytics/nutrition/${userId}/food-group-grams/`,
@@ -319,7 +320,7 @@ export const useHealthReport = () => {
   });
 
   const balanceScoresQuery = useQuery({
-    queryKey: ['healthReportBalance'],
+    queryKey: queryKeys.healthReport.balance(userId || 0),
     queryFn: async () => {
       const { data } = await api.get<DailyBalanceScoreResponse>(
         `/analytics/nutrition/${userId}/daily-balance-score/`,
