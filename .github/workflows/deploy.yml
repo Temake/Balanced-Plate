@@ -154,6 +154,7 @@ jobs:
             set -euo pipefail
 
             su - deploy <<EOF
+            set -euo pipefail
 
             cd ~/Balanced-Plate
 
