@@ -153,31 +153,25 @@ jobs:
           script: |
             set -euo pipefail
 
-            su - deploy <<EOF
-            set -euo pipefail
+            sudo -u deploy -H bash -lc '
+              set -euo pipefail
 
-            cd ~/Balanced-Plate
+              cd /home/deploy/Balanced-Plate
 
-            git fetch origin main
-
-            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-            if [ "$CURRENT_BRANCH" != "main" ]; then
+              git fetch origin main
               git checkout main
-            fi
+              git pull --ff-only origin main
 
-            git pull --ff-only
+              echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io \
+                -u "${{ secrets.GHCR_USERNAME }}" \
+                --password-stdin
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io \
-              -u "${{ secrets.GHCR_USERNAME }}" \
-              --password-stdin
+              cd backend
 
-            cd backend
+              docker compose -f docker-compose.prod.yml pull
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+              docker image prune -f
 
-            docker image prune -f
-
-            echo "Deployment completed successfully."
-            EOF
+              echo "Deployment complete."
+            '
