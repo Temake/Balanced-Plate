@@ -139,7 +139,7 @@ jobs:
           passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
           source: ".env.production"
-          target: "~/Balanced-Plate/backend"
+          target: "/home/deploy/Balanced-Plate/backend"
 
       - name: Deploy application
         uses: appleboy/ssh-action@v1.0.3
@@ -153,6 +153,8 @@ jobs:
           script: |
             set -euo pipefail
 
+            su - deploy <<EOF
+
             cd ~/Balanced-Plate
 
             git fetch origin main
@@ -163,18 +165,18 @@ jobs:
               git checkout main
             fi
 
-            git pull --ff-only origin main
+            git pull --ff-only
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io \
-              -u ${{ secrets.GHCR_USERNAME }} \
+              -u "${{ secrets.GHCR_USERNAME }}" \
               --password-stdin
 
             cd backend
 
             docker compose -f docker-compose.prod.yml pull
-
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
             docker image prune -f
 
-            echo "Deployment complete."
+            echo "Deployment completed successfully."
+            EOF
