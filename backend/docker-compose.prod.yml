@@ -1,9 +1,7 @@
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${CI_REGISTRY_IMAGE}:${IMAGE_TAG:-latest}
     restart: always
     expose:
       - "8000"
@@ -19,9 +17,7 @@ services:
       - app_network
 
   celery-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${CI_REGISTRY_IMAGE}:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env.production
@@ -35,9 +31,7 @@ services:
       - app_network
 
   celery-beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${CI_REGISTRY_IMAGE}:${IMAGE_TAG:-latest}
     restart: always
     env_file:
       - .env.production
