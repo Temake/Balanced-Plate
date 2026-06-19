@@ -115,6 +115,7 @@ env.bak/
 venv.bak/
 envs/
 *.env
+.env.production
 ZENV/
 
 test.py

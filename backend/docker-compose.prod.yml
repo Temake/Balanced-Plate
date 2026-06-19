@@ -1,9 +1,7 @@
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/temake/balanced-plate:latest
     restart: always
     expose:
       - "8000"
@@ -17,11 +15,15 @@ services:
     command: /server.sh
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   celery-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/temake/balanced-plate:latest
     restart: always
     env_file:
       - .env.production
@@ -35,9 +37,7 @@ services:
       - app_network
 
   celery-beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/temake/balanced-plate:latest
     restart: always
     env_file:
       - .env.production
@@ -91,7 +91,8 @@ services:
       - certbot_www:/var/www/certbot:ro
       - certbot_certs:/etc/letsencrypt:ro
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     networks:
       - app_network
 
