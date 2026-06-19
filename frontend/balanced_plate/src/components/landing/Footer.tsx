@@ -5,11 +5,6 @@ import {
   Mail, 
   MapPin, 
   Phone,
-  Twitter,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Youtube,
   Heart
 } from 'lucide-react';
 
@@ -46,13 +41,6 @@ const Footer: React.FC = () => {
     ],
   };
 
-  const socialLinks = [
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
-    { icon: Youtube, href: '#', label: 'YouTube' },
-  ];
 
   return (
     <footer className="relative bg-gray-900 text-white">
@@ -101,87 +89,24 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Product Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300 mb-4">
-              Product
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.product.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          
+          
 
           {/* Company Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300 mb-4">
-              Company
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          
 
           {/* Resources Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300 mb-4">
-              Resources
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          
 
           {/* Legal Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300 mb-4">
-              Legal
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          
         </div>
       </div>
 
       {/* Bottom Section */}
       <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-2 sm:py-2 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
             {/* Copyright */}
             <div className="flex items-center gap-1 text-sm text-gray-400">
               <span>© {currentYear} Balanced Plate. Made with</span>
@@ -189,19 +114,6 @@ const Footer: React.FC = () => {
               <span>for healthier lives.</span>
             </div>
 
-            {/* Social Links */}
-            <div className="flex items-center gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-10 h-10 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors"
-                >
-                  <social.icon className="w-5 h-5 text-gray-400 hover:text-white" />
-                </a>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -210,3 +122,4 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
+// 
