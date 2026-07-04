@@ -67,6 +67,10 @@ const planFeatures = (plan: BillingPlan) => {
   return features;
 };
 
+const isPaidPlanKey = (key: BillingPlan['key']): key is 'plus' | 'pro' => {
+  return key === 'plus' || key === 'pro';
+};
+
 const Billing: React.FC = () => {
   const { data: apiPlans, isLoading } = useBillingPlans();
   const { data: subscription } = useCurrentSubscription();
@@ -123,7 +127,7 @@ const Billing: React.FC = () => {
         <div className="grid gap-4 md:grid-cols-3">
           {plans.map((plan) => {
             const isCurrent = currentPlanKey === plan.key;
-            const isPaid = plan.key === 'plus' || plan.key === 'pro';
+            const paidPlanKey = isPaidPlanKey(plan.key) ? plan.key : null;
             return (
               <section
                 key={plan.key}
@@ -163,13 +167,13 @@ const Billing: React.FC = () => {
                   <Button disabled className="w-full rounded-lg">
                     Current plan
                   </Button>
-                ) : isPaid ? (
+                ) : paidPlanKey ? (
                   <Button
-                    onClick={() => startPayment(plan.key)}
+                    onClick={() => startPayment(paidPlanKey)}
                     disabled={initializePayment.isPending || isLoading}
                     className="w-full gap-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
                   >
-                    {initializePayment.isPending && initializePayment.variables === plan.key ? (
+                    {initializePayment.isPending && initializePayment.variables === paidPlanKey ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Sparkles className="h-4 w-4" />
