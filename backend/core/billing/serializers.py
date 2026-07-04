@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from django.db.models import Sum
 
-from .models import AIUsageLedger, BillingPlan, Subscription
+from .models import BillingPlan, Subscription
 
 
 class BillingPlanSerializer(serializers.ModelSerializer):
@@ -70,12 +69,3 @@ class VerifyPaymentSerializer(serializers.Serializer):
 class PaymentVerificationResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     subscription = SubscriptionSerializer()
-
-
-def get_monthly_ai_usage(user, billing_month):
-    return (
-        AIUsageLedger.objects.filter(owner=user, billing_month=billing_month)
-        .aggregate(total=Sum("credits_used"))
-        .get("total")
-        or 0
-    )
