@@ -78,6 +78,7 @@ CORE_APPS = [
     "core.system.apps.SystemConfig",
     "core.meal_plan.apps.MealPlanConfig",
     "core.cooking.apps.CookingConfig",
+    "core.billing.apps.BillingConfig",
 ]
 
 INSTALLED_APPS += CORE_APPS
@@ -400,3 +401,11 @@ GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
 GEMINI_MODEL = env.str("GEMINI_MODEL", default="gemini-2.0-flash")
 
 USE_DOCS = env.bool("USE_DOCS", False)
+
+# Paystack billing configuration
+PAYSTACK_SECRET_KEY = env.str("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = env.str("PAYSTACK_PUBLIC_KEY", default="")
+PAYSTACK_BASE_URL = env.str("PAYSTACK_BASE_URL", default="https://api.paystack.co")
+PAYSTACK_PLUS_PLAN_CODE = env.str("PAYSTACK_PLUS_PLAN_CODE", default="")
+PAYSTACK_PRO_PLAN_CODE = env.str("PAYSTACK_PRO_PLAN_CODE", default="")
+FRONTEND_BASE_URL = env.str("FRONTEND_BASE_URL", default="http://localhost:5173")
