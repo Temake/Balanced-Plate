@@ -6,6 +6,8 @@ import { useGenerateCookingGuide } from '@/hooks/useCookingGuide';
 import { recipes } from '@/data/recipes';
 import type { CookingGuide, CookingIngredient, CookingStep } from '@/api/types';
 import { cn } from '@/lib/utils';
+import PaywallPrompt from '@/components/billing/PaywallPrompt';
+import { getApiErrorMessage, isPaymentRequiredError } from '@/utils/billing';
 import {
   ArrowLeft,
   Sparkles,
@@ -292,7 +294,14 @@ const CookingAssistant: React.FC = () => {
         {isPending && <GeneratingAnimation dishName={dishName} />}
 
         {/* Error */}
-        {isError && !isPending && (
+        {isError && !isPending && isPaymentRequiredError(error) && (
+          <PaywallPrompt
+            title="AI cooking guide is a paid feature"
+            message={getApiErrorMessage(error, 'Upgrade to Plus or Pro to generate AI cooking guides.')}
+          />
+        )}
+
+        {isError && !isPending && !isPaymentRequiredError(error) && (
           <ErrorState
             message={error?.message || 'Failed to generate cooking guide. Please try again.'}
             onRetry={() => {

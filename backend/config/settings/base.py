@@ -310,6 +310,16 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=6, minute=0, day_of_week=1),
         "options": {"queue": "recommendations"},
     },
+    "send-subscription-renewal-reminders": {
+        "task": "core.billing.tasks.send_subscription_renewal_reminders",
+        "schedule": crontab(hour=8, minute=0),
+        "options": {"queue": "email-notification"},
+    },
+    "expire-subscription-grace-periods": {
+        "task": "core.billing.tasks.expire_subscription_grace_periods",
+        "schedule": crontab(minute=0),
+        "options": {"queue": "email-notification"},
+    },
 }
 
 

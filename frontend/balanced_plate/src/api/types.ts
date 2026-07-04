@@ -337,3 +337,44 @@ export interface CookingGuide {
   steps: CookingStep[];
   health_notes: string | null;
 }
+
+// ============ Billing Types ============
+
+export interface BillingPlan {
+  key: 'free' | 'plus' | 'pro';
+  name: string;
+  description: string;
+  price_kobo: number;
+  price_naira: number;
+  currency: 'NGN';
+  interval: 'monthly';
+  ai_generation_limit: number;
+  analytics_enabled: boolean;
+  reports_enabled: boolean;
+  ai_planning_enabled: boolean;
+  ai_cooking_enabled: boolean;
+}
+
+export interface Subscription {
+  plan: BillingPlan;
+  status: 'free' | 'pending' | 'active' | 'grace' | 'cancelled' | 'expired' | 'disabled';
+  is_paid_access_active: boolean;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  grace_ends_at: string | null;
+  cancel_at_period_end: boolean;
+  cancelled_at: string | null;
+}
+
+export interface BillingUsage {
+  billing_month: string;
+  ai_generation_limit: number;
+  ai_generation_used: number;
+  ai_generation_remaining: number;
+}
+
+export interface InitializePaymentResponse {
+  authorization_url: string;
+  access_code: string;
+  reference: string;
+}

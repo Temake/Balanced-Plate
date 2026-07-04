@@ -105,7 +105,12 @@ jobs:
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
-
+          PAYSTACK_SECRET_KEY=${{ secrets.PAYSTACK_SECRET_KEY }}
+          PAYSTACK_PUBLIC_KEY=${{ secrets.PAYSTACK_PUBLIC_KEY }}
+          PAYSTACK_BASE_URL=${{ secrets.PAYSTACK_BASE_URL }}
+          PAYSTACK_PLUS_PLAN_CODE=${{ secrets.PAYSTACK_PLUS_PLAN_CODE }}
+          PAYSTACK_PRO_PLAN_CODE=${{ secrets.PAYSTACK_PRO_PLAN_CODE }}
+          FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}
           REDIS_HOST=${{ secrets.REDIS_HOST }}
           REDIS_PORT=${{ secrets.REDIS_PORT }}
           CELERY_BROKER=${{ secrets.CELERY_BROKER }}

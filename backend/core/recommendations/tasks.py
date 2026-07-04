@@ -4,6 +4,7 @@ from datetime import timedelta
 from loguru import logger
 
 from core.account.models import Account
+from core.billing.entitlements import has_active_paid_subscription
 from core.recommendations.services import weekly_recommendation_service
 
 
@@ -26,6 +27,10 @@ def generate_weekly_recommendations_for_all_users(self):
     error_count = 0
 
     for user in users:
+        if not has_active_paid_subscription(user):
+            logger.info(f"Skipping weekly recommendation for unpaid user {user.id}")
+            continue
+
         try:
             recommendation = weekly_recommendation_service.generate_recommendation(
                 user=user,

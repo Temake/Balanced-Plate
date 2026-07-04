@@ -5,6 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from core.utils.mixins import PaginationMixin
 from core.utils.exceptions import exceptions
+from core.billing.entitlements import (
+    record_ai_generation_usage,
+    require_ai_generation_available,
+)
+from core.billing.models import AIFeatureType
 
 from .models import MealPlan, MealEntry
 from .serializers import (
@@ -96,6 +101,7 @@ class GenerateAIMealPlan(views.APIView):
         responses={201: MealPlanSerializer.Detail},
     )
     def post(self, request):
+        require_ai_generation_available(request.user, AIFeatureType.MEAL_PLAN)
         serializer = GenerateAIPlanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -150,6 +156,11 @@ class GenerateAIMealPlan(views.APIView):
                 )
             )
         MealEntry.objects.bulk_create(entries)
+        record_ai_generation_usage(
+            request.user,
+            AIFeatureType.MEAL_PLAN,
+            metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
+        )
         logger.info(
             f"Generated {'mock' if is_mock else 'AI'} meal plan for user {user.id}, "
             f"week {week_start_date}, {len(entries)} entries"
@@ -172,6 +183,7 @@ class GenerateAIDayMealPlan(views.APIView):
         responses={201: MealPlanSerializer.Detail},
     )
     def post(self, request):
+        require_ai_generation_available(request.user, AIFeatureType.MEAL_PLAN_DAY)
         serializer = GenerateAIDayPlanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -222,6 +234,15 @@ class GenerateAIDayMealPlan(views.APIView):
             for meal in day_meals
         ]
         MealEntry.objects.bulk_create(entries)
+        record_ai_generation_usage(
+            request.user,
+            AIFeatureType.MEAL_PLAN_DAY,
+            metadata={
+                "meal_plan_id": meal_plan.id,
+                "week_start_date": str(week_start_date),
+                "day": selected_day,
+            },
+        )
 
         meal_plan.is_ai_generated = True
         meal_plan.save(update_fields=["is_ai_generated", "date_last_modified"])

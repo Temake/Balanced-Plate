@@ -12,8 +12,8 @@ from .serializers import (
     PaymentVerificationResponseSerializer,
     SubscriptionSerializer,
     VerifyPaymentSerializer,
-    get_monthly_ai_usage,
 )
+from .entitlements import get_ai_generation_usage
 from .services import (
     current_billing_month,
     get_or_create_user_subscription,
@@ -62,7 +62,7 @@ class BillingUsage(views.APIView):
     def get(self, request):
         subscription = get_or_create_user_subscription(request.user)
         billing_month = current_billing_month()
-        used = get_monthly_ai_usage(request.user, billing_month)
+        used = get_ai_generation_usage(request.user, billing_month)
         limit = subscription.plan.ai_generation_limit
         data = {
             "billing_month": billing_month,

@@ -12,6 +12,7 @@ import type { DateRange } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
+import PaywallPrompt from "@/components/billing/PaywallPrompt";
 import type { FoodAnalysis } from "@/api/types";
 import {
   ArrowRight,
@@ -113,7 +114,7 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [showDetails, setShowDetails] = useState(false);
-  const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
+  const { data, isLoading, error, isPaymentRequired, refetch } = useNutritionAnalytics(dateRange);
 
   const recentAnalyses = data?.recentAnalyses ?? [];
   const recentMeals = recentAnalyses.slice(0, 3);
@@ -161,7 +162,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {error && (
+        {error && !isPaymentRequired && (
           <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
             {error} - showing cached or default data where available.
           </div>
@@ -279,14 +280,21 @@ const Dashboard: React.FC = () => {
         </section>
 
         <section className="mb-5">
-          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
-            <RecommendationsPanel
-              recommendations={data?.recommendations}
-              isLoading={isLoading}
-              timeFilter={dateRange}
-              onTimeFilterChange={setDateRange}
+          {isPaymentRequired ? (
+            <PaywallPrompt
+              title="Recommendations are a paid feature"
+              message="Upgrade to Plus or Pro to view AI recommendations, analytics, and reports."
             />
-          </ErrorBoundary>
+          ) : (
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
+              <RecommendationsPanel
+                recommendations={data?.recommendations}
+                isLoading={isLoading}
+                timeFilter={dateRange}
+                onTimeFilterChange={setDateRange}
+              />
+            </ErrorBoundary>
+          )}
         </section>
 
         {showDetails && (
@@ -301,23 +309,32 @@ const Dashboard: React.FC = () => {
               <DateRangeFilter value={dateRange} onChange={setDateRange} />
             </div>
 
-            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load nutrition summary" />}>
-              <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
-            </ErrorBoundary>
-
-            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load analytics" onRetry={refetch} />}>
-              <AnalyticsSection
-                foodData={data?.foodGroups}
-                weeklyBalance={data?.weeklyBalance}
-                mealTiming={data?.mealTiming}
-                timingRecommendations={data?.timingRecommendations}
-                isLoading={isLoading}
+            {isPaymentRequired ? (
+              <PaywallPrompt
+                title="Detailed analytics are a paid feature"
+                message="Upgrade to Plus or Pro to unlock food group trends, balance scores, meal timing, and health insights."
               />
-            </ErrorBoundary>
+            ) : (
+              <>
+                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load nutrition summary" />}>
+                  <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
+                </ErrorBoundary>
 
-            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
-              <HealthInsights weeklyScore={data?.weeklyScore} isLoading={isLoading} />
-            </ErrorBoundary>
+                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load analytics" onRetry={refetch} />}>
+                  <AnalyticsSection
+                    foodData={data?.foodGroups}
+                    weeklyBalance={data?.weeklyBalance}
+                    mealTiming={data?.mealTiming}
+                    timingRecommendations={data?.timingRecommendations}
+                    isLoading={isLoading}
+                  />
+                </ErrorBoundary>
+
+                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
+                  <HealthInsights weeklyScore={data?.weeklyScore} isLoading={isLoading} />
+                </ErrorBoundary>
+              </>
+            )}
           </section>
         )}
       </main>

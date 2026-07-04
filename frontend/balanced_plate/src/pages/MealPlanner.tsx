@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import PaywallPrompt from '@/components/billing/PaywallPrompt';
+import { getApiErrorMessage, isPaymentRequiredError } from '@/utils/billing';
 
 const DAYS = [
   { value: 'monday', label: 'Monday', short: 'Mon' },
@@ -291,6 +293,7 @@ const MealPlanner: React.FC = () => {
   });
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null);
   const [form, setForm] = useState<MealEntryFormState>(() => emptyForm());
+  const [aiPaywallMessage, setAiPaywallMessage] = useState<string | null>(null);
 
   const { data: mealPlans, isLoading } = useMealPlans();
   const generateWeekMutation = useGenerateMealPlan();
@@ -351,21 +354,35 @@ const MealPlanner: React.FC = () => {
   };
 
   const generateDay = (day: string) => {
+    setAiPaywallMessage(null);
     generateDayMutation.mutate(
       { week_start_date: weekStartDate, budget_level: budget, day },
       {
         onSuccess: () => toast.success(`${DAYS.find((d) => d.value === day)?.label} meals generated.`),
-        onError: () => toast.error('Could not generate meals for that day.'),
+        onError: (error) => {
+          if (isPaymentRequiredError(error)) {
+            setAiPaywallMessage(getApiErrorMessage(error, 'AI meal planning requires Plus or Pro.'));
+            return;
+          }
+          toast.error('Could not generate meals for that day.');
+        },
       },
     );
   };
 
   const generateWeek = () => {
+    setAiPaywallMessage(null);
     generateWeekMutation.mutate(
       { week_start_date: weekStartDate, budget_level: budget },
       {
         onSuccess: () => toast.success('Weekly meal plan generated.'),
-        onError: () => toast.error('Failed to generate weekly meal plan.'),
+        onError: (error) => {
+          if (isPaymentRequiredError(error)) {
+            setAiPaywallMessage(getApiErrorMessage(error, 'AI meal planning requires Plus or Pro.'));
+            return;
+          }
+          toast.error('Failed to generate weekly meal plan.');
+        },
       },
     );
   };
@@ -518,6 +535,15 @@ const MealPlanner: React.FC = () => {
             )}
           </Button>
         </div>
+
+        {aiPaywallMessage && (
+          <div className="mb-6">
+            <PaywallPrompt
+              title="AI meal planning is a paid feature"
+              message={aiPaywallMessage}
+            />
+          </div>
+        )}
 
         {(generatingWeek || generatingDay) && (
           <div className="mb-6 flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">

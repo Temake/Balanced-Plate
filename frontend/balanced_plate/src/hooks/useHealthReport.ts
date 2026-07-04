@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/api/axios';
 import { queryKeys } from '@/api/queryKeys';
+import { isPaymentRequiredError } from '@/utils/billing';
 import type {
   FoodAnalysis,
   PaginatedResponse,
@@ -360,6 +361,12 @@ export const useHealthReport = () => {
     foodGroupsQuery.isLoading ||
     balanceScoresQuery.isLoading;
 
+  const error =
+    recommendationsQuery.error ||
+    foodGroupsQuery.error ||
+    balanceScoresQuery.error ||
+    null;
+
   const reportData: HealthReportData = {
     analyses,
     latestRecommendation,
@@ -375,7 +382,13 @@ export const useHealthReport = () => {
     healthFlags,
   };
 
-  return { data: reportData, isLoading, user };
+  return {
+    data: reportData,
+    isLoading,
+    user,
+    error,
+    isPaymentRequired: isPaymentRequiredError(error),
+  };
 };
 
 export default useHealthReport;

@@ -3,6 +3,11 @@ from loguru import logger
 from rest_framework import response, status, views
 
 from core.utils.exceptions import exceptions
+from core.billing.entitlements import (
+    record_ai_generation_usage,
+    require_ai_generation_available,
+)
+from core.billing.models import AIFeatureType
 
 from .serializers import CookingGuideRequestSerializer
 from .services import cooking_assistant_service
@@ -60,6 +65,7 @@ class GenerateCookingGuide(views.APIView):
         },
     )
     def post(self, request):
+        require_ai_generation_available(request.user, AIFeatureType.COOKING_GUIDE)
         serializer = CookingGuideRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -79,6 +85,11 @@ class GenerateCookingGuide(views.APIView):
             logger.info(
                 f"Generated cooking guide for '{dish_name}' "
                 f"(user={user.id}, mock={is_mock})"
+            )
+            record_ai_generation_usage(
+                user,
+                AIFeatureType.COOKING_GUIDE,
+                metadata={"dish_name": dish_name},
             )
 
             return response.Response(

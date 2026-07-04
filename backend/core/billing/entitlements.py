@@ -3,7 +3,7 @@ from rest_framework import status
 
 from core.utils.exceptions import exceptions
 
-from .models import AIFeatureType, AIUsageLedger, SubscriptionStatus
+from .models import AIFeatureType, AIUsageLedger
 from .services import current_billing_month, get_or_create_user_subscription
 
 
@@ -57,9 +57,6 @@ def require_ai_generation_available(user, feature_type):
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             message="Your current subscription does not include this AI feature.",
         )
-
-    if subscription.status == SubscriptionStatus.GRACE:
-        return subscription
 
     if subscription.plan.ai_generation_limit <= 0:
         raise exceptions.CustomException(

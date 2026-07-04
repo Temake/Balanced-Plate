@@ -392,6 +392,9 @@ def start_subscription_grace(data):
     subscription.status = SubscriptionStatus.GRACE
     subscription.grace_ends_at = timezone.now() + timedelta(hours=48)
     subscription.save(update_fields=["status", "grace_ends_at", "date_last_modified"])
+    from .tasks import send_subscription_payment_failed_email
+
+    send_subscription_payment_failed_email.delay(subscription.id)
     return subscription
 
 

@@ -19,6 +19,8 @@ import AnalysisHistory from "./pages/AnalysisHistory";
 import MealPlanner from "./pages/MealPlanner";
 import OnboardingPage from "./pages/OnboardingPage";
 import HealthReport from "./pages/HealthReport";
+import Billing from "./pages/Billing";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import { AuthProvider } from "./context/AuthContext";
 import { FilesProvider } from "./context/FilesContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
@@ -67,6 +69,8 @@ function App() {
           <Route path="/cook" element={<ProtectedRoute><CookingAssistant/></ProtectedRoute>}/>
           <Route path="/cook/:id" element={<ProtectedRoute><CookingAssistant/></ProtectedRoute>}/>
           <Route path="/health-report" element={<ProtectedRoute><HealthReport/></ProtectedRoute>}/>
+          <Route path="/billing" element={<ProtectedRoute><Billing/></ProtectedRoute>}/>
+          <Route path="/subscription/success" element={<ProtectedRoute><SubscriptionSuccess/></ProtectedRoute>}/>
 
           {/* Auth Routes */}
           <Route path="/otp" element={<Otp/>}/>

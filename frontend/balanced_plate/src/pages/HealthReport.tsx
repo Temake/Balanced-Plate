@@ -19,6 +19,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PaywallPrompt from '@/components/billing/PaywallPrompt';
 
 // ═══════════════════════════════════════════════
 //  SKELETON / LOADING STATES
@@ -554,7 +555,7 @@ const Section: React.FC<{
 // ═══════════════════════════════════════════════
 
 const HealthReport: React.FC = () => {
-  const { data, isLoading, user } = useHealthReport();
+  const { data, isLoading, user, isPaymentRequired } = useHealthReport();
   const [copied, setCopied] = useState(false);
 
   const handlePrint = useCallback(() => {
@@ -573,6 +574,28 @@ const HealthReport: React.FC = () => {
       toast.error('Failed to copy. Please try again.');
     }
   }, [data, user?.first_name]);
+
+  if (isPaymentRequired) {
+    return (
+      <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
+        <Header />
+        <main className="container mx-auto max-w-3xl flex-grow px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40">
+                <HeartPulse className="w-6 h-6 text-rose-500 dark:text-rose-400" />
+              </div>
+              Health Report
+            </h1>
+          </div>
+          <PaywallPrompt
+            title="Health reports are a paid feature"
+            message="Upgrade to Plus or Pro to view weekly reports, AI suggestions, and nutrition trends."
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <>

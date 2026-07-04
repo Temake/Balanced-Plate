@@ -39,4 +39,10 @@ export const queryKeys = {
     balance: (userId: number) =>
       [...queryKeys.healthReport.all, 'balance', userId] as const,
   },
+  billing: {
+    all: ['billing'] as const,
+    plans: () => [...queryKeys.billing.all, 'plans'] as const,
+    subscription: () => [...queryKeys.billing.all, 'subscription'] as const,
+    usage: () => [...queryKeys.billing.all, 'usage'] as const,
+  },
 };

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/api/axios';
 import { queryKeys } from '@/api/queryKeys';
+import { isPaymentRequiredError } from '@/utils/billing';
 import type { DateRange } from '@/components/dashboard/DateRangeFilter';
 import type { Recommendation } from '@/components/dashboard/RecommendationsPanel';
 import type { 
@@ -527,6 +528,7 @@ export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
     data: enabled ? data : null,
     isLoading,
     error: error?.message || null,
+    isPaymentRequired: isPaymentRequiredError(error),
     refetch 
   };
 };
