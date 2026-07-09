@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LogIn,  AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { DEMO_ACCESS_TOKEN_KEY, useRedeemDemoAccessInvite } from "@/hooks/useBilling";
 
 
 const LoginformSchema = z.object({
@@ -32,6 +33,7 @@ type LoginFormValues = z.infer<typeof LoginformSchema>;
 export default function LoginPage() {
   const { login, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const redeemDemoAccess = useRedeemDemoAccessInvite();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
 
@@ -52,6 +54,14 @@ export default function LoginPage() {
    
     try {
       await login({ email: data.email, password: data.password });
+      const demoToken = localStorage.getItem(DEMO_ACCESS_TOKEN_KEY);
+      if (demoToken) {
+        try {
+          await redeemDemoAccess.mutateAsync(demoToken);
+        } catch {
+          localStorage.removeItem(DEMO_ACCESS_TOKEN_KEY);
+        }
+      }
       setSuccessMessage("Logged in successfully.");
       form.reset();
       navigate('/dashboard');

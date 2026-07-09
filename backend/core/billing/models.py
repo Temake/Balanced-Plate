@@ -274,6 +274,90 @@ class AIUsageLedger(BaseModelMixin):
         return f"{self.owner.email} - {self.feature_type} - {self.billing_month}"
 
 
+class DemoAccessInvite(BaseModelMixin):
+    token_hash = models.CharField(_("Token Hash"), max_length=64, unique=True)
+    created_by = models.ForeignKey(
+        to=get_user_model(),
+        on_delete=models.SET_NULL,
+        related_name="created_demo_access_invites",
+        null=True,
+        blank=True,
+    )
+    expires_at = models.DateTimeField(_("Expires At"), db_index=True)
+    max_redemptions = models.PositiveIntegerField(_("Max Redemptions"), default=1)
+    redemption_count = models.PositiveIntegerField(_("Redemption Count"), default=0)
+    access_duration_days = models.PositiveIntegerField(_("Access Duration Days"), default=150)
+    revoked_at = models.DateTimeField(_("Revoked At"), null=True, blank=True)
+    note = models.CharField(_("Note"), max_length=255, blank=True, default="")
+
+    class Meta:
+        verbose_name = _("Demo Access Invite")
+        verbose_name_plural = _("Demo Access Invites")
+        ordering = ["-date_added"]
+
+    @property
+    def is_redeemable(self):
+        return (
+            self.revoked_at is None
+            and timezone.now() <= self.expires_at
+            and self.redemption_count < self.max_redemptions
+        )
+
+    def __str__(self):
+        return f"Demo invite {self.id} ({self.redemption_count}/{self.max_redemptions})"
+
+
+class FeatureEntitlement(BaseModelMixin):
+    SOURCE_DEMO_INVITE = "demo_invite"
+    SOURCE_MANUAL = "manual"
+    SOURCE_CHOICES = (
+        (SOURCE_DEMO_INVITE, _("Demo Invite")),
+        (SOURCE_MANUAL, _("Manual")),
+    )
+
+    owner = models.ForeignKey(
+        to=get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="feature_entitlements",
+        verbose_name=_("Entitlement Owner"),
+    )
+    source = models.CharField(_("Source"), max_length=40, choices=SOURCE_CHOICES)
+    all_features = models.BooleanField(_("All Features"), default=True)
+    starts_at = models.DateTimeField(_("Starts At"), default=timezone.now)
+    expires_at = models.DateTimeField(_("Expires At"), db_index=True)
+    granted_by = models.ForeignKey(
+        to=get_user_model(),
+        on_delete=models.SET_NULL,
+        related_name="granted_feature_entitlements",
+        null=True,
+        blank=True,
+    )
+    invite = models.ForeignKey(
+        to=DemoAccessInvite,
+        on_delete=models.SET_NULL,
+        related_name="entitlements",
+        null=True,
+        blank=True,
+    )
+    note = models.CharField(_("Note"), max_length=255, blank=True, default="")
+
+    class Meta:
+        verbose_name = _("Feature Entitlement")
+        verbose_name_plural = _("Feature Entitlements")
+        ordering = ["-expires_at"]
+        indexes = [
+            models.Index(fields=["owner", "starts_at", "expires_at"]),
+        ]
+
+    @property
+    def is_active(self):
+        now = timezone.now()
+        return self.starts_at <= now <= self.expires_at
+
+    def __str__(self):
+        return f"{self.owner.email} - {self.source} until {self.expires_at:%Y-%m-%d}"
+
+
 def get_default_billing_plans():
     return [
         {

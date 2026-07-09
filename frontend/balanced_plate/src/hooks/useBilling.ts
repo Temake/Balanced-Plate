@@ -8,6 +8,8 @@ import type {
   Subscription,
 } from '@/api/types';
 
+export const DEMO_ACCESS_TOKEN_KEY = 'balanced_plate_demo_access_token';
+
 export const useBillingPlans = () => {
   return useQuery<BillingPlan[]>({
     queryKey: queryKeys.billing.plans(),
@@ -62,6 +64,23 @@ export const useVerifyBillingPayment = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.billing.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });
+    },
+  });
+};
+
+export const useRedeemDemoAccessInvite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message: string; subscription: Subscription }, Error, string>({
+    mutationFn: async (token) => {
+      const { data } = await api.post('/billing/demo-invites/redeem/', { token });
+      return data;
+    },
+    onSuccess: () => {
+      localStorage.removeItem(DEMO_ACCESS_TOKEN_KEY);
       queryClient.invalidateQueries({ queryKey: queryKeys.billing.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.healthReport.all });

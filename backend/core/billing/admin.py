@@ -5,6 +5,8 @@ from unfold.admin import ModelAdmin
 from .models import (
     AIUsageLedger,
     BillingPlan,
+    DemoAccessInvite,
+    FeatureEntitlement,
     PaymentTransaction,
     PaystackWebhookEvent,
     Subscription,
@@ -119,4 +121,20 @@ class AIUsageLedgerAdmin(ModelAdmin):
     list_display = ["id", "owner", "feature_type", "billing_month", "credits_used", "date_added"]
     list_filter = ["feature_type", "billing_month"]
     search_fields = ["owner__email", "owner__first_name"]
+    readonly_fields = ["date_added", "date_last_modified"]
+
+
+@admin.register(DemoAccessInvite)
+class DemoAccessInviteAdmin(ModelAdmin):
+    list_display = ["id", "created_by", "expires_at", "redemption_count", "max_redemptions", "revoked_at"]
+    list_filter = ["expires_at", "revoked_at"]
+    search_fields = ["created_by__email", "note"]
+    readonly_fields = ["token_hash", "redemption_count", "date_added", "date_last_modified"]
+
+
+@admin.register(FeatureEntitlement)
+class FeatureEntitlementAdmin(ModelAdmin):
+    list_display = ["id", "owner", "source", "all_features", "starts_at", "expires_at"]
+    list_filter = ["source", "all_features", "starts_at", "expires_at"]
+    search_fields = ["owner__email", "owner__first_name", "note"]
     readonly_fields = ["date_added", "date_last_modified"]

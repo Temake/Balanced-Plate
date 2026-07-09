@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
-import { Home, Camera, CalendarDays, User, User2Icon, LogOut, Leaf, ChefHat } from 'lucide-react'
+import { Home, Camera, CalendarDays, User, User2Icon, LogOut, Leaf, ChefHat, CreditCard } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -101,11 +101,17 @@ const Header: React.FC = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent
+                  className="w-[min(18rem,calc(100vw-2rem))]"
+                  align="end"
+                  sideOffset={8}
+                  collisionPadding={12}
+                  forceMount
+                >
                   <DropdownMenuLabel className="font-normal p-3">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-semibold">{user?.first_name} {user?.last_name}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    <div className="flex min-w-0 flex-col space-y-1">
+                      <p className="truncate text-sm font-semibold">{user?.first_name} {user?.last_name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -113,6 +119,13 @@ const Header: React.FC = () => {
                     <Link to="/profile" className="flex items-center cursor-pointer">
                       <User2Icon className="mr-2 h-4 w-4" />
                       Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/billing" className="flex items-center cursor-pointer">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Billing
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

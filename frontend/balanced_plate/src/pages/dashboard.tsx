@@ -62,7 +62,7 @@ const QuickLinkCard: React.FC<{
 }> = ({ to, label, description, icon: Icon }) => (
   <Link
     to={to}
-    className="group rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+    className="group block min-w-0 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
   >
     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
       <Icon className="h-5 w-5" />
@@ -76,7 +76,7 @@ const RecentMealCard: React.FC<{ analysis: FoodAnalysis }> = ({ analysis }) => {
   const image = analysis.image_url || analysis.food_image;
 
   return (
-    <div className="flex gap-3 rounded-2xl border border-border bg-card p-3">
+    <div className="flex w-full min-w-0 gap-3 rounded-2xl border border-border bg-card p-3">
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
         {image ? (
           <img
@@ -132,10 +132,10 @@ const Dashboard: React.FC = () => {
         : "A few more scans will make your weekly picture clearer.";
 
   return (
-    <div className={`min-h-screen bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
+    <div className={`min-h-screen overflow-x-hidden bg-background flex flex-col ${BOTTOM_NAV_HEIGHT} md:pb-0`}>
       <Header />
 
-      <main className="container mx-auto max-w-7xl flex-grow px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <main className="container mx-auto max-w-7xl min-w-0 flex-grow px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-primary">{getGreeting()}</p>
@@ -168,8 +168,8 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <section className="mb-5 grid gap-4 lg:grid-cols-[1.45fr_0.9fr]">
-          <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/12 via-card to-accent/40 p-5 shadow-sm sm:p-6">
+        <section className="mb-5 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)]">
+          <div className="min-w-0 rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/12 via-card to-accent/40 p-5 shadow-sm sm:p-6">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-primary">
@@ -197,7 +197,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <div className="min-w-0 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-foreground">Weekly streak</p>
@@ -220,8 +220,8 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        <section className="mb-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+        <section className="mb-5 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="min-w-0 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-semibold text-foreground">Recent meals</h2>
@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          <div className="grid min-w-0 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             <QuickLinkCard
               to="/meal-plan"
               label="Plan Meals"

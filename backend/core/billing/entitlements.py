@@ -4,7 +4,12 @@ from rest_framework import status
 from core.utils.exceptions import exceptions
 
 from .models import AIFeatureType, AIUsageLedger
-from .services import current_billing_month, get_or_create_user_subscription
+from .services import (
+    DEMO_AI_GENERATION_LIMIT,
+    current_billing_month,
+    get_active_feature_entitlement,
+    get_or_create_user_subscription,
+)
 
 
 PAID_ACCESS_MESSAGE = "This feature requires an active Plus or Pro subscription."
@@ -13,12 +18,12 @@ AI_CREDITS_MESSAGE = "You have used all your AI generation credits for this mont
 
 def has_active_paid_subscription(user):
     subscription = get_or_create_user_subscription(user)
-    return subscription.is_paid_access_active
+    return subscription.is_paid_access_active or get_active_feature_entitlement(user) is not None
 
 
 def require_paid_access(user, message=PAID_ACCESS_MESSAGE):
     subscription = get_or_create_user_subscription(user)
-    if not subscription.is_paid_access_active:
+    if not subscription.is_paid_access_active and get_active_feature_entitlement(user) is None:
         raise exceptions.CustomException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             message=message,
@@ -27,6 +32,8 @@ def require_paid_access(user, message=PAID_ACCESS_MESSAGE):
 
 
 def _feature_enabled(subscription, feature_type):
+    if get_active_feature_entitlement(subscription.owner) is not None:
+        return True
     if feature_type in [AIFeatureType.MEAL_PLAN, AIFeatureType.MEAL_PLAN_DAY]:
         return subscription.plan.ai_planning_enabled
     if feature_type == AIFeatureType.COOKING_GUIDE:
@@ -47,7 +54,12 @@ def get_ai_generation_usage(user, billing_month=None):
 def get_ai_generation_remaining(user, billing_month=None):
     subscription = get_or_create_user_subscription(user)
     used = get_ai_generation_usage(user, billing_month=billing_month)
-    return max(subscription.plan.ai_generation_limit - used, 0)
+    limit = (
+        DEMO_AI_GENERATION_LIMIT
+        if get_active_feature_entitlement(user) is not None
+        else subscription.plan.ai_generation_limit
+    )
+    return max(limit - used, 0)
 
 
 def require_ai_generation_available(user, feature_type):
@@ -58,7 +70,7 @@ def require_ai_generation_available(user, feature_type):
             message="Your current subscription does not include this AI feature.",
         )
 
-    if subscription.plan.ai_generation_limit <= 0:
+    if get_active_feature_entitlement(user) is None and subscription.plan.ai_generation_limit <= 0:
         raise exceptions.CustomException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             message="Your current subscription does not include AI generation credits.",

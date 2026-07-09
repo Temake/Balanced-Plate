@@ -341,7 +341,7 @@ export interface CookingGuide {
 // ============ Billing Types ============
 
 export interface BillingPlan {
-  key: 'free' | 'plus' | 'pro';
+  key: 'free' | 'plus' | 'pro' | 'demo';
   name: string;
   description: string;
   price_kobo: number;
@@ -359,6 +359,8 @@ export interface Subscription {
   plan: BillingPlan;
   status: 'free' | 'pending' | 'active' | 'grace' | 'cancelled' | 'expired' | 'disabled';
   is_paid_access_active: boolean;
+  access_source?: 'free' | 'subscription' | 'demo_invite' | 'manual';
+  access_expires_at?: string | null;
   current_period_start: string | null;
   current_period_end: string | null;
   grace_ends_at: string | null;

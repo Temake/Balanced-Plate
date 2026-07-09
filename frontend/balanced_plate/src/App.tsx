@@ -21,6 +21,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import HealthReport from "./pages/HealthReport";
 import Billing from "./pages/Billing";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import DemoInvite from "./pages/DemoInvite";
 import { AuthProvider } from "./context/AuthContext";
 import { FilesProvider } from "./context/FilesContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
@@ -71,6 +72,7 @@ function App() {
           <Route path="/health-report" element={<ProtectedRoute><HealthReport/></ProtectedRoute>}/>
           <Route path="/billing" element={<ProtectedRoute><Billing/></ProtectedRoute>}/>
           <Route path="/subscription/success" element={<ProtectedRoute><SubscriptionSuccess/></ProtectedRoute>}/>
+          <Route path="/demo/invite/:token" element={<DemoInvite/>}/>
 
           {/* Auth Routes */}
           <Route path="/otp" element={<Otp/>}/>

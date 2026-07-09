@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import secrets
 import uuid
 from datetime import timedelta
 
@@ -15,6 +16,8 @@ from core.utils.exceptions import exceptions
 from .models import (
     BillingPlan,
     BillingPlanKey,
+    DemoAccessInvite,
+    FeatureEntitlement,
     PaymentStatus,
     PaymentTransaction,
     PaystackWebhookEvent,
@@ -24,6 +27,9 @@ from .models import (
 
 
 PAYSTACK_SUCCESS_STATUS = "success"
+DEMO_INVITE_EXPIRY_DAYS = 150
+DEMO_ACCESS_DURATION_DAYS = 150
+DEMO_AI_GENERATION_LIMIT = 100
 
 
 class PaystackClient:
@@ -80,6 +86,72 @@ class PaystackClient:
 def current_billing_month():
     today = timezone.localdate()
     return today.replace(day=1)
+
+
+def hash_demo_token(token):
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def get_frontend_demo_invite_url(token):
+    return f"{settings.FRONTEND_BASE_URL.rstrip('/')}/demo/invite/{token}"
+
+
+def create_demo_access_invite(created_by, max_redemptions=1, note=""):
+    token = secrets.token_urlsafe(32)
+    invite = DemoAccessInvite.objects.create(
+        token_hash=hash_demo_token(token),
+        created_by=created_by,
+        expires_at=timezone.now() + timedelta(days=DEMO_INVITE_EXPIRY_DAYS),
+        max_redemptions=max_redemptions,
+        access_duration_days=DEMO_ACCESS_DURATION_DAYS,
+        note=note,
+    )
+    return invite, token
+
+
+def get_active_feature_entitlement(user):
+    now = timezone.now()
+    return (
+        FeatureEntitlement.objects.filter(
+            owner=user,
+            all_features=True,
+            starts_at__lte=now,
+            expires_at__gte=now,
+        )
+        .order_by("-expires_at")
+        .first()
+    )
+
+
+@transaction.atomic
+def redeem_demo_access_invite(user, token):
+    invite = DemoAccessInvite.objects.select_for_update().filter(
+        token_hash=hash_demo_token(token),
+    ).first()
+    if not invite or not invite.is_redeemable:
+        raise exceptions.CustomException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="This demo access link is invalid, expired, or fully redeemed.",
+        )
+
+    now = timezone.now()
+    existing = get_active_feature_entitlement(user)
+    if existing:
+        return existing
+
+    entitlement = FeatureEntitlement.objects.create(
+        owner=user,
+        source=FeatureEntitlement.SOURCE_DEMO_INVITE,
+        all_features=True,
+        starts_at=now,
+        expires_at=now + timedelta(days=invite.access_duration_days),
+        granted_by=invite.created_by,
+        invite=invite,
+        note=invite.note,
+    )
+    invite.redemption_count += 1
+    invite.save(update_fields=["redemption_count", "date_last_modified"])
+    return entitlement
 
 
 def generate_payment_reference(user, plan):
