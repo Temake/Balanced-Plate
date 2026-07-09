@@ -10,10 +10,8 @@ import {
   Loader2,
   TrendingUp,
   Upload,
-  Sparkles,
   Utensils,
   AlertCircle,
-  CheckCircle2,
 } from 'lucide-react';
 import api from '@/api/axios';
 import { useFiles } from '@/hooks/useFiles';
@@ -189,33 +187,27 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({ analysis, open, onClose }
             </div>
           )}
 
-          {/* Recommendations */}
-          {analysis.next_meal_recommendations && (
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                Recommendations
-              </h4>
-              <div className="space-y-3">
-                {analysis.next_meal_recommendations.nutritional_recommendations?.map((rec, idx) => (
-                  <div key={`nutritional-${idx}`} className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{rec}</span>
-                  </div>
-                ))}
-                {analysis.next_meal_recommendations.balance_improvements?.map((rec, idx) => (
-                  <div key={`balance-${idx}`} className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <TrendingUp className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{rec}</span>
-                  </div>
-                ))}
-                {analysis.next_meal_recommendations.timing_recommendations?.map((rec, idx) => (
-                  <div key={`timing-${idx}`} className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                    <Clock className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{rec}</span>
-                  </div>
-                ))}
-              </div>
+          {(analysis.conversational_feedback || analysis.actionable_suggestion || analysis.alternative_suggestion) && (
+            <div className="space-y-3">
+              {analysis.conversational_feedback && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-800/40 dark:bg-emerald-900/20">
+                  <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                    {analysis.conversational_feedback}
+                  </p>
+                </div>
+              )}
+              {analysis.actionable_suggestion && (
+                <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 dark:border-amber-800/30 dark:bg-amber-900/15">
+                  <p className="mb-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Recommended next step</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.actionable_suggestion}</p>
+                </div>
+              )}
+              {analysis.alternative_suggestion && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 dark:border-blue-800/30 dark:bg-blue-900/15">
+                  <p className="mb-0.5 text-xs font-semibold text-blue-700 dark:text-blue-400">Suggested swap</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.alternative_suggestion}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -392,7 +384,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
       {/* Header */}
       <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
               <Camera className="w-5 h-5 text-white" />
@@ -406,7 +398,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
           </div>
 
           {/* Upload Button */}
-          <label className="cursor-pointer">
+          <label className="w-full cursor-pointer sm:w-auto">
             <input
               type="file"
               accept="image/*"
@@ -417,7 +409,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="gap-2"
+              className="w-full gap-2 sm:w-auto"
               disabled={isUploading}
               asChild
             >
@@ -475,7 +467,7 @@ const FoodGallery: React.FC<FoodGalleryProps> = ({ className = '' }) => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="ghost"
               size="sm"

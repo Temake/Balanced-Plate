@@ -207,27 +207,27 @@ const AnalysisDetailModal: React.FC<{
             </div>
           )}
 
-          {/* Recommendations */}
-          {analysis.next_meal_recommendations && (
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                Recommendations
-              </h4>
-              <div className="space-y-2">
-                {analysis.next_meal_recommendations.nutritional_recommendations?.map((rec, i) => (
-                  <div key={`n-${i}`} className="flex items-start gap-2 p-2.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{rec}</span>
-                  </div>
-                ))}
-                {analysis.next_meal_recommendations.balance_improvements?.map((rec, i) => (
-                  <div key={`b-${i}`} className="flex items-start gap-2 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <TrendingUp className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{rec}</span>
-                  </div>
-                ))}
-              </div>
+          {(analysis.conversational_feedback || analysis.actionable_suggestion || analysis.alternative_suggestion) && (
+            <div className="space-y-3">
+              {analysis.conversational_feedback && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-800/40 dark:bg-emerald-900/20">
+                  <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                    {analysis.conversational_feedback}
+                  </p>
+                </div>
+              )}
+              {analysis.actionable_suggestion && (
+                <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 dark:border-amber-800/30 dark:bg-amber-900/15">
+                  <p className="mb-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">Recommended next step</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.actionable_suggestion}</p>
+                </div>
+              )}
+              {analysis.alternative_suggestion && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 dark:border-blue-800/30 dark:bg-blue-900/15">
+                  <p className="mb-0.5 text-xs font-semibold text-blue-700 dark:text-blue-400">Suggested swap</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.alternative_suggestion}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -324,7 +324,7 @@ const AnalysisHistory: React.FC = () => {
         </div>
 
         {/* Stats Banner */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 gap-3 mb-6 sm:grid-cols-3">
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{data?.count || 0}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Analyses</div>
@@ -343,7 +343,7 @@ const AnalysisHistory: React.FC = () => {
 
         {/* Filters Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 mb-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-col items-stretch gap-3 lg:flex-row lg:items-center">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -357,7 +357,7 @@ const AnalysisHistory: React.FC = () => {
             </div>
 
             {/* Status filters */}
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <Filter className="w-4 h-4 text-gray-400 mr-1" />
               {statusFilters.map((sf) => (
                 <button
@@ -423,7 +423,7 @@ const AnalysisHistory: React.FC = () => {
                   onClick={() => isCompleted ? setSelectedAnalysis(analysis) : undefined}
                   className={`
                     bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700
-                    p-4 flex items-center gap-4 transition-all duration-200
+                    p-4 flex flex-col gap-4 transition-all duration-200 sm:flex-row sm:items-center
                     ${isCompleted ? 'cursor-pointer hover:border-green-300 dark:hover:border-green-700' : ''}
                     ${isProcessing ? 'opacity-80' : ''}
                     ${isFailed ? 'opacity-70 border-red-200 dark:border-red-800' : ''}
@@ -475,7 +475,7 @@ const AnalysisHistory: React.FC = () => {
                   </div>
 
                   {/* Score / Action */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:flex-shrink-0 sm:justify-start">
                     {isCompleted && (
                       <>
                         <div className={`px-3 py-1.5 rounded-lg ${scoreColor.bg}`}>
@@ -500,7 +500,7 @@ const AnalysisHistory: React.FC = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-6 pb-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-6 pb-4">
             <Button
               variant="outline"
               size="sm"

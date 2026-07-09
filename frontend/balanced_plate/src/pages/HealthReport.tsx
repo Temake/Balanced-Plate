@@ -118,8 +118,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ meals, days, balance, strea
   const subtexts: Record<string, string> = {
     meals: 'this week',
     days: `${Math.round((days / 7) * 100)}% of the week`,
-    balance: balance >= 70 ? 'Great job!' : balance >= 50 ? 'Room to improve' : 'Needs attention',
-    streak: streak >= 5 ? '🔥 On fire!' : streak >= 3 ? 'Building momentum' : 'Keep going!',
+    balance: balance >= 70 ? 'On track' : balance >= 50 ? 'Room to improve' : 'Needs attention',
+    streak: streak >= 5 ? 'Strong consistency' : streak >= 3 ? 'Building consistency' : 'More data needed',
   };
 
   if (isLoading) {
@@ -451,16 +451,16 @@ const HealthRiskCard: React.FC<{ flag: HealthFlag; index: number }> = ({ flag, i
 };
 
 // ═══════════════════════════════════════════════
-//  AI SUGGESTIONS
+//  RECOMMENDED ACTIONS
 // ═══════════════════════════════════════════════
 
-const AISuggestions: React.FC<{ recommendation: WeeklyRecommendation | null }> = ({
+const RecommendedActions: React.FC<{ recommendation: WeeklyRecommendation | null }> = ({
   recommendation,
 }) => {
   if (!recommendation) {
     return (
       <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-        No AI suggestions available yet. Complete a few more meals to get personalised advice.
+        No recommended actions are available yet. Complete a few more meals to build a meaningful weekly pattern.
       </p>
     );
   }
@@ -590,7 +590,7 @@ const HealthReport: React.FC = () => {
           </div>
           <PaywallPrompt
             title="Health reports are a paid feature"
-            message="Upgrade to Plus or Pro to view weekly reports, AI suggestions, and nutrition trends."
+            message="Upgrade to Plus or Pro to view weekly reports, recommended actions, and nutrition trends."
           />
         </main>
       </div>
@@ -705,24 +705,24 @@ const HealthReport: React.FC = () => {
 
               {/* ─── Eating Patterns Row ─── */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Section title="🍽️ Most Common Foods" id="common-foods">
+                <Section title="Most Common Foods" id="common-foods">
                   <MostCommonFoods
                     foods={data.mostCommonFoods}
                     maxCount={data.mostCommonFoods[0]?.count ?? 1}
                   />
                 </Section>
-                <Section title="🕐 Meal Types" id="meal-types">
+                <Section title="Meal Types" id="meal-types">
                   <MealTypes types={data.mealTypeCounts} />
                 </Section>
               </div>
 
               {/* ─── Nutrition Overview ─── */}
-              <Section title="🥗 Nutrition Overview" id="nutrition-overview">
+              <Section title="Nutrition Overview" id="nutrition-overview">
                 <NutritionOverview data={data.foodGroups} />
               </Section>
 
               {/* ─── Weekly Balance Trend ─── */}
-              <Section title="📈 Weekly Balance Trend" id="balance-trend">
+              <Section title="Weekly Balance Trend" id="balance-trend">
                 <WeeklyBalanceTrend scores={data.weeklyScores} />
                 <BalanceLegend />
               </Section>
@@ -742,9 +742,9 @@ const HealthReport: React.FC = () => {
                 </div>
               )}
 
-              {/* ─── AI Suggestions ─── */}
-              <Section title="🤖 AI Suggestions" id="ai-suggestions">
-                <AISuggestions recommendation={data.latestRecommendation} />
+              {/* ─── Recommended Actions ─── */}
+              <Section title="Recommended Actions" id="recommended-actions">
+                <RecommendedActions recommendation={data.latestRecommendation} />
               </Section>
             </div>
           )}

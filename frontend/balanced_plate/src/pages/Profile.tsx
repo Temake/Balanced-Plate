@@ -32,6 +32,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { useCurrentSubscription } from '@/hooks/useBilling';
 
 interface EditableFieldProps {
   label: string;
@@ -496,7 +497,9 @@ const WeeklyFoodSummaries: React.FC = () => {
 const Profile = () => {
   const { user, loadCurrentUser } = useAuth();
   const { uploadFile } = useFiles();
+  const { data: subscription } = useCurrentSubscription();
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const hasReportAccess = !!subscription?.is_paid_access_active && !!subscription?.plan?.reports_enabled;
 
   const handleFieldSave = async (field: string, value: string) => {
     try {
@@ -729,7 +732,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <WeeklyFoodSummaries />
+        {hasReportAccess && <WeeklyFoodSummaries />}
 
         {/* Account Info */}
         <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">

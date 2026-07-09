@@ -266,6 +266,26 @@ const transformAnalysesToRecommendations = (analyses: FoodAnalysis[]): Recommend
   const recommendations: Recommendation[] = [];
   
   for (const analysis of analyses.slice(0, 5)) {
+    if (analysis.actionable_suggestion) {
+      recommendations.push({
+        id: `action-${analysis.id}`,
+        title: 'Recommended Next Step',
+        description: analysis.actionable_suggestion,
+        type: 'tip' as const,
+        priority: 'high' as const,
+      });
+    }
+
+    if (analysis.alternative_suggestion) {
+      recommendations.push({
+        id: `alternative-${analysis.id}`,
+        title: 'Suggested Swap',
+        description: analysis.alternative_suggestion,
+        type: 'balance' as const,
+        priority: 'medium' as const,
+      });
+    }
+
     const nutritionalRecs = analysis.next_meal_recommendations?.nutritional_recommendations || [];
     const balanceRecs = analysis.next_meal_recommendations?.balance_improvements || [];
     

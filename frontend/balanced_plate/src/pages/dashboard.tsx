@@ -143,7 +143,7 @@ const Dashboard: React.FC = () => {
               {user?.first_name ? `${user.first_name}, your plate check is here` : "Your plate check is here"}
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => refetch()}
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
@@ -153,7 +153,7 @@ const Dashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setShowDetails((value) => !value)}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className="inline-flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
             >
               <BarChart3 className="h-4 w-4" />
               View Analytics
@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             <QuickLinkCard
               to="/meal-plan"
               label="Plan Meals"
@@ -280,21 +280,14 @@ const Dashboard: React.FC = () => {
         </section>
 
         <section className="mb-5">
-          {isPaymentRequired ? (
-            <PaywallPrompt
-              title="Recommendations are a paid feature"
-              message="Upgrade to Plus or Pro to view AI recommendations, analytics, and reports."
+          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
+            <RecommendationsPanel
+              recommendations={data?.recommendations}
+              isLoading={isLoading}
+              timeFilter={dateRange}
+              onTimeFilterChange={setDateRange}
             />
-          ) : (
-            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
-              <RecommendationsPanel
-                recommendations={data?.recommendations}
-                isLoading={isLoading}
-                timeFilter={dateRange}
-                onTimeFilterChange={setDateRange}
-              />
-            </ErrorBoundary>
-          )}
+          </ErrorBoundary>
         </section>
 
         {showDetails && (

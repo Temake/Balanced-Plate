@@ -198,82 +198,80 @@ function computeHealthFlags(
   return flags;
 }
 
-// ─── Build text for clipboard ───
+// Build text for clipboard and downloads.
 
 export function buildTextSummary(data: HealthReportData, userName?: string): string {
   const lines: string[] = [];
-  lines.push('═══════════════════════════════════');
-  lines.push('  BALANCED PLATE — HEALTH REPORT');
-  lines.push('═══════════════════════════════════');
+  lines.push('BALANCED PLATE HEALTH AND NUTRITION REPORT');
+  lines.push('------------------------------------------');
   if (userName) lines.push(`Report for: ${userName}`);
   lines.push(`Generated: ${new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`);
   lines.push('');
 
-  lines.push('📊 WEEKLY SUMMARY');
-  lines.push(`  • Meals logged: ${data.totalMealsLogged}`);
-  lines.push(`  • Days tracked: ${data.daysTracked}/7`);
-  lines.push(`  • Avg balance score: ${data.averageBalanceScore}%`);
-  lines.push(`  • Consistency streak: ${data.consistencyStreak} days`);
+  lines.push('WEEKLY SUMMARY');
+  lines.push(`- Meals logged: ${data.totalMealsLogged}`);
+  lines.push(`- Days tracked: ${data.daysTracked}/7`);
+  lines.push(`- Average balance score: ${data.averageBalanceScore}%`);
+  lines.push(`- Consistency streak: ${data.consistencyStreak} days`);
   lines.push('');
 
   if (data.mostCommonFoods.length > 0) {
-    lines.push('🍽️ MOST COMMON FOODS');
-    data.mostCommonFoods.forEach((f, i) => {
-      lines.push(`  ${i + 1}. ${f.name} (×${f.count})`);
+    lines.push('MOST COMMON FOODS');
+    data.mostCommonFoods.forEach((food, index) => {
+      lines.push(`${index + 1}. ${food.name} (${food.count} logged)`);
     });
     lines.push('');
   }
 
   if (data.mealTypeCounts.length > 0) {
-    lines.push('🕐 MEAL TYPES');
-    data.mealTypeCounts.forEach(m => {
-      lines.push(`  • ${m.type}: ${m.count}`);
+    lines.push('MEAL TYPES');
+    data.mealTypeCounts.forEach((mealType) => {
+      lines.push(`- ${mealType.type}: ${mealType.count}`);
     });
     lines.push('');
   }
 
   if (data.foodGroups) {
-    lines.push('🥗 NUTRITION OVERVIEW');
-    lines.push(`  • Carbs: ${Math.round(data.foodGroups.total_carbs_grams)}g`);
-    lines.push(`  • Protein: ${Math.round(data.foodGroups.total_protein_grams)}g`);
-    lines.push(`  • Vegetables: ${Math.round(data.foodGroups.total_vegetable_grams)}g`);
-    lines.push(`  • Fruits: ${Math.round(data.foodGroups.total_fruit_grams)}g`);
-    lines.push(`  • Dairy: ${Math.round(data.foodGroups.total_dairy_grams)}g`);
-    lines.push(`  • Fats: ${Math.round(data.foodGroups.total_fat_grams)}g`);
+    lines.push('NUTRITION OVERVIEW');
+    lines.push(`- Carbs: ${Math.round(data.foodGroups.total_carbs_grams)}g`);
+    lines.push(`- Protein: ${Math.round(data.foodGroups.total_protein_grams)}g`);
+    lines.push(`- Vegetables: ${Math.round(data.foodGroups.total_vegetable_grams)}g`);
+    lines.push(`- Fruits: ${Math.round(data.foodGroups.total_fruit_grams)}g`);
+    lines.push(`- Dairy: ${Math.round(data.foodGroups.total_dairy_grams)}g`);
+    lines.push(`- Fats: ${Math.round(data.foodGroups.total_fat_grams)}g`);
     lines.push('');
   }
 
-  lines.push('📈 WEEKLY BALANCE TREND');
-  data.weeklyScores.forEach(s => {
-    const bar = s.score !== null ? `${'█'.repeat(Math.round(s.score / 10))} ${s.score}%` : '— no data';
-    lines.push(`  ${s.shortDay}: ${bar}`);
+  lines.push('WEEKLY BALANCE TREND');
+  data.weeklyScores.forEach((score) => {
+    const value = score.score !== null ? `${score.score}%` : 'No data';
+    lines.push(`- ${score.shortDay}: ${value}`);
   });
   lines.push('');
 
   if (data.healthFlags.length > 0) {
-    lines.push('⚠️ HEALTH ALERTS');
-    data.healthFlags.forEach(f => {
-      lines.push(`  [${f.severity.toUpperCase()}] ${f.title}: ${f.description}`);
+    lines.push('HEALTH RISK INDICATORS');
+    data.healthFlags.forEach((flag) => {
+      lines.push(`- [${flag.severity.toUpperCase()}] ${flag.title}: ${flag.description}`);
     });
     lines.push('');
   }
 
   if (data.latestRecommendation) {
-    const rec = data.latestRecommendation;
-    if (rec.priority_actions?.length) {
-      lines.push('🎯 PRIORITY ACTIONS');
-      rec.priority_actions.forEach((a, i) => lines.push(`  ${i + 1}. ${a}`));
+    const recommendation = data.latestRecommendation;
+    if (recommendation.priority_actions?.length) {
+      lines.push('PRIORITY ACTIONS');
+      recommendation.priority_actions.forEach((action, index) => lines.push(`${index + 1}. ${action}`));
       lines.push('');
     }
-    if (rec.weekly_goals?.length) {
-      lines.push('🏆 WEEKLY GOALS');
-      rec.weekly_goals.forEach((g, i) => lines.push(`  ${i + 1}. ${g}`));
+    if (recommendation.weekly_goals?.length) {
+      lines.push('WEEKLY GOALS');
+      recommendation.weekly_goals.forEach((goal, index) => lines.push(`${index + 1}. ${goal}`));
       lines.push('');
     }
   }
 
-  lines.push('─────────────────────────────────');
-  lines.push('Powered by Balanced Plate AI');
+  lines.push('Prepared by Balanced Plate');
   return lines.join('\n');
 }
 
