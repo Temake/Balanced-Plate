@@ -6,7 +6,7 @@ const steps = [
     number: '01',
     icon: Camera,
     title: 'Scan Your Meal',
-    description: 'Take a quick photo of your food. Balanced Plate identifies the meal and starts your daily accountability record.',
+    description: 'Take a quick photo of your food. NutriLens identifies the meal and starts your daily accountability record.',
     color: 'from-blue-500 to-cyan-500',
     bgColor: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
   },

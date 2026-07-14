@@ -319,7 +319,7 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-1">
-                    Balanced Plate AI
+                    NutriLens.AI
                   </p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     {latestAnalysis.conversational_feedback}

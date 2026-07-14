@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                Balanced Plate
+                NutriLens
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400 -mt-1 font-medium tracking-wide">
                 FOOD ACCOUNTABILITY

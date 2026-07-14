@@ -85,7 +85,7 @@ const FeaturesSection: React.FC = () => {
             </span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Balanced Plate helps you make better daily food choices with culturally familiar meals,
+            NutriLens helps you make better daily food choices with culturally familiar meals,
             practical guidance, and simple accountability.
           </p>
         </div>

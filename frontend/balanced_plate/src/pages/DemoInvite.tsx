@@ -22,7 +22,7 @@ const DemoInvite = () => {
         </div>
         <h1 className="text-2xl font-bold text-foreground">Demo access is ready</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Sign in or create an account to activate temporary full access to Balanced Plate features.
+          Sign in or create an account to activate temporary full access to NutriLens features.
         </p>
 
         <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">

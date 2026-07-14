@@ -326,7 +326,7 @@ const formatWeekRange = (recommendation: WeeklyRecommendation) => {
 
 const buildRecommendationSummary = (recommendation: WeeklyRecommendation) => {
   const lines: string[] = [];
-  lines.push('BALANCED PLATE - WEEKLY FOOD SUMMARY');
+  lines.push('NUTRILENS - WEEKLY FOOD SUMMARY');
   lines.push(`Week: ${formatWeekRange(recommendation)}`);
   lines.push('');
 
@@ -402,7 +402,7 @@ const WeeklyFoodSummaries: React.FC = () => {
     const suffix = selectedId === 'current'
       ? 'current-week'
       : selectedHistorical?.week_start_date ?? 'weekly-summary';
-    downloadTextReport(`balanced-plate-${suffix}.txt`, previewText);
+    downloadTextReport(`nutrilens-${suffix}.txt`, previewText);
   };
 
   return (

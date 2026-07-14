@@ -18,7 +18,7 @@ const testimonials: Testimonial[] = [
     role: 'Fitness Enthusiast',
     avatar: '👩‍💼',
     rating: 5,
-    quote: 'Balanced Plate has completely transformed how I approach my meals. The AI analysis is incredibly accurate, and the recommendations have helped me achieve my fitness goals faster than ever!',
+    quote: 'NutriLens has completely transformed how I approach my meals. The AI analysis is incredibly accurate, and the recommendations have helped me achieve my fitness goals faster than ever!',
     highlight: 'Lost 15 lbs in 3 months'
   },
   {
@@ -36,7 +36,7 @@ const testimonials: Testimonial[] = [
     role: 'Nutritionist',
     avatar: '👩‍⚕️',
     rating: 5,
-    quote: 'I recommend Balanced Plate to all my clients. The nutritional analysis is on par with professional tools, and the user interface makes it accessible to everyone.',
+    quote: 'I recommend NutriLens to all my clients. The nutritional analysis is on par with professional tools, and the user interface makes it accessible to everyone.',
     highlight: 'Professional grade accuracy'
   },
   {
@@ -112,7 +112,7 @@ const TestimonialsSection: React.FC = () => {
             What Our Users Say
           </h2>
           <p className="text-lg text-white/70">
-            Join thousands of happy users who have transformed their eating habits with Balanced Plate.
+            Join thousands of happy users who have transformed their eating habits with NutriLens.
           </p>
         </div>
 

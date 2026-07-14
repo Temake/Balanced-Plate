@@ -148,7 +148,7 @@ const OnboardingPage: React.FC = () => {
                 <MapPin className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                Welcome to Balanced Plate
+                Welcome to NutriLens
               </h1>
               <p className="text-base text-gray-500 dark:text-gray-400 mb-2 max-w-sm mx-auto">
                 Let's set up your profile so we can give you personalised food advice.

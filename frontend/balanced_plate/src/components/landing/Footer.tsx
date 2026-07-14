@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-xl font-bold text-white tracking-tight">
-                  Balanced Plate
+                  NutriLens
                 </span>
                 <span className="text-[10px] text-gray-400 -mt-1 font-medium tracking-wide">
                   FOOD ACCOUNTABILITY
@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
             <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">Contact Us</h4>
             <div className="flex items-center gap-3 text-gray-400 hover:text-green-400 transition-colors duration-200">
               <Mail className="w-4 h-4 text-green-500" />
-              <a href="mailto:hello@balancedplate.ai">hello@balancedplate.ai</a>
+              <a href="mailto:hello@nutrilens.ai">hello@nutrilens.ai</a>
             </div>
             <div className="flex items-center gap-3 text-gray-400 hover:text-green-400 transition-colors duration-200">
               <Phone className="w-4 h-4 text-green-500" />
@@ -66,7 +66,7 @@ const Footer: React.FC = () => {
           <div className="flex flex-col items-center justify-center gap-2">
             {/* Copyright */}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-400">
-              <span>© {currentYear} Balanced Plate. Made with</span>
+              <span>© {currentYear} NutriLens. Made with</span>
               <Heart className="w-3.5 h-3.5 text-red-500 fill-current animate-pulse" />
               <span>for healthier lives.</span>
             </div>

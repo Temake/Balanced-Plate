@@ -202,7 +202,7 @@ function computeHealthFlags(
 
 export function buildTextSummary(data: HealthReportData, userName?: string): string {
   const lines: string[] = [];
-  lines.push('BALANCED PLATE HEALTH AND NUTRITION REPORT');
+  lines.push('NUTRILENS HEALTH AND NUTRITION REPORT');
   lines.push('------------------------------------------');
   if (userName) lines.push(`Report for: ${userName}`);
   lines.push(`Generated: ${new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`);
@@ -271,7 +271,7 @@ export function buildTextSummary(data: HealthReportData, userName?: string): str
     }
   }
 
-  lines.push('Prepared by Balanced Plate');
+  lines.push('Prepared by NutriLens');
   return lines.join('\n');
 }
 
