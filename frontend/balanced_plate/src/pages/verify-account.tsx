@@ -80,12 +80,9 @@ const VerifyAccount = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-emerald-600 dark:bg-emerald-500 rounded-full flex items-center justify-center mb-4">
-            <MailCheck className="w-8 h-8 text-white" />
-          </div>
+          <img src="/logo.png" className="mx-auto w-20 h-20 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
-
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Confirm your email to activate your account
