@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
-import { Home, Camera, CalendarDays, User, User2Icon, LogOut, Leaf, ChefHat, CreditCard } from 'lucide-react'
+import { Home, Camera, CalendarDays, User, User2Icon, LogOut, ChefHat, CreditCard } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

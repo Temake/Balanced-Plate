@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Utensils } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { ModeToggle } from '@/components/toggle';
 
 const Navbar: React.FC = () => {
