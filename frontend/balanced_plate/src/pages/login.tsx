@@ -81,7 +81,13 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <img src="/logo.png" className="mx-auto w-20 h-20 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+          <div className="flex justify-center mb-4">
+            <img
+              src="/logo.png"
+              className="block align-center mr-9 h-24 w-24 rounded-2xl object-contain"
+              alt="NutriLens Logo"
+            />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
           </h1>

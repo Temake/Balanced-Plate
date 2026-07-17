@@ -56,7 +56,9 @@ const ForgetPasswordPage = () => {
       <div className="max-w-md w-full">
         {/* Logo and Header */}
         <div className="text-center mb-8">
-          <img src="/logo.png" className="mx-auto w-20 h-20 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+          <div className="flex justify-center mb-4">
+          <img src="/logo.png" className="block align-center mr-9 mb-[0px] w-24 h-24 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
           </h1>
@@ -139,27 +141,6 @@ const ForgetPasswordPage = () => {
               Back to login
             </a>
           </p>
-        </div>
-
-        {/* Security Note */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 mb-4">
-            Secure Password Reset Process
-          </p>
-          <div className="flex justify-center space-x-6 text-xs text-gray-400">
-            <div className="flex items-center space-x-1">
-              <span className="text-emerald-600">🔒</span>
-              <span>Encrypted</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-emerald-600">⚡</span>
-              <span>Quick Process</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-emerald-600">✉️</span>
-              <span>Email Verification</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

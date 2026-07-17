@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
           <div className="flex flex-col items-center md:items-start max-w-md">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group mb-4">
-              <img src="/logo.png" className="w-10 h-10 rounded-xl object-contain transition-transform group-hover:scale-105 duration-200" alt="NutriLens Logo" />
+              <img src="/logo.png" className="w-20 h-20 rounded-xl object-contain transition-transform group-hover:scale-105 duration-200" alt="NutriLens Logo" />
               <div className="flex flex-col text-left">
                 <span className="text-xl font-bold text-white tracking-tight">
                   NutriLens

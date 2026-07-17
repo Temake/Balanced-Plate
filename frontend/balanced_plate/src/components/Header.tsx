@@ -54,7 +54,7 @@ const Header: React.FC = () => {
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.png" className="h-6 w-6 object-contain rounded-md" alt="NutriLens Logo" />
+            <img src="/logo.png" className="h-10 w-10 object-contain rounded-md" alt="NutriLens Logo" />
             <span className="text-base font-bold tracking-tight text-gray-900 dark:text-white sm:text-lg">
               Nutri<span className="text-emerald-600 dark:text-emerald-400">Lens</span>
             </span>

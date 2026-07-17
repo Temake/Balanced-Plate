@@ -33,7 +33,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <img src="/logo.png" className="w-10 h-10 rounded-xl object-contain transition-all duration-300 group-hover:scale-105" alt="NutriLens Logo" />
+            <img src="/logo.png" className="w-20 h-20 rounded-xl object-contain transition-all duration-300 group-hover:scale-105" alt="NutriLens Logo" />
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 NutriLens
