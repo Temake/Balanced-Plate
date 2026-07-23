@@ -9,10 +9,28 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { loadCurrentUser, setAuthStatus, user } = useAuth();
-  const [status, setStatus] = useState<'loading' | 'ok' | 'redirect'>('loading');
   const location = useLocation();
 
+  // Initialize status synchronously to avoid redundant loading states or requests
+  const [status, setStatus] = useState<'loading' | 'ok' | 'redirect'>(() => {
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    const refresh = localStorage.getItem(REFRESH_TOKEN);
+
+    if (!access || !refresh) {
+      return 'redirect';
+    }
+
+    if (user) {
+      return 'ok';
+    }
+
+    return 'loading';
+  });
+
   useEffect(() => {
+    // If status is already ok or redirect, we do not need to do any async loading
+    if (status === 'ok' || status === 'redirect') return;
+
     const init = async () => {
       const access = localStorage.getItem(ACCESS_TOKEN);
       const refresh = localStorage.getItem(REFRESH_TOKEN);
@@ -38,7 +56,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     };
 
     init();
-  }, []);
+  }, [user, loadCurrentUser, setAuthStatus, status]);
 
   if (status === 'loading') {
     return (

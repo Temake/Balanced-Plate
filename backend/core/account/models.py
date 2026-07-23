@@ -203,10 +203,10 @@ class UserSession(BaseModelMixin):
         related_name="sessions",
         null=False
     )
-    refresh = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    access = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    refresh = models.TextField(unique=True, null=True, blank=True)
+    access = models.TextField(unique=True, null=True, blank=True)
     ip_address = models.CharField(max_length=255, null=True, blank=True)
-    user_agent = models.CharField(max_length=255, null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
     last_activity = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
