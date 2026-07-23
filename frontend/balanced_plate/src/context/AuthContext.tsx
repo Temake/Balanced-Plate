@@ -4,6 +4,54 @@ import api from "../api/axios";
 import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse, OnboardingData } from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+  if (typeof error === 'object' && error && 'response' in error) {
+    const response = (error as { response?: { data?: any } }).response;
+    const data = response?.data;
+    if (data) {
+      // 1. If message is a string
+      if (typeof data.message === 'string') {
+        return data.message;
+      }
+      
+      // 2. If message is an object (like a dict of field errors)
+      if (data.message && typeof data.message === 'object') {
+        const msgObj = data.message;
+        const fieldError = msgObj.email || msgObj.password || msgObj.phone_number || msgObj.detail || msgObj.message;
+        if (fieldError) {
+          return Array.isArray(fieldError) ? fieldError[0] : String(fieldError);
+        }
+        // Fallback to the first available key in the message object
+        const firstKey = Object.keys(msgObj)[0];
+        if (firstKey) {
+          const val = msgObj[firstKey];
+          return Array.isArray(val) ? val[0] : String(val);
+        }
+      }
+
+      // 3. If detail is a string
+      if (typeof data.detail === 'string') {
+        return data.detail;
+      }
+
+      // 4. If errors object is present (e.g. QuerySetException)
+      if (data.errors && typeof data.errors === 'object') {
+        const firstErrorKey = Object.keys(data.errors)[0];
+        const firstError = data.errors[firstErrorKey];
+        return Array.isArray(firstError) ? firstError[0] : String(firstError);
+      }
+
+      // 5. If data itself is a dictionary of field errors
+      const firstKey = Object.keys(data)[0];
+      if (firstKey && firstKey !== 'status') {
+        const val = data[firstKey];
+        return Array.isArray(val) ? val[0] : String(val);
+      }
+    }
+  }
+  return error instanceof Error ? error.message : defaultMessage;
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -49,15 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return response.data;
     } catch (error: unknown) {
-      let errorMessage = 'Login failed. Please try again.';
-      
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
-        
-      }
-      
-      
+      const errorMessage = getErrorMessage(error, 'Login failed. Please try again.');
       setError(errorMessage);
       setIsAuthenticated(false);
       throw new Error(errorMessage);
@@ -81,23 +121,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('SignUp failed');
       }
     } catch (error: unknown) {
-      let errorMessage = 'SignUp failed. Please try again.';
-
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string | {phone_number?: string | string[]; password?: string | string[]; email?: string | string[]} } } }).response;
-        const message = response?.data?.message;
-        if (typeof message === 'string') {
-          errorMessage = message;
-        } else if (message) {
-          const fieldError = message.phone_number || message.password || message.email;
-          errorMessage = Array.isArray(fieldError) ? fieldError[0] : fieldError || errorMessage;
-        } else {
-          errorMessage = response?.data?.detail || errorMessage;
-        }
-      }
+      const errorMessage = getErrorMessage(error, 'SignUp failed. Please try again.');
       setError(errorMessage);
       setIsAuthenticated(false);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -112,13 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const msg: string = response.data?.message ||'OTP sent to your email.';
       return msg;
     } catch (error: unknown) {
-      let errorMessage = 'Failed to send password reset email. Please try again.';
-
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
-      }
-
+      const errorMessage = getErrorMessage(error, 'Failed to send password reset email. Please try again.');
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -135,13 +156,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const msg: string = response.data?.message || 'OTP verified.';
       return msg;
     } catch (error: unknown) {
-      let errorMessage = 'Failed to verify OTP. Please try again.';
-
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { message?: string } } }).response;
-        errorMessage = response?.data?.message || errorMessage;
-      }
-
+      const errorMessage = getErrorMessage(error, 'Failed to verify OTP. Please try again.');
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -161,13 +176,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const msg: string = response.data?.message || 'Email verified successfully.';
       return msg;
     } catch (error: unknown) {
-      let errorMessage = 'Failed to verify your account. Please try again.';
-
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
-      }
-
+      const errorMessage = getErrorMessage(error, 'Failed to verify your account. Please try again.');
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -187,13 +196,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const msg: string = response.data?.message || 'Verification OTP sent to your email.';
       return msg;
     } catch (error: unknown) {
-      let errorMessage = 'Failed to resend verification code. Please try again.';
-
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
-      }
-
+      const errorMessage = getErrorMessage(error, 'Failed to resend verification code. Please try again.');
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -213,11 +216,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const msg: string = response.data?.message || 'Password changed successfully';
       return msg;
     } catch (error: unknown) {
-      let errorMessage = 'Failed to reset password. Please try again.';
-      if (typeof error === 'object' && error && 'response' in error) {
-        const resp = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = resp?.data?.message || resp?.data?.detail || errorMessage;
-      }
+      const errorMessage = getErrorMessage(error, 'Failed to reset password. Please try again.');
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -256,13 +255,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       setUser(response.data);
     } catch (error: unknown) {
-      let errorMessage = 'Failed to save preferences. Please try again.';
-      if (typeof error === 'object' && error && 'response' in error) {
-        const response = (error as { response?: { data?: { detail?: string; message?: string } } }).response;
-        errorMessage = response?.data?.message || response?.data?.detail || errorMessage;
-      }
+      const errorMessage = getErrorMessage(error, 'Failed to save preferences. Please try again.');
       setError(errorMessage);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }

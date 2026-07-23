@@ -34,7 +34,16 @@ const addSubscriber = (cb: (token: string) => void) => {
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(ACCESS_TOKEN);
-  if (token) {
+  
+  // Exclude guest-only auth endpoints to avoid IsGuestUser permission blocks
+  const isPublicAuth = 
+    config.url?.includes('/auth/login') ||
+    config.url?.includes('/auth/signup') ||
+    config.url?.includes('/auth/email/verify') ||
+    config.url?.includes('/auth/otp/verify') ||
+    (config.url === '/accounts/' && config.method?.toLowerCase() === 'post');
+
+  if (token && !isPublicAuth) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
