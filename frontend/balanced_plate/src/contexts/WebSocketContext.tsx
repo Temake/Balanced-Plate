@@ -14,7 +14,8 @@ import type {
 // Get WebSocket URL from environment or construct from current location
 const getWebSocketUrl = (): string => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = import.meta.env.VITE_WS_HOST || window.location.host;
+  let host = import.meta.env.VITE_WS_HOST || window.location.host;
+  host = host.replace(/^https?:\/\//, '');
   return `${protocol}//${host}/ws/notifications/`;
 };
 
