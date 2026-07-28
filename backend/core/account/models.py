@@ -78,7 +78,7 @@ class AccountManager(BaseUserManager):
 
 
 class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
-    """Default account profiles for Balanced Plate backend"""
+    """Default account profiles for NutriLens backend"""
 
     first_name = models.CharField(
         _("First Name"), null=False, blank=False, max_length=255

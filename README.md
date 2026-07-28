@@ -1,8 +1,8 @@
-# 🥗 Balanced Plate.AI
+# 🥗 NutriLens.AI
 
 <div align="center">
 
-![Balanced Plate Logo](https://img.shields.io/badge/Balanced%20Plate-AI%20Powered%20Nutrition-green?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTMgMmgxOHY4YTEwIDEwIDAgMCAxLTIwIDB6Ii8+PHBhdGggZD0iTTMgMmgxOHY4YTEwIDEwIDAgMCAxLTIwIDB6Ii8+PC9zdmc+)
+![NutriLens Logo](https://img.shields.io/badge/NutriLens-AI%20Powered%20Nutrition-green?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTMgMmgxOHY4YTEwIDEwIDAgMCAxLTIwIDB6Ii8+PHBhdGggZD0iTTMgMmgxOHY4YTEwIDEwIDAgMCAxLTIwIDB6Ii8+PC9zdmc+)
 
 **Transform your eating habits with AI-powered nutrition analysis**
 
@@ -20,9 +20,9 @@
 
 ## 📖 Overview
 
-**Balanced Plate.AI** is a comprehensive nutrition tracking application that leverages Google's Gemini AI to analyze food images and provide detailed nutritional insights. Simply snap a photo of your meal, and our AI instantly identifies food items, calculates nutritional content, and provides personalized recommendations for a healthier lifestyle.
+**NutriLens.AI** is a comprehensive nutrition tracking application that leverages Google's Gemini AI to analyze food images and provide detailed nutritional insights. Simply snap a photo of your meal, and our AI instantly identifies food items, calculates nutritional content, and provides personalized recommendations for a healthier lifestyle.
 
-### Why Balanced Plate?
+### Why NutriLens?
 
 - 🎯 **Accurate AI Analysis** - Powered by Google Gemini Vision for precise food recognition
 - ⚡ **Instant Results** - Get nutritional breakdown in seconds
@@ -412,6 +412,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for healthier lives**
 
-[⬆ Back to Top](#-balanced-plateai)
+[⬆ Back to Top](#-nutrilensai)
 
 </div>

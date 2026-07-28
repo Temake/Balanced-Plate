@@ -1,5 +1,5 @@
 """
-ASGI config for Balanced Plate project.
+ASGI config for NutriLens project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

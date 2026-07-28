@@ -33,7 +33,7 @@ class EmailClient:
         resend.api_key = settings.RESEND_API_KEY
         try:
             params = {
-                "from": "Balancedplate <{sender}>".format(sender=self.sender),
+                "from": "NutriLens <{sender}>".format(sender=self.sender),
                 "to": [self.receiver_email],
                 "subject": self.subject,
                 "html": mail_body,

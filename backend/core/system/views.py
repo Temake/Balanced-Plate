@@ -13,7 +13,7 @@ from core.utils import permissions
 def root(request):
     return JsonResponse(
         {
-            "message": "Welcome to Balanced Plate AI Your AI-powered nutrition companion",
+            "message": "Welcome to NutriLens AI Your AI-powered nutrition companion",
             "status": "ok",
         }
     )

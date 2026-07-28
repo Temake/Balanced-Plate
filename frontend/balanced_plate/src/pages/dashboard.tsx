@@ -12,7 +12,6 @@ import type { DateRange } from "@/components/dashboard";
 import { useNutritionAnalytics } from "@/hooks/useNutritionAnalytics";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import PaywallPrompt from "@/components/billing/PaywallPrompt";
 import type { FoodAnalysis } from "@/api/types";
 import {
   ArrowRight,
@@ -114,7 +113,7 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [showDetails, setShowDetails] = useState(false);
-  const { data, isLoading, error, isReportsPaymentRequired, refetch } = useNutritionAnalytics(dateRange);
+  const { data, isLoading, error, refetch } = useNutritionAnalytics(dateRange);
 
   const recentAnalyses = data?.recentAnalyses ?? [];
   const recentMeals = recentAnalyses.slice(0, 3);
@@ -279,22 +278,17 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
+        {/* No paywall here by design. A free account simply gets its scan-based nudges;
+            a paid account additionally gets weekly report recommendations folded in. */}
         <section className="mb-5">
-          {isReportsPaymentRequired && !data?.recommendations?.length ? (
-            <PaywallPrompt
-              title="Weekly reports are a paid feature"
-              message="Your analytics stay free. Upgrade to Plus or Pro for weekly recommendations and your full health report."
+          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
+            <RecommendationsPanel
+              recommendations={data?.recommendations}
+              isLoading={isLoading}
+              timeFilter={dateRange}
+              onTimeFilterChange={setDateRange}
             />
-          ) : (
-            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
-              <RecommendationsPanel
-                recommendations={data?.recommendations}
-                isLoading={isLoading}
-                timeFilter={dateRange}
-                onTimeFilterChange={setDateRange}
-              />
-            </ErrorBoundary>
-          )}
+          </ErrorBoundary>
         </section>
 
         {showDetails && (

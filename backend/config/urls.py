@@ -1,5 +1,5 @@
 """
-URL configuration for balanced plate backend.
+URL configuration for NutriLens backend.
 
 """
 

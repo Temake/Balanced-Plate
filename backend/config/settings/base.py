@@ -188,7 +188,7 @@ REST_FRAMEWORK = {
 
 # Schema Spectacular Generator
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Balanced-Plate API",
+    "TITLE": "NutriLens API",
     "DESCRIPTION": "AI platform for healthy feeding",
     "VERSION": f"V{API_VERSION}",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -200,9 +200,9 @@ SPECTACULAR_SETTINGS = {
 
 
 UNFOLD = {
-    "SITE_TITLE": "Balanced-Plate Backend",
+    "SITE_TITLE": "NutriLens Backend",
     "SITE_DESCRIPTION": "AI platform for healthy feeding",
-    "SITE_HEADER": "Balanced-Plate",
+    "SITE_HEADER": "NutriLens",
     "SHOW_HISTORY": True,
     "SIDEBAR": {
         "show_search": True,

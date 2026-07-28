@@ -120,7 +120,7 @@ const OnboardingPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
-            Balanced<span className="text-emerald-600 dark:text-emerald-400"> Plate</span>
+            Nutri<span className="text-emerald-600 dark:text-emerald-400">Lens</span>
           </span>
         </div>
 
