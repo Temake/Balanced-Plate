@@ -205,6 +205,11 @@ class PaystackWebhook(views.APIView):
     )
     def post(self, request):
         signature = request.headers.get("x-paystack-signature")
+        # `request.body` MUST be read before `request.data`. DRF's JSON parser consumes
+        # the underlying stream directly, after which Django refuses to hand back the
+        # raw body (RawPostDataException) — and the raw body is what the signature is
+        # computed over. Touching it first caches it for both readers.
+        raw_body = request.body
         payload = request.data
         if not isinstance(payload, dict):
             raise exceptions.CustomException(
@@ -213,7 +218,7 @@ class PaystackWebhook(views.APIView):
             )
 
         record_and_process_webhook(
-            raw_body=request.body,
+            raw_body=raw_body,
             payload=payload,
             signature=signature,
         )

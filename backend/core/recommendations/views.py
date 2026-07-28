@@ -14,6 +14,12 @@ from core.utils.permissions import IsObjectOwner
 from core.billing.entitlements import require_paid_access
 
 
+# Analytics stays free for every account; the generated weekly reports are the paid feature.
+REPORTS_PAID_ACCESS_MESSAGE = (
+    "Weekly reports require an active Plus or Pro subscription."
+)
+
+
 @extend_schema(tags=["Recommendations"])
 class ListRecommendation(PaginationMixin, views.APIView):
     http_method_names = ["get"]
@@ -23,7 +29,7 @@ class ListRecommendation(PaginationMixin, views.APIView):
         responses={200: WeeklyRecommendationSerializer.RecommendationList(many=True)}
     )
     def get(self, request):
-        # require_paid_access(request.user)
+        require_paid_access(request.user, message=REPORTS_PAID_ACCESS_MESSAGE)
         queryset = WeeklyRecommendation.objects.filter(
             owner=request.user
         ).order_by("-week_start_date")
@@ -52,7 +58,7 @@ class RetrieveRecommendation(views.APIView):
         responses={200: WeeklyRecommendationSerializer.RecommendationDetails}
     )
     def get(self, request, pk):
-        # require_paid_access(request.user)
+        require_paid_access(request.user, message=REPORTS_PAID_ACCESS_MESSAGE)
         try:
             recommendation = WeeklyRecommendation.objects.get(id=pk)
             self.check_object_permissions(request, recommendation)
@@ -80,7 +86,7 @@ class ReadRecommendation(views.APIView):
         responses={200: None}
     )
     def post(self, request, pk):
-        # require_paid_access(request.user)
+        require_paid_access(request.user, message=REPORTS_PAID_ACCESS_MESSAGE)
         try:
             recommendation = WeeklyRecommendation.objects.get(id=pk)
             self.check_object_permissions(request, recommendation)

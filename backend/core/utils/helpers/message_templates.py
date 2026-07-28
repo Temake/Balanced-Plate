@@ -57,6 +57,16 @@ class MessageTemplates:
         """
 
     @staticmethod
+    def subscription_expired(plan_name: str):
+        return f"""
+            <p>
+                Your Balanced Plate {plan_name} subscription period has ended and we
+                did not receive a renewal payment. Paid features are now paused.
+                Renew from the billing page to pick up where you left off.
+            </p>
+        """
+
+    @staticmethod
     def subscription_grace_expired(plan_name: str):
         return f"""
             <p>

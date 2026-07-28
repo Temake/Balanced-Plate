@@ -155,10 +155,13 @@ class Subscription(BaseModelMixin):
 
     @property
     def is_paid_access_active(self):
+        now = timezone.now()
         if self.status == SubscriptionStatus.ACTIVE:
-            return True
+            # A missing period end means the subscription was granted out of band
+            # (e.g. from the admin), so it is treated as open ended.
+            return self.current_period_end is None or now <= self.current_period_end
         if self.status == SubscriptionStatus.GRACE and self.grace_ends_at:
-            return timezone.now() <= self.grace_ends_at
+            return now <= self.grace_ends_at
         return False
 
     def __str__(self):

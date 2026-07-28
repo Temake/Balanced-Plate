@@ -17,7 +17,9 @@ from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 from core.utils.helpers import analytics
 from core.utils import exceptions
-from core.billing.entitlements import require_paid_access
+
+# Analytics is free for every account. Only the generated reports
+# (weekly recommendations / health report) sit behind a subscription.
 
 
 def get_date_range_from_filter(date_range: str):
@@ -81,7 +83,6 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="food-group-grams")
     def food_classes(self, request, pk):
         """Returns grams of foods per food group."""
-        # require_paid_access(request.user)
         if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
@@ -107,7 +108,6 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="food-group-percentage")
     def distribution(self, request, pk):
         """Returns percentage distribution of food groups."""
-        # require_paid_access(request.user)
         if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
@@ -132,7 +132,6 @@ class NutritionAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="daily-balance-score")
     def balance_score(self, request, pk):
         """Returns balance scores for each day of the current week."""
-        # require_paid_access(request.user)
         if request.user.id != int(pk):
             logger.error("Permission Denied")
             raise exceptions.CustomException(
@@ -161,8 +160,6 @@ class MicronutrientsAnalyticsView(views.APIView):
 		responses={200: MicronutrientsAnalyticsSerializer},
 	)
 	def get(self, request):
-		# require_paid_access(request.user)
-
 		helper = analytics.UserDashboardAnalyticsHelper(request.user)
 		result = helper.get_current_day_micronutrient_percentages()
 		return response.Response(result, status=status.HTTP_200_OK)
@@ -177,7 +174,6 @@ class MealTimingAnalyticsView(views.APIView):
 		responses={200: HourlyCaloriesSerializer},
 	)
 	def get(self, request):
-		# require_paid_access(request.user)
 		date_range = request.query_params.get('range', 'today')
 		start_date, end_date = get_date_range_from_filter(date_range)
 		

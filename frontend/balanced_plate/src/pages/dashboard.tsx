@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [showDetails, setShowDetails] = useState(false);
-  const { data, isLoading, error, isPaymentRequired, refetch } = useNutritionAnalytics(dateRange);
+  const { data, isLoading, error, isReportsPaymentRequired, refetch } = useNutritionAnalytics(dateRange);
 
   const recentAnalyses = data?.recentAnalyses ?? [];
   const recentMeals = recentAnalyses.slice(0, 3);
@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {error && !isPaymentRequired && (
+        {error && (
           <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
             {error} - showing cached or default data where available.
           </div>
@@ -280,14 +280,21 @@ const Dashboard: React.FC = () => {
         </section>
 
         <section className="mb-5">
-          <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
-            <RecommendationsPanel
-              recommendations={data?.recommendations}
-              isLoading={isLoading}
-              timeFilter={dateRange}
-              onTimeFilterChange={setDateRange}
+          {isReportsPaymentRequired && !data?.recommendations?.length ? (
+            <PaywallPrompt
+              title="Weekly reports are a paid feature"
+              message="Your analytics stay free. Upgrade to Plus or Pro for weekly recommendations and your full health report."
             />
-          </ErrorBoundary>
+          ) : (
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load recommendations" />}>
+              <RecommendationsPanel
+                recommendations={data?.recommendations}
+                isLoading={isLoading}
+                timeFilter={dateRange}
+                onTimeFilterChange={setDateRange}
+              />
+            </ErrorBoundary>
+          )}
         </section>
 
         {showDetails && (
@@ -302,32 +309,23 @@ const Dashboard: React.FC = () => {
               <DateRangeFilter value={dateRange} onChange={setDateRange} />
             </div>
 
-            {isPaymentRequired ? (
-              <PaywallPrompt
-                title="Detailed analytics are a paid feature"
-                message="Upgrade to Plus or Pro to unlock food group trends, balance scores, meal timing, and health insights."
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load nutrition summary" />}>
+              <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
+            </ErrorBoundary>
+
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load analytics" onRetry={refetch} />}>
+              <AnalyticsSection
+                foodData={data?.foodGroups}
+                weeklyBalance={data?.weeklyBalance}
+                mealTiming={data?.mealTiming}
+                timingRecommendations={data?.timingRecommendations}
+                isLoading={isLoading}
               />
-            ) : (
-              <>
-                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load nutrition summary" />}>
-                  <NutritionSummaryCards data={data?.summary} isLoading={isLoading} />
-                </ErrorBoundary>
+            </ErrorBoundary>
 
-                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load analytics" onRetry={refetch} />}>
-                  <AnalyticsSection
-                    foodData={data?.foodGroups}
-                    weeklyBalance={data?.weeklyBalance}
-                    mealTiming={data?.mealTiming}
-                    timingRecommendations={data?.timingRecommendations}
-                    isLoading={isLoading}
-                  />
-                </ErrorBoundary>
-
-                <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
-                  <HealthInsights weeklyScore={data?.weeklyScore} isLoading={isLoading} />
-                </ErrorBoundary>
-              </>
-            )}
+            <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load health insights" />}>
+              <HealthInsights weeklyScore={data?.weeklyScore} isLoading={isLoading} />
+            </ErrorBoundary>
           </section>
         )}
       </main>

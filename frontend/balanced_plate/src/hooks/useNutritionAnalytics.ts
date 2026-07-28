@@ -500,6 +500,8 @@ export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
     gcTime: 30 * 60 * 1000,
   });
 
+  // The only paid query in this hook. Free accounts get a 402 here and still see
+  // every chart below, so its failure is kept out of the shared error state.
   const weeklyRecsQuery = useQuery({
     queryKey: queryKeys.nutrition.recommendations(userId, 5),
     queryFn: async () => {
@@ -511,6 +513,7 @@ export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
     enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
+    retry: (failureCount, error) => !isPaymentRequiredError(error) && failureCount < 1,
   });
 
   const data = buildAnalyticsData(
@@ -531,25 +534,26 @@ export const useNutritionAnalytics = (dateRange: DateRange = 'week') => {
     analysesQuery.isLoading ||
     weeklyRecsQuery.isLoading;
 
+  // Analytics is free, so only the free queries feed the dashboard error banner.
+  // A recommendations failure is reported separately and must never gate the charts.
   const error =
     foodGroupsQuery.error ||
     distributionQuery.error ||
     balanceScoreQuery.error ||
     mealTimingQuery.error ||
-    analysesQuery.error ||
-    weeklyRecsQuery.error;
+    analysesQuery.error;
 
   const refetch = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.foodAnalyses.all });
   };
 
-  return { 
+  return {
     data: enabled ? data : null,
     isLoading,
     error: error?.message || null,
-    isPaymentRequired: isPaymentRequiredError(error),
-    refetch 
+    isReportsPaymentRequired: isPaymentRequiredError(weeklyRecsQuery.error),
+    refetch
   };
 };
 

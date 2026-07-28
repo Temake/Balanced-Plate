@@ -320,6 +320,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=0),
         "options": {"queue": "email-notification"},
     },
+    "expire-lapsed-subscriptions": {
+        "task": "core.billing.tasks.expire_lapsed_subscriptions",
+        "schedule": crontab(minute=15),
+        "options": {"queue": "email-notification"},
+    },
 }
 
 

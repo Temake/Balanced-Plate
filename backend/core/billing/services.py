@@ -356,6 +356,13 @@ def apply_successful_payment(data, transaction_obj=None):
             reference=reference
         ).first()
 
+    if transaction_obj and transaction_obj.status == PaymentStatus.SUCCESS:
+        # Already applied. Replaying a reference (an old callback URL, a duplicate
+        # webhook, a manual re-verify) must not grant another period of access.
+        return transaction_obj.subscription or get_or_create_user_subscription(
+            transaction_obj.owner
+        )
+
     plan = get_plan_from_paystack_payload(data, fallback_plan=getattr(transaction_obj, "plan", None))
     user = resolve_user_from_paystack_data(data, transaction_obj=transaction_obj)
 
@@ -401,9 +408,8 @@ def apply_successful_payment(data, transaction_obj=None):
     return subscription
 
 
-@transaction.atomic
 def verify_payment(reference, user):
-    payment = PaymentTransaction.objects.select_for_update().filter(
+    payment = PaymentTransaction.objects.filter(
         reference=reference,
         owner=user,
     ).first()
@@ -413,20 +419,29 @@ def verify_payment(reference, user):
             message="Payment transaction not found.",
         )
 
+    # Deliberately outside a transaction: a slow Paystack response should not hold a
+    # row lock open, and a failed verification needs its status to survive the raise.
     paystack_response = PaystackClient().verify_transaction(reference)
     data = paystack_response.get("data", {})
     paystack_status = data.get("status")
-    payment.status = normalize_payment_status(paystack_status)
-    payment.raw_response = paystack_response
-    payment.save(update_fields=["status", "raw_response", "date_last_modified"])
 
     if paystack_status != PAYSTACK_SUCCESS_STATUS:
+        PaymentTransaction.objects.filter(pk=payment.pk).update(
+            status=normalize_payment_status(paystack_status),
+            raw_response=paystack_response,
+            date_last_modified=timezone.now(),
+        )
         raise exceptions.CustomException(
             status_code=status.HTTP_400_BAD_REQUEST,
             message="Payment has not been completed successfully.",
         )
 
-    return apply_successful_payment(data, transaction_obj=payment)
+    with transaction.atomic():
+        payment = PaymentTransaction.objects.select_for_update().get(pk=payment.pk)
+        if payment.status == PaymentStatus.SUCCESS:
+            # Re-verifying an already applied reference is a no-op, not a new period.
+            return payment.subscription or get_or_create_user_subscription(user)
+        return apply_successful_payment(data, transaction_obj=payment)
 
 
 @transaction.atomic

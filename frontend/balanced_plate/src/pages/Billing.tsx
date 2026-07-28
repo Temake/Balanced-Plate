@@ -16,7 +16,7 @@ const fallbackPlans: BillingPlan[] = [
   {
     key: 'free',
     name: 'Free',
-    description: 'Unlimited photo analysis, manual planning, and basic app access.',
+    description: 'Unlimited photo analysis, detailed analytics, and manual planning.',
     price_kobo: 0,
     price_naira: 0,
     currency: 'NGN',
@@ -30,7 +30,7 @@ const fallbackPlans: BillingPlan[] = [
   {
     key: 'plus',
     name: 'Plus',
-    description: 'Analytics, reports, AI meal planning, and AI cooking guide.',
+    description: 'Weekly reports, AI meal planning, and AI cooking guide.',
     price_kobo: 240000,
     price_naira: 2400,
     currency: 'NGN',
@@ -58,8 +58,9 @@ const fallbackPlans: BillingPlan[] = [
 ] ;
 
 const planFeatures = (plan: BillingPlan) => {
-  const features = ['Unlimited photo food analysis', 'Manual meal planning'];
-  if (plan.analytics_enabled) features.push('Detailed analytics');
+  // Detailed analytics is free on every plan, so it is listed unconditionally and
+  // `analytics_enabled` is deliberately not read here.
+  const features = ['Unlimited photo food analysis', 'Manual meal planning', 'Detailed analytics'];
   if (plan.reports_enabled) features.push('Weekly health reports');
   if (plan.ai_planning_enabled) features.push('AI meal planning');
   if (plan.ai_cooking_enabled) features.push('AI cooking guide');

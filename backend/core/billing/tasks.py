@@ -51,6 +51,21 @@ def send_subscription_grace_expired_email(subscription_id):
 
 
 @shared_task(queue="email-notification")
+def send_subscription_expired_email(subscription_id):
+    subscription = (
+        Subscription.objects.select_related("owner", "plan")
+        .filter(id=subscription_id)
+        .first()
+    )
+    if not subscription:
+        return {"sent": False, "reason": "subscription_not_found"}
+
+    message = mailer.MessageTemplates.subscription_expired(subscription.plan.name)
+    _send_subscription_email(subscription, "Subscription Expired", message)
+    return {"sent": True, "subscription_id": subscription.id}
+
+
+@shared_task(queue="email-notification")
 def send_subscription_renewal_reminders():
     now = timezone.now()
     today = timezone.localdate()
@@ -86,6 +101,31 @@ def send_subscription_renewal_reminders():
 
     logger.info(f"Subscription renewal reminders sent. 7d={sent_7d}, 1d={sent_1d}")
     return {"sent_7d": sent_7d, "sent_1d": sent_1d}
+
+
+@shared_task(queue="email-notification")
+def expire_lapsed_subscriptions():
+    """Demote ACTIVE subscriptions whose paid period has ended.
+
+    Paystack renewal events extend `current_period_end`; if a renewal never lands
+    (failed card, cancelled plan, missed webhook) nothing else moves the row out of
+    ACTIVE, which would leave paid access switched on indefinitely.
+    """
+    now = timezone.now()
+    subscriptions = Subscription.objects.select_related("owner", "plan").filter(
+        status=SubscriptionStatus.ACTIVE,
+        current_period_end__isnull=False,
+        current_period_end__lte=now,
+    )
+    expired_count = 0
+    for subscription in subscriptions:
+        subscription.status = SubscriptionStatus.EXPIRED
+        subscription.save(update_fields=["status", "date_last_modified"])
+        send_subscription_expired_email.delay(subscription.id)
+        expired_count += 1
+
+    logger.info(f"Expired lapsed subscriptions: {expired_count}")
+    return {"expired_count": expired_count}
 
 
 @shared_task(queue="email-notification")
