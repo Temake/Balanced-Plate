@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from core.utils.mixins import PaginationMixin
 from core.utils.exceptions import exceptions
 from core.billing.entitlements import (
-    record_ai_generation_usage,
-    require_ai_generation_available,
+    finalize_ai_generation_usage,
+    release_ai_generation_credit,
+    reserve_ai_generation_credit,
 )
 from core.billing.models import AIFeatureType
 
@@ -101,7 +102,6 @@ class GenerateAIMealPlan(views.APIView):
         responses={201: MealPlanSerializer.Detail},
     )
     def post(self, request):
-        require_ai_generation_available(request.user, AIFeatureType.MEAL_PLAN)
         serializer = GenerateAIPlanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -115,6 +115,11 @@ class GenerateAIMealPlan(views.APIView):
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),
         }
+
+        # Consumed up front, under lock, so parallel requests cannot all clear the same
+        # remaining balance; refunded below if generation fails. This has to happen
+        # before the existing week is cleared, or an out-of-credit user loses their plan.
+        reservation = reserve_ai_generation_credit(user, AIFeatureType.MEAL_PLAN)
 
         # Get or create the meal plan for this week
         meal_plan, created = MealPlan.objects.get_or_create(
@@ -130,11 +135,15 @@ class GenerateAIMealPlan(views.APIView):
             meal_plan.entries.all().delete()
 
         # Generate the meal plan via AI service
-        result, is_mock = meal_plan_service.generate_meal_plan(
-            user_profile=user_profile,
-            week_start_date=week_start_date,
-            budget_level=budget_level,
-        )
+        try:
+            result, is_mock = meal_plan_service.generate_meal_plan(
+                user_profile=user_profile,
+                week_start_date=week_start_date,
+                budget_level=budget_level,
+            )
+        except Exception:
+            release_ai_generation_credit(reservation)
+            raise
 
         meal_plan.is_ai_generated = True
         meal_plan.save(update_fields=["is_ai_generated"])
@@ -156,9 +165,8 @@ class GenerateAIMealPlan(views.APIView):
                 )
             )
         MealEntry.objects.bulk_create(entries)
-        record_ai_generation_usage(
-            request.user,
-            AIFeatureType.MEAL_PLAN,
+        finalize_ai_generation_usage(
+            reservation,
             metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
         )
         logger.info(
@@ -183,7 +191,6 @@ class GenerateAIDayMealPlan(views.APIView):
         responses={201: MealPlanSerializer.Detail},
     )
     def post(self, request):
-        require_ai_generation_available(request.user, AIFeatureType.MEAL_PLAN_DAY)
         serializer = GenerateAIDayPlanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -198,6 +205,9 @@ class GenerateAIDayMealPlan(views.APIView):
             "health_conditions": getattr(user, "health_conditions", []),
         }
 
+        # Consumed up front, under lock, before the selected day is cleared below.
+        reservation = reserve_ai_generation_credit(user, AIFeatureType.MEAL_PLAN_DAY)
+
         meal_plan, created = MealPlan.objects.get_or_create(
             owner=user,
             week_start_date=week_start_date,
@@ -208,11 +218,15 @@ class GenerateAIDayMealPlan(views.APIView):
             meal_plan.budget_level = budget_level
             meal_plan.save(update_fields=["budget_level", "date_last_modified"])
 
-        result, is_mock = meal_plan_service.generate_meal_plan(
-            user_profile=user_profile,
-            week_start_date=week_start_date,
-            budget_level=budget_level,
-        )
+        try:
+            result, is_mock = meal_plan_service.generate_meal_plan(
+                user_profile=user_profile,
+                week_start_date=week_start_date,
+                budget_level=budget_level,
+            )
+        except Exception:
+            release_ai_generation_credit(reservation)
+            raise
 
         day_meals = [
             meal for meal in result.get("meals", [])
@@ -234,9 +248,8 @@ class GenerateAIDayMealPlan(views.APIView):
             for meal in day_meals
         ]
         MealEntry.objects.bulk_create(entries)
-        record_ai_generation_usage(
-            request.user,
-            AIFeatureType.MEAL_PLAN_DAY,
+        finalize_ai_generation_usage(
+            reservation,
             metadata={
                 "meal_plan_id": meal_plan.id,
                 "week_start_date": str(week_start_date),

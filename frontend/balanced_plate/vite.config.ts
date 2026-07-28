@@ -10,24 +10,43 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      // Without this the service worker and manifest are only emitted by `vite build`,
+      // so `npm run dev` can never satisfy the install criteria and no prompt appears.
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
       manifest: {
+        id: "/",
         name: "NutriLens",
         short_name: "NutriLens",
         description: "Your AI-powered food accountability partner. Scan your meals, get real talk about what you're eating, and build better habits.",
         theme_color: "#10b981",
         background_color: "#ffffff",
         display: "standalone",
+        orientation: "portrait",
+        scope: "/",
         start_url: "/",
         icons: [
           {
             src: "pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any",
           },
           {
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any",
+          },
+          // Android crops icons to its own shape; without a maskable entry it letterboxes
+          // the icon inside a white circle.
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },

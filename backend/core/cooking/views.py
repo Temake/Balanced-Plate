@@ -4,8 +4,9 @@ from rest_framework import response, status, views
 
 from core.utils.exceptions import exceptions
 from core.billing.entitlements import (
-    record_ai_generation_usage,
-    require_ai_generation_available,
+    finalize_ai_generation_usage,
+    release_ai_generation_credit,
+    reserve_ai_generation_credit,
 )
 from core.billing.models import AIFeatureType
 
@@ -65,7 +66,6 @@ class GenerateCookingGuide(views.APIView):
         },
     )
     def post(self, request):
-        require_ai_generation_available(request.user, AIFeatureType.COOKING_GUIDE)
         serializer = CookingGuideRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -75,35 +75,35 @@ class GenerateCookingGuide(views.APIView):
         dietary_preference = getattr(user, "dietary_preference", "none")
         health_conditions = getattr(user, "health_conditions", None)
 
+        # The credit is consumed up front, under lock, so parallel requests cannot all
+        # clear the same remaining balance. It is refunded below if generation fails.
+        reservation = reserve_ai_generation_credit(user, AIFeatureType.COOKING_GUIDE)
+
         try:
             result, is_mock = cooking_assistant_service.generate_cooking_guide(
                 dish_name=dish_name,
                 dietary_preference=dietary_preference,
                 health_conditions=health_conditions,
             )
-
-            logger.info(
-                f"Generated cooking guide for '{dish_name}' "
-                f"(user={user.id}, mock={is_mock})"
-            )
-            record_ai_generation_usage(
-                user,
-                AIFeatureType.COOKING_GUIDE,
-                metadata={"dish_name": dish_name},
-            )
-
-            return response.Response(
-                data={
-                    "message": "Cooking guide generated successfully",
-                    "is_mock": is_mock,
-                    "data": result,
-                },
-                status=status.HTTP_200_OK,
-            )
-
         except Exception as e:
+            release_ai_generation_credit(reservation)
             logger.error(f"Failed to generate cooking guide for '{dish_name}': {e}")
             raise exceptions.CustomException(
                 message="Failed to generate cooking guide. Please try again later.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        logger.info(
+            f"Generated cooking guide for '{dish_name}' "
+            f"(user={user.id}, mock={is_mock})"
+        )
+        finalize_ai_generation_usage(reservation, metadata={"dish_name": dish_name})
+
+        return response.Response(
+            data={
+                "message": "Cooking guide generated successfully",
+                "is_mock": is_mock,
+                "data": result,
+            },
+            status=status.HTTP_200_OK,
+        )

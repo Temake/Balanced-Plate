@@ -16,8 +16,15 @@ class IsGuestUser(BasePermission):
     
 
 class IsOTPVerified(BasePermission):
-    message  = "Permission Denied. Try again"
+    """Deprecated. Do not use for authorisation.
 
+    This trusts `?email=` from the caller to name the subject of the request, so it
+    only ever proved "somebody verified an OTP for this address", not "the caller is
+    that person". Password reset now authorises with the single use token from
+    `PasswordResetTokenHelpers` instead. Kept only so existing imports do not break.
+    """
+
+    message = "Permission Denied. Try again"
 
     def has_permission(self, request, view):
         email = request.query_params.get("email")

@@ -206,6 +206,11 @@ class PasswordResetSerializer:
         )
 
     class ResetPassword(serializers.Serializer):
+        reset_token = serializers.CharField(
+            write_only=True,
+            required=True,
+            help_text=_("Single use token returned when the reset OTP was verified")
+        )
         password = serializers.CharField(
             write_only=True,
             required=True,

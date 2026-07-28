@@ -4,6 +4,9 @@ import api from "../api/axios";
 import type { User, LoginCredentials, LoginResponse, AuthContextType, SignupCredentials, SignupResponse, OnboardingData } from '../api/types'
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
 
+// Short lived, single use, and scoped to the tab that verified the OTP.
+const PASSWORD_RESET_TOKEN_KEY = 'nutrilens_password_reset_token';
+
 const getErrorMessage = (error: unknown, defaultMessage: string): string => {
   if (typeof error === 'object' && error && 'response' in error) {
     const response = (error as { response?: { data?: any } }).response;
@@ -152,7 +155,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
 
     try {
-      const response = await api.post(`/auth/otp/verify/?email=${encodeURIComponent(email)}`, { otp: Number(otpCode) });
+      const response = await api.post('/auth/otp/verify/', { email, otp: Number(otpCode) });
+      // Single use token that authorises the password change. Held in sessionStorage so
+      // it survives the navigation to the reset screen but dies with the tab.
+      if (response.data?.reset_token) {
+        sessionStorage.setItem(PASSWORD_RESET_TOKEN_KEY, response.data.reset_token);
+      }
       const msg: string = response.data?.message || 'OTP verified.';
       return msg;
     } catch (error: unknown) {
@@ -204,15 +212,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const resetPassword = async (email: string, password: string, confirmPassword: string): Promise<string> => {
+  // `_email` is kept for call-site compatibility; the account is now resolved from the
+  // reset token server side, so the client no longer gets a say in it.
+  const resetPassword = async (_email: string, password: string, confirmPassword: string): Promise<string> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.patch(`/accounts/password/reset/?email=${encodeURIComponent(email)}`, {
+      // The backend resolves the account from this token, not from the email, so a
+      // request can no longer nominate whose password it changes.
+      const resetToken = sessionStorage.getItem(PASSWORD_RESET_TOKEN_KEY);
+      if (!resetToken) {
+        throw new Error('Your reset session has expired. Please request a new code.');
+      }
+      const response = await api.patch('/accounts/password/reset/', {
+        reset_token: resetToken,
         password,
         confirm_password: confirmPassword,
       });
+      sessionStorage.removeItem(PASSWORD_RESET_TOKEN_KEY);
       const msg: string = response.data?.message || 'Password changed successfully';
       return msg;
     } catch (error: unknown) {

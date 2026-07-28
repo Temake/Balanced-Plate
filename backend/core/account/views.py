@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 
-from rest_framework import status, response, views
+from rest_framework import status, response, throttling, views
 from rest_framework.decorators import (
     api_view, 
     permission_classes, 
@@ -12,10 +12,10 @@ from rest_framework.decorators import (
     authentication_classes
 )
 from rest_framework.generics import UpdateAPIView
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from core.account.models import Account, UserSession
 from core.account.serializers import (
@@ -27,7 +27,13 @@ from core.account.serializers import (
     EmailVerificationSerializer
 )
 from core.utils import exceptions, enums
-from core.utils.permissions import IsGuestUser, IsOTPVerified
+from core.utils.permissions import IsGuestUser
+
+
+# Returned whether or not the address belongs to an account. The old responses said
+# "invalid credentials" for unknown emails and succeeded for known ones, which turned
+# these endpoints into a free membership oracle.
+OTP_SENT_MESSAGE = "if an account exists for that email, an otp has been sent"
 from core.utils.helpers import  authenticators, message_templates as mailer
 from core.utils.tasks import mail as mail_tasks
 from config.celery.queue import CeleryQueue
@@ -123,6 +129,9 @@ class CompleteOnboarding(views.APIView):
 class Login(views.APIView):
     http_method_names = ['post']
     permission_classes = [IsGuestUser, ]
+    # Caps credential stuffing against this endpoint.
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "login"
 
 
     @extend_schema(
@@ -151,8 +160,6 @@ class Login(views.APIView):
                 authenticators.OTP_PURPOSE_SIGNUP,
                 settings.SIGNUP_OTP_TTL_SECONDS,
             )
-            print(otp)
-            
             message = mailer.MessageTemplates.signup_email_verification_email(otp)
             mail_tasks.send_email_to_address.apply_async(
                 (account.email, "Verify Your Email", message, account.first_name),
@@ -253,6 +260,8 @@ class TokenRefresh(views.APIView):
 class InitiatePasswordReset(views.APIView):
     http_method_names = ["post"]
     permission_classes = [IsGuestUser, ]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "otp_request"
 
     @extend_schema(
         auth=[],
@@ -264,8 +273,9 @@ class InitiatePasswordReset(views.APIView):
         serializer = PasswordResetSerializer.Initiate(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
-        try:
-            user = Account.objects.get(email=email)
+
+        user = Account.objects.filter(email=email).first()
+        if user:
             authenticators.OTPHelpers.clear_otp_verified(
                 email,
                 authenticators.OTP_PURPOSE_PASSWORD_RESET,
@@ -280,24 +290,28 @@ class InitiatePasswordReset(views.APIView):
                 (user.email, "Reset Your Password", message, user.first_name),
                 queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
             )
-            return response.Response(
-                data={"message": "otp sent to your email"}, status=status.HTTP_200_OK 
-            )
-        except Account.DoesNotExist:
-            raise exceptions.CustomException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message="invalid credentials"
-                )
+        else:
+            logger.info(f"password reset requested for unregistered email {email}")
+
+        # Same response either way, so the caller learns nothing about who has an account.
+        return response.Response(
+            data={"message": OTP_SENT_MESSAGE}, status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(tags=["Auth"])
 class FinalizePasswordReset(views.APIView):
     http_method_names = ["post"]
     permission_classes = [IsGuestUser, ]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "otp_verify"
 
     @extend_schema(
         auth=[],
-        description="endpoint that verifies password reset otp",
+        description=(
+            "endpoint that verifies password reset otp and returns the single use "
+            "reset_token required to change the password"
+        ),
         request=PasswordResetSerializer.Finalize,
         responses={200: None},
     )
@@ -306,94 +320,92 @@ class FinalizePasswordReset(views.APIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
         otp = serializer.validated_data["otp"]
-        try:
-            Account.objects.get(email=email)
-            if authenticators.OTPHelpers.verify_otp(
-                email,
-                authenticators.OTP_PURPOSE_PASSWORD_RESET,
-                settings.PASSWORD_RESET_OTP_TTL_SECONDS,
-                otp,
-            ):
-                authenticators.OTPHelpers.mark_otp_verified(
-                    email,
-                    authenticators.OTP_PURPOSE_PASSWORD_RESET,
-                )
-                return response.Response(
-                    data={"message": "otp verified"}, status=status.HTTP_200_OK
-                )
-            else:
-                raise exceptions.CustomException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        message="invalid or expired otp"
-                    )
-        except Account.DoesNotExist:
-            raise exceptions.CustomException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message="invalid credentials"
-                )
+
+        account_exists = Account.objects.filter(email=email).exists()
+        if account_exists and authenticators.OTPHelpers.verify_otp(
+            email,
+            authenticators.OTP_PURPOSE_PASSWORD_RESET,
+            settings.PASSWORD_RESET_OTP_TTL_SECONDS,
+            otp,
+        ):
+            reset_token = authenticators.PasswordResetTokenHelpers.issue(email)
+            return response.Response(
+                data={"message": "otp verified", "reset_token": reset_token},
+                status=status.HTTP_200_OK,
+            )
+
+        # One message for a wrong OTP and for an address with no account, so a failed
+        # attempt does not distinguish the two.
+        raise exceptions.CustomException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="invalid or expired otp",
+        )
     
 
 @extend_schema(tags=["Account"])
 class ChangePassword(UpdateAPIView):
-    authentication_classes = ([])
-    permission_classes = ([IsOTPVerified, ])
-    serializer_class = PasswordResetSerializer.ResetPassword
-    model = Account
+    """Completes a password reset.
 
-    def get_object(self, queryset=None): 
-        email = self.request.query_params.get('email')
-        if not email:
-            raise exceptions.CustomException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message="please add user's email"
-                )
-        else:
-            try:
-                obj = Account.objects.get(email=email)
-                return obj 
-            except Account.DoesNotExist:
-                raise exceptions.CustomException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message="invalid credentials"
-            )
+    The account is resolved from the single use `reset_token` issued by
+    FinalizePasswordReset, never from a caller supplied `?email=`. Previously the
+    request named its own subject and the only check was a Redis flag keyed on that
+    same email, so whoever could set or outlast that flag chose whose password changed.
+    """
+
+    authentication_classes = ([])
+    permission_classes = ([AllowAny, ])
+    serializer_class = PasswordResetSerializer.ResetPassword
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "otp_verify"
+    model = Account
 
     @extend_schema(
         auth=[],
-        parameters=[
-            OpenApiParameter(
-                name="email",
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description="email of the user resetting password",
-                required=True,
-            ),
-        ],
-        description="endpoint that verifies if the inputed otp is the same as the generated otp",
+        description="endpoint that sets a new password using a verified reset token",
         request=serializer_class,
         responses={200: None},
     )
     def update(self, request, *args, **kwargs):
-        user = self.get_object()
         serializer = self.serializer_class(data=request.data)
-
         serializer.is_valid(raise_exception=True)
+
         new_password = serializer.validated_data['password']
         confirm_password = serializer.validated_data['confirm_password']
-
         if confirm_password != new_password:
             raise exceptions.CustomException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message="passwords do not match"
             )
-        
+
+        # Consuming the token is what authorises this call, and it burns the token so
+        # one verified OTP can only ever change the password once.
+        email = authenticators.PasswordResetTokenHelpers.consume(
+            serializer.validated_data['reset_token']
+        )
+        if not email:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid or expired reset token"
+            )
+
+        user = Account.objects.filter(email=email).first()
+        if not user:
+            raise exceptions.CustomException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="invalid or expired reset token"
+            )
+
         user.password = make_password(new_password)
-        user.save()
+        user.save(update_fields=["password"])
         authenticators.OTPHelpers.clear_otp_verified(
             user.email,
             authenticators.OTP_PURPOSE_PASSWORD_RESET,
         )
+        # Every existing session is now stale; a reset should end them.
+        UserSession.objects.filter(user=user).delete()
+        logger.info(f"password reset completed for user {user.id}")
         return response.Response({
-            'message': 'password changed successfully!'}, 
+            'message': 'password changed successfully!'},
             status=status.HTTP_200_OK
         )
 
@@ -402,6 +414,8 @@ class ChangePassword(UpdateAPIView):
 class FinalizeEmailVerification(views.APIView):
     http_method_names = ["post"]
     permission_classes = [IsGuestUser, ]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "otp_verify"
 
     @extend_schema(
         auth=[],
@@ -451,6 +465,8 @@ class FinalizeEmailVerification(views.APIView):
 class ResendSignupOtp(views.APIView):
     http_method_names = ["post"]
     permission_classes = [IsGuestUser, ]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "otp_request"
 
     @extend_schema(
         auth=[],
@@ -464,21 +480,18 @@ class ResendSignupOtp(views.APIView):
         email = serializer.validated_data["email"]
         purpose = serializer.validated_data["purpose"]
 
-        try:
-            account = Account.objects.get(email=email)
-
+        account = Account.objects.filter(email=email).first()
+        # Unknown address and already-verified account both fall through to the same
+        # generic response below rather than confirming the account's state.
+        if account and not (
+            purpose == enums.OTPPurpose.SIGNUP.value and account.is_email_verified
+        ):
             if purpose == enums.OTPPurpose.SIGNUP.value:
-                if account.is_email_verified:
-                    raise exceptions.CustomException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        message="email already verified",
-                    )
                 otp = authenticators.OTPHelpers.cache_otp(
                     email,
                     authenticators.OTP_PURPOSE_SIGNUP,
                     settings.SIGNUP_OTP_TTL_SECONDS,
                 )
-                print(otp)
                 message = mailer.MessageTemplates.signup_email_verification_email(otp)
                 subject = "Verify Your Email"
             else:
@@ -494,12 +507,10 @@ class ResendSignupOtp(views.APIView):
                 (account.email, subject, message, account.first_name),
                 queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
             )
-            return response.Response(
-                data={"message": "verification otp sent to your email"},
-                status=status.HTTP_200_OK,
-            )
-        except Account.DoesNotExist:
-            raise exceptions.CustomException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message="invalid credentials",
-            )
+        else:
+            logger.info(f"otp resend skipped for {email}")
+
+        return response.Response(
+            data={"message": OTP_SENT_MESSAGE},
+            status=status.HTTP_200_OK,
+        )

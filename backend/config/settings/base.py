@@ -179,8 +179,21 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
-    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"anon": "50/minute"},
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "50/minute",
+        "user": "120/minute",
+        # Scoped rates for endpoints where an unlimited request loop is the attack.
+        # `otp_verify` is the important one: a 6 digit code is guessable in minutes
+        # at full speed, and the OTP is what authorises a password change.
+        "otp_verify": "10/hour",
+        "otp_request": "5/hour",
+        "login": "10/minute",
+        "payment_init": "10/hour",
+    },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.utils.exceptions.exceptions.custom_exception_handler",
 }

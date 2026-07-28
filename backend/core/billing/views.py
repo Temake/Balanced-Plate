@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views
+from rest_framework import permissions, response, status, throttling, views
 
 from core.utils.exceptions import exceptions
 
@@ -143,6 +143,10 @@ class RedeemDemoAccessInvite(views.APIView):
 @extend_schema(tags=["Billing"])
 class InitializeSubscriptionPayment(views.APIView):
     http_method_names = ["post"]
+    # Each call creates a PaymentTransaction row and hits Paystack; without a cap a
+    # single account can spam both.
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = "payment_init"
 
     @extend_schema(
         description="Initialize a Paystack subscription payment for a paid plan.",
@@ -196,6 +200,10 @@ class VerifySubscriptionPayment(views.APIView):
 class PaystackWebhook(views.APIView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]
+    # Explicitly exempt from the global anon throttle. Paystack delivers bursts and
+    # retries from its own IPs; a 429 here silently drops payment events. The HMAC
+    # signature check is what protects this endpoint.
+    throttle_classes = []
     http_method_names = ["post"]
 
     @extend_schema(

@@ -26,6 +26,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { FilesProvider } from "./context/FilesContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import ProtectedRoute from './components/ProtectedRoute';
+import InstallAppPrompt from './components/InstallAppPrompt';
 import { Toaster } from 'sonner';
 
 
@@ -47,6 +48,7 @@ function App() {
        <Suspense fallback={Loading}>
        <BrowserRouter>
         <Toaster position="top-right" richColors />
+        <InstallAppPrompt />
         <Routes>
           {/* Public Landing Page */}
           <Route path="/" element={<LandingPage/>}/>
