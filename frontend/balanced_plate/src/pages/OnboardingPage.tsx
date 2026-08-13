@@ -118,7 +118,11 @@ const OnboardingPage: React.FC = () => {
       {/* Top bar */}
       <div className="px-4 py-4 flex items-center justify-between max-w-lg mx-auto w-full">
         <div className="flex items-center gap-2">
-          <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          <img
+            src="/logo.png"
+            className="h-10 w-10 object-contain rounded-md"
+            alt="NutriLens Logo"
+          />
           <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">
             Nutri<span className="text-emerald-600 dark:text-emerald-400">Lens</span>
           </span>

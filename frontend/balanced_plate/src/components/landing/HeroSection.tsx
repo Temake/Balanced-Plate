@@ -40,21 +40,24 @@ const HeroSection: React.FC = () => {
           <div className="text-center lg:text-left">
 
 
-            {/* Headline */}
+            {/* Headline — leads with the outcome (eating well and staying well on the
+                food people already eat) rather than the technology. "With AI" was
+                describing our stack, not the reader's problem. */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight">
-              <span className="text-gray-900 dark:text-white">Transform Your</span>
+              <span className="text-gray-900 dark:text-white">Eat Well,</span>
               <br />
               <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                Daily Food Choices
+                Stay Well
               </span>
               <br />
-              <span className="text-gray-900 dark:text-white">With AI</span>
+              <span className="text-gray-900 dark:text-white">On Nigerian Food</span>
             </h1>
 
             {/* Subheadline */}
             <p className="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Snap your meal, get friendly Nigerian-style feedback, plan your week, cook with AI,
-              and keep downloadable summaries of your eating patterns.
+              Snap your plate for honest, Nigerian-style feedback. Plan a week of meals that
+              fit your budget and your health — diabetes, blood pressure, or simply eating
+              better — using food from your own market.
             </p>
 
             {/* CTA Buttons */}
@@ -65,7 +68,7 @@ const HeroSection: React.FC = () => {
                   className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transition-all duration-300 hover:scale-105"
                 >
                   <Camera className="w-5 h-5 mr-2" />
-                  Start Tracking Free
+                  Start Free
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
