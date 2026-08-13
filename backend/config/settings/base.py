@@ -140,7 +140,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# The product is Nigeria-only, and several rules are keyed to a calendar day:
+# the daily photo-analysis allowance, `current_billing_month`, and the day
+# grouping in the analytics helpers. On UTC the day rolled over at 01:00 WAT,
+# so a user logging dinner at 00:30 had it counted against the next day.
+TIME_ZONE = 'Africa/Lagos'
 
 USE_I18N = True
 
@@ -193,6 +197,10 @@ REST_FRAMEWORK = {
         "otp_request": "5/hour",
         "login": "10/minute",
         "payment_init": "10/hour",
+        # Each analysis is a paid Gemini vision call. The daily allowance in
+        # `BillingPlan` is the business rule; this stops a request loop before
+        # it reaches the database at all.
+        "food_analysis": "20/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.utils.exceptions.exceptions.custom_exception_handler",
@@ -427,6 +435,12 @@ if USING_MANAGED_STORAGE:
 
 GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
 GEMINI_MODEL = env.str("GEMINI_MODEL", default="gemini-2.0-flash")
+
+# Mock AI responses are a local-development aid only. Serving invented nutrition
+# data to a real user is worse than an honest failure, so this defaults off and
+# must be switched on explicitly. It also gates the `use_mock` request field,
+# which is client-supplied and would otherwise be a free-analysis hole in prod.
+ALLOW_MOCK_AI = env.bool("ALLOW_MOCK_AI", default=False)
 
 USE_DOCS = env.bool("USE_DOCS", False)
 

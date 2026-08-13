@@ -1,9 +1,16 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from loguru import logger
 from rest_framework import response, status, views
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import ScopedRateThrottle
 from datetime import datetime
 
+from .dispatch import (
+    AnalysisAlreadyExists,
+    AnalysisAlreadyRunning,
+    dispatch_food_analysis,
+)
 from core.utils.mixins import PaginationMixin
 from core.utils.exceptions import exceptions
 from core.utils.permissions import IsObjectOwner
@@ -12,7 +19,6 @@ from core.utils.enums import FilePurposeType
 
 from .models import FoodAnalysis
 from .serializers import FoodAnalysisSerializer, AnalyzeRequestSerializer
-from .tasks import analyze_food_image_task
 
 
 @extend_schema(tags=["Food Analysis"])
@@ -80,6 +86,10 @@ class RetrieveAnalysis(views.APIView):
 @extend_schema(tags=["Food Analysis"])
 class TriggerAnalysis(views.APIView):
     http_method_names = ["post"]
+    # Each analysis is a paid vision call, so it gets its own ceiling rather than
+    # sharing the 120/minute default with read-only endpoints.
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "food_analysis"
 
     @extend_schema(
         description="Trigger food analysis for an uploaded image. The analysis runs asynchronously.",
@@ -94,9 +104,13 @@ class TriggerAnalysis(views.APIView):
     def post(self, request):
         serializer = AnalyzeRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         file_id = serializer.validated_data["file_id"]
-        use_mock = serializer.validated_data.get("use_mock", False)
+        # `use_mock` arrives from the client, so it is only honoured where mock AI
+        # is explicitly enabled. In production it is always False.
+        use_mock = bool(
+            serializer.validated_data.get("use_mock", False)
+        ) and settings.ALLOW_MOCK_AI
 
         try:
             file_obj = FileModel.objects.get(id=file_id, owner=request.user)
@@ -118,20 +132,24 @@ class TriggerAnalysis(views.APIView):
                 status_code=status.HTTP_409_CONFLICT
             )
 
-        existing_analysis = FoodAnalysis.objects.filter(food_image=file_obj).first()
-        if existing_analysis and existing_analysis.analysis_status == "completed":
-            serializer = FoodAnalysisSerializer.Detail(instance=existing_analysis)
+        # The duplicate checks, the allowance reservation and the dispatch all live
+        # in `dispatch_food_analysis`, shared with the upload endpoint — metering
+        # only one of the two callers would leave the other as a free path to a
+        # paid vision call.
+        try:
+            analysis = dispatch_food_analysis(request.user, file_obj, use_mock=use_mock)
+        except AnalysisAlreadyExists as already:
+            serializer = FoodAnalysisSerializer.Detail(instance=already.analysis)
             return response.Response(
                 data={"message": "Analysis already exists", "data": serializer.data},
                 status=status.HTTP_200_OK
             )
+        except AnalysisAlreadyRunning:
+            raise exceptions.CustomException(
+                message="This image is already being analysed",
+                status_code=status.HTTP_409_CONFLICT
+            )
 
-        analysis, created = FoodAnalysis.objects.get_or_create(
-            food_image=file_obj,
-            defaults={"owner": request.user, "analysis_status": "pending"}
-        )
-
-        analyze_food_image_task.delay(file_id, use_mock=use_mock)
         logger.info(f"Triggered analysis for file {file_id}")
 
         return response.Response(

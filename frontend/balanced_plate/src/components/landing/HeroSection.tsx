@@ -1,15 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Camera, 
-  Sparkles, 
-  ArrowRight, 
-  MessageCircle,
-  CalendarCheck
-} from 'lucide-react';
+import { Camera, ArrowRight } from 'lucide-react';
+
+// Real screenshots of the product, rotated inside the phone mockup. What used to sit
+// here was a hand-built screen that exists nowhere in the app, so it promised a UI new
+// users would never actually see.
+const APP_SCREENS = [
+  { src: '/food1.jpg', alt: 'NutriLens welcome screen starting profile setup' },
+  { src: '/food2.jpg', alt: 'Choosing dietary preferences during onboarding' },
+  { src: '/food3.jpg', alt: 'Choosing a health goal during onboarding' },
+  { src: '/food4.jpg', alt: 'NutriLens dashboard with the daily scan prompt and weekly streak' },
+  { src: '/food5.jpg', alt: 'AI feedback on a scanned plate of egusi soup with eba' },
+];
+
+const SCREEN_INTERVAL_MS = 4000;
 
 const HeroSection: React.FC = () => {
+  const [activeScreen, setActiveScreen] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => setActiveScreen((current) => (current + 1) % APP_SCREENS.length),
+      SCREEN_INTERVAL_MS,
+    );
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 lg:pt-20">
       <div className="absolute inset-0 bg-gray-50 dark:bg-gray-900" />
@@ -21,7 +38,7 @@ const HeroSection: React.FC = () => {
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] lg:gap-12 xl:gap-20">
           {/* Left Content */}
           <div className="text-center lg:text-left">
-          
+
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight">
@@ -43,7 +60,7 @@ const HeroSection: React.FC = () => {
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link to="/signup">
-                <Button 
+                <Button
                   size="lg"
                   className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transition-all duration-300 hover:scale-105"
                 >
@@ -63,78 +80,23 @@ const HeroSection: React.FC = () => {
               {/* Phone Frame */}
               <div className="relative bg-gray-900 rounded-[3rem] p-3">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10" />
-                <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden aspect-[9/19]">
-                  {/* App Screen Content */}
-                  <div className="p-4 h-full flex flex-col">
-                    {/* Status Bar */}
-                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-4">
-                      <span>9:41</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-2 border border-current rounded-sm">
-                          <div className="w-3/4 h-full bg-green-500 rounded-sm" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Food Image */}
-                    <div className="relative bg-gray-100 dark:bg-gray-700 rounded-2xl aspect-square mb-4 flex items-center justify-center overflow-hidden text-transparent">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="relative h-28 w-28 rounded-full bg-white dark:bg-gray-100">
-                          <div className="absolute left-5 top-5 h-10 w-10 rounded-full bg-emerald-400" />
-                          <div className="absolute right-5 top-6 h-9 w-9 rounded-full bg-orange-400" />
-                          <div className="absolute bottom-5 left-8 h-9 w-16 rounded-full bg-amber-300" />
-                          <div className="absolute inset-3 rounded-full border border-gray-200" />
-                        </div>
-                      </div>
-                      <div className="text-6xl">🍱</div>
-                      <div className="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Analyzing...
-                      </div>
-                    </div>
-
-                    {/* Accountability Feedback */}
-                    <div className="space-y-2 flex-1">
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-3">
-                        <div className="flex items-start gap-2 mb-2">
-                          <MessageCircle className="h-4 w-4 text-emerald-500 mt-0.5" />
-                          <div>
-                            <span className="text-sm font-semibold text-gray-900 dark:text-white">Jollof rice with chicken</span>
-                            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 mt-1">
-                              Good plate. Add more vegetables and keep the rice portion moderate today.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { label: 'Today', value: '2 meals', color: 'from-emerald-400 to-emerald-500' },
-                          { label: 'Week', value: '4/7 days', color: 'from-amber-400 to-orange-500' },
-                        ].map((item) => (
-                          <div key={item.label} className="bg-white dark:bg-gray-800 rounded-lg p-2 text-center">
-                            <div className={`text-xs font-bold bg-gradient-to-r ${item.color} bg-clip-text text-transparent`}>
-                              {item.value}
-                            </div>
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400">{item.label}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-3 text-white mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-transparent [&_span]:hidden">
-                            <CalendarCheck className="h-5 w-5 text-white" />
-                            <span className="text-lg">🎯</span>
-                          </div>
-                          <div>
-                            <div className="text-xs opacity-80">Next step</div>
-                            <div className="text-sm font-bold">Plan dinner lighter</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                {/* App Screen — the screenshots are roughly 1:2, so the frame matches that
+                    and `object-cover` only ever trims a sliver of side margin. */}
+                <div className="relative bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden aspect-[1/2]">
+                  {APP_SCREENS.map((screen, index) => (
+                    <img
+                      key={screen.src}
+                      src={screen.src}
+                      alt={screen.alt}
+                      // Every screen stays mounted so the browser has already fetched the
+                      // next one by the time it is faded in.
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      aria-hidden={index !== activeScreen}
+                      className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ease-in-out ${
+                        index === activeScreen ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

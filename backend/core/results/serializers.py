@@ -109,7 +109,11 @@ class FoodAnalysisSerializer:
 class AnalyzeRequestSerializer(serializers.Serializer):
     file_id = serializers.CharField(help_text="ID of the uploaded food image file")
     use_mock = serializers.BooleanField(
-        default=False, 
+        default=False,
         required=False,
-        help_text="Use mock data instead of AI analysis (for testing)"
+        help_text=(
+            "Use mock data instead of AI analysis. Local development only — the "
+            "field is ignored unless settings.ALLOW_MOCK_AI is enabled, since it is "
+            "client-supplied and would otherwise be a free-analysis hole."
+        ),
     )

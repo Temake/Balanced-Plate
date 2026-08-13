@@ -101,24 +101,41 @@ Return ONLY valid JSON, no additional text.
     return prompt
 
 
+class AnalysisUnavailable(Exception):
+    """Raised when a real analysis could not be produced.
+
+    Every failure path used to return mock data instead, which meant a Gemini
+    outage or a bad API key was saved as a completed analysis full of invented
+    nutrition figures. Users acting on those numbers may be managing diabetes or
+    hypertension, so an honest failure is the only acceptable outcome. Callers are
+    expected to mark the analysis failed, tell the user, and refund the allowance.
+    """
+
+
 class GeminiAnalysisService(GeminiBaseService):
 
     def __init__(self):
         super().__init__()
 
+    def _mock_or_raise(self, reason: str) -> Tuple[dict, bool]:
+        if getattr(settings, "ALLOW_MOCK_AI", False):
+            logger.warning(f"Serving mock analysis ({reason}) — ALLOW_MOCK_AI is on")
+            return get_mock_analysis_response(), True
+        raise AnalysisUnavailable(reason)
+
     def analyze_image(self, image_path: str, user_profile=None) -> Tuple[dict, bool]:
         """
         Analyze food image using Gemini AI.
-        Returns tuple of (response_data, is_mock_data)
+        Returns tuple of (response_data, is_mock_data).
+        Raises AnalysisUnavailable when a real result cannot be produced.
         """
         if not self.client:
-            logger.warning("Gemini client not configured, using mock data")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise("Gemini client is not configured")
 
         try:
             with open(image_path, 'rb') as f:
                 image_data = f.read()
-            
+
             # Use the new SDK format with types.Part
             image_part = self.create_image_part(image_data, "image/jpeg")
 
@@ -127,22 +144,22 @@ class GeminiAnalysisService(GeminiBaseService):
 
         except FileNotFoundError:
             logger.error(f"Image file not found: {image_path}")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise("The uploaded image could not be read")
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Gemini response: {e}")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise("The AI response could not be parsed")
         except Exception as e:
             logger.error(f"Gemini analysis failed: {e}")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise(f"Gemini analysis failed: {e}")
 
     def analyze_image_from_url(self, image_url: str, user_profile=None) -> Tuple[dict, bool]:
         """
         Analyze food image from URL using Gemini AI.
-        Returns tuple of (response_data, is_mock_data)
+        Returns tuple of (response_data, is_mock_data).
+        Raises AnalysisUnavailable when a real result cannot be produced.
         """
         if not self.client:
-            logger.warning("Gemini client not configured, using mock data")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise("Gemini client is not configured")
 
         try:
             import requests
@@ -158,7 +175,7 @@ class GeminiAnalysisService(GeminiBaseService):
 
         except Exception as e:
             logger.error(f"Gemini analysis from URL failed: {e}")
-            return get_mock_analysis_response(), True
+            return self._mock_or_raise(f"Gemini analysis failed: {e}")
 
 
 gemini_service = GeminiAnalysisService()

@@ -4,3 +4,6 @@ AGENTS.md
 graphify-out/
 .codex/
 About.md
+.claude/
+CLAUDE.md
+*.html

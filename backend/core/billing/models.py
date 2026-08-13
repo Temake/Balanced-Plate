@@ -39,6 +39,22 @@ class AIFeatureType(models.TextChoices):
     MEAL_PLAN = "meal_plan", _("AI Meal Plan")
     MEAL_PLAN_DAY = "meal_plan_day", _("AI Day Meal Plan")
     COOKING_GUIDE = "cooking_guide", _("AI Cooking Guide")
+    FOOD_ANALYSIS = "food_analysis", _("Food Photo Analysis")
+
+
+# One ledger table, two independent meters. Photo analysis is a daily habit and
+# AI generation is a monthly indulgence; sharing a pool would let the habit
+# starve the feature (30 Plus credits is ten days of logging, after which the
+# meal planner is dead too). Membership is declared once, here, so a new feature
+# type cannot silently join the wrong meter — every query filters on these sets.
+GENERATION_FEATURES = frozenset(
+    {
+        AIFeatureType.MEAL_PLAN,
+        AIFeatureType.MEAL_PLAN_DAY,
+        AIFeatureType.COOKING_GUIDE,
+    }
+)
+ANALYSIS_FEATURES = frozenset({AIFeatureType.FOOD_ANALYSIS})
 
 
 class BillingPlan(BaseModelMixin):
@@ -69,6 +85,23 @@ class BillingPlan(BaseModelMixin):
         _("Monthly AI Generation Limit"),
         default=0,
         help_text=_("Monthly credits for AI planning and AI cooking guides."),
+    )
+    analysis_daily_limit = models.PositiveIntegerField(
+        _("Daily Photo Analysis Limit"),
+        default=3,
+        help_text=_(
+            "Photo analyses allowed per calendar day. Daily rather than monthly so "
+            "users never hoard their allowance, and a runaway loop is capped at a "
+            "day's worth instead of a month's."
+        ),
+    )
+    analysis_monthly_limit = models.PositiveIntegerField(
+        _("Monthly Photo Analysis Backstop"),
+        default=45,
+        help_text=_(
+            "Abuse ceiling for sustained scripted use. Set to 0 to disable the "
+            "monthly check and rely on the daily limit alone."
+        ),
     )
     analytics_enabled = models.BooleanField(_("Analytics Enabled"), default=False)
     reports_enabled = models.BooleanField(_("Reports Enabled"), default=False)
@@ -271,6 +304,9 @@ class AIUsageLedger(BaseModelMixin):
         indexes = [
             models.Index(fields=["owner", "billing_month"]),
             models.Index(fields=["owner", "feature_type", "billing_month"]),
+            # The daily analysis allowance counts by calendar day, which the
+            # billing_month indexes above cannot serve.
+            models.Index(fields=["owner", "feature_type", "date_added"]),
         ]
 
     def __str__(self):
@@ -366,10 +402,12 @@ def get_default_billing_plans():
         {
             "key": BillingPlanKey.FREE,
             "name": "Free",
-            "description": "Unlimited photo analysis, manual meal planning, and basic app access.",
+            "description": "3 photo analyses a day, manual meal planning, and basic app access.",
             "price_kobo": 0,
             "paystack_plan_code": "",
             "ai_generation_limit": 0,
+            "analysis_daily_limit": 3,
+            "analysis_monthly_limit": 45,
             "analytics_enabled": False,
             "reports_enabled": False,
             "ai_planning_enabled": False,
@@ -383,6 +421,10 @@ def get_default_billing_plans():
             "price_kobo": 240000,
             "paystack_plan_code": getattr(settings, "PAYSTACK_PLUS_PLAN_CODE", ""),
             "ai_generation_limit": 30,
+            # Honest peak use is 3 meals + 2 snacks plus retries for bad photos,
+            # so ~7/day. 15 is invisible to a real user but caps a loop at 15.
+            "analysis_daily_limit": 15,
+            "analysis_monthly_limit": 250,
             "analytics_enabled": True,
             "reports_enabled": True,
             "ai_planning_enabled": True,
@@ -396,6 +438,8 @@ def get_default_billing_plans():
             "price_kobo": 450000,
             "paystack_plan_code": getattr(settings, "PAYSTACK_PRO_PLAN_CODE", ""),
             "ai_generation_limit": 100,
+            "analysis_daily_limit": 30,
+            "analysis_monthly_limit": 600,
             "analytics_enabled": True,
             "reports_enabled": True,
             "ai_planning_enabled": True,

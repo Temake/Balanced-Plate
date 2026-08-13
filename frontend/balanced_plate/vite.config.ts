@@ -40,10 +40,12 @@ export default defineConfig({
             type: "image/png",
             purpose: "any",
           },
-          // Android crops icons to its own shape; without a maskable entry it letterboxes
-          // the icon inside a white circle.
+          // Android crops icons to its own shape. This needs its own artwork rather than
+          // a reuse of the one above: the green has to bleed to every edge (a transparent
+          // icon gets letterboxed in a white circle) and the mark has to stay inside the
+          // inner 80% safe zone so the crop never clips it.
           {
-            src: "pwa-512x512.png",
+            src: "pwa-maskable-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

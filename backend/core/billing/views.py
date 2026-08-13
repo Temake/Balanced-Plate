@@ -17,12 +17,15 @@ from .serializers import (
     SubscriptionSerializer,
     VerifyPaymentSerializer,
 )
-from .entitlements import get_ai_generation_usage
+from .entitlements import (
+    get_ai_generation_usage,
+    get_analysis_usage_this_month,
+    get_analysis_usage_today,
+    has_unmetered_access,
+)
 from .services import (
-    DEMO_AI_GENERATION_LIMIT,
     create_demo_access_invite,
     current_billing_month,
-    get_active_feature_entitlement,
     get_frontend_demo_invite_url,
     get_or_create_user_subscription,
     initialize_subscription_payment,
@@ -65,23 +68,40 @@ class BillingUsage(views.APIView):
     http_method_names = ["get"]
 
     @extend_schema(
-        description="Get the authenticated user's AI generation usage for the current billing month.",
+        description=(
+            "Get the authenticated user's AI usage: monthly generation credits and "
+            "the daily photo-analysis allowance, which are metered separately."
+        ),
         responses={200: BillingUsageSerializer},
     )
     def get(self, request):
         subscription = get_or_create_user_subscription(request.user)
         billing_month = current_billing_month()
-        used = get_ai_generation_usage(request.user, billing_month)
-        limit = (
-            DEMO_AI_GENERATION_LIMIT
-            if get_active_feature_entitlement(request.user) is not None
-            else subscription.plan.ai_generation_limit
-        )
+        unmetered = has_unmetered_access(request.user)
+        plan = subscription.plan
+
+        generation_used = get_ai_generation_usage(request.user, billing_month)
+        analysis_today = get_analysis_usage_today(request.user)
+        analysis_month = get_analysis_usage_this_month(request.user, billing_month)
+
+        generation_limit = None if unmetered else plan.ai_generation_limit
+        analysis_daily_limit = None if unmetered else plan.analysis_daily_limit
+
         data = {
             "billing_month": billing_month,
-            "ai_generation_limit": limit,
-            "ai_generation_used": used,
-            "ai_generation_remaining": max(limit - used, 0),
+            "unmetered": unmetered,
+            "ai_generation_limit": generation_limit,
+            "ai_generation_used": generation_used,
+            "ai_generation_remaining": (
+                None if unmetered else max(generation_limit - generation_used, 0)
+            ),
+            "analysis_daily_limit": analysis_daily_limit,
+            "analysis_used_today": analysis_today,
+            "analysis_remaining_today": (
+                None if unmetered else max(analysis_daily_limit - analysis_today, 0)
+            ),
+            "analysis_monthly_limit": None if unmetered else plan.analysis_monthly_limit,
+            "analysis_used_this_month": analysis_month,
         }
         serializer = BillingUsageSerializer(data)
         return response.Response(serializer.data, status=status.HTTP_200_OK)

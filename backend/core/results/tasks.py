@@ -5,15 +5,50 @@ from loguru import logger
 
 from django.conf import settings
 
+from core.billing.entitlements import release_ai_generation_credit_by_id
 from core.file_storage.models import FileModel
 from .models import FoodAnalysis, DetectedFood
-from .services import gemini_service
+from .services import AnalysisUnavailable, gemini_service
 from .mock import get_mock_analysis_response
 from core.utils import enums
 
 
+ANALYSIS_FAILED_MESSAGE = (
+    "We couldn't analyse this photo. You haven't been charged for it — "
+    "please try again in a moment."
+)
+
+
+def _mark_failed(file_id, user_message):
+    """Terminal failure: tell the user, and release the image for a retry.
+
+    Only called once retries are exhausted. Emitting `analysis_failed` on every
+    intermediate attempt used to show the user a failure that then silently
+    succeeded on a later retry.
+    """
+    try:
+        analysis = FoodAnalysis.objects.filter(food_image_id=file_id).first()
+        if analysis:
+            analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_FAILED.value
+            # Only the friendly message is stored — this field is serialised to
+            # the client, and raw exception text belongs in the logs.
+            analysis.error_message = user_message
+            analysis.save(update_fields=["analysis_status", "error_message"])
+            try:
+                analysis.emit_event(enums.FoodAnalysisStatus.ANALYSIS_FAILED.value.lower())
+            except Exception:
+                logger.warning("[CELERY] Failed to emit failure WebSocket event")
+
+        file_obj = FileModel.objects.filter(id=file_id).first()
+        if file_obj:
+            file_obj.currently_under_processing = False
+            file_obj.save(update_fields=["currently_under_processing"])
+    except Exception as cleanup_err:
+        logger.error(f"[CELERY] Cleanup after failure also failed: {cleanup_err}")
+
+
 @shared_task(bind=True, max_retries=3, queue="analysis")
-def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
+def analyze_food_image_task(self, file_id: str, use_mock: bool = False, reservation_id=None):
     logger.info(f"[CELERY] Starting food analysis task for file_id={file_id}, use_mock={use_mock}")
     try:
         file_obj = FileModel.objects.get(id=file_id)
@@ -97,26 +132,31 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False):
 
     except FileModel.DoesNotExist:
         logger.error(f"[CELERY] File {file_id} not found")
+        release_ai_generation_credit_by_id(reservation_id)
         return {"status": "failed", "error": "File not found"}
+
+    except AnalysisUnavailable as e:
+        # Deterministic: a missing API key or an unparseable response will fail
+        # again in 60 seconds, so don't burn retries or make the user wait.
+        logger.error(f"[CELERY] Analysis unavailable for file {file_id}: {e}")
+        _mark_failed(file_id, ANALYSIS_FAILED_MESSAGE)
+        release_ai_generation_credit_by_id(reservation_id)
+        return {"status": "failed", "error": str(e)}
 
     except Exception as e:
         logger.error(f"[CELERY] Food analysis failed for file {file_id}: {e}\n{traceback.format_exc()}")
-        
-        try:
-            analysis = FoodAnalysis.objects.filter(food_image_id=file_id).first()
-            if analysis:
-                analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_FAILED.value
-                analysis.error_message = str(e)
-                analysis.save(update_fields=["analysis_status", "error_message"])
-                try:
-                    analysis.emit_event(enums.FoodAnalysisStatus.ANALYSIS_FAILED.value.lower())
-                except Exception:
-                    logger.warning("[CELERY] Failed to emit failure WebSocket event")
-            
-            file_obj = FileModel.objects.get(id=file_id)
-            file_obj.currently_under_processing = False
-            file_obj.save(update_fields=["currently_under_processing"])
-        except Exception as cleanup_err:
-            logger.error(f"[CELERY] Cleanup after failure also failed: {cleanup_err}")
 
+        if self.request.retries >= self.max_retries:
+            # Out of attempts — this is the only point at which the user is told
+            # it failed, and the only point at which the allowance is refunded.
+            _mark_failed(file_id, ANALYSIS_FAILED_MESSAGE)
+            release_ai_generation_credit_by_id(reservation_id)
+            return {"status": "failed", "error": str(e)}
+
+        # Keep the analysis in PROCESSING and stay quiet: a retry may still win,
+        # and the reservation is held so the user isn't refunded prematurely.
+        logger.warning(
+            f"[CELERY] Retrying analysis for file {file_id} "
+            f"(attempt {self.request.retries + 1}/{self.max_retries})"
+        )
         raise self.retry(exc=e, countdown=60)

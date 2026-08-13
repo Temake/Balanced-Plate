@@ -16,12 +16,14 @@ const fallbackPlans: BillingPlan[] = [
   {
     key: 'free',
     name: 'Free',
-    description: 'Unlimited photo analysis, detailed analytics, and manual planning.',
+    description: '3 photo analyses a day, detailed analytics, and manual planning.',
     price_kobo: 0,
     price_naira: 0,
     currency: 'NGN',
     interval: 'monthly',
     ai_generation_limit: 0,
+    analysis_daily_limit: 3,
+    analysis_monthly_limit: 45,
     analytics_enabled: false,
     reports_enabled: false,
     ai_planning_enabled: false,
@@ -36,6 +38,8 @@ const fallbackPlans: BillingPlan[] = [
     currency: 'NGN',
     interval: 'monthly',
     ai_generation_limit: 30,
+    analysis_daily_limit: 15,
+    analysis_monthly_limit: 250,
     analytics_enabled: true,
     reports_enabled: true,
     ai_planning_enabled: true,
@@ -50,6 +54,8 @@ const fallbackPlans: BillingPlan[] = [
     currency: 'NGN',
     interval: 'monthly',
     ai_generation_limit: 100,
+    analysis_daily_limit: 30,
+    analysis_monthly_limit: 600,
     analytics_enabled: true,
     reports_enabled: true,
     ai_planning_enabled: true,
@@ -60,11 +66,16 @@ const fallbackPlans: BillingPlan[] = [
 const planFeatures = (plan: BillingPlan) => {
   // Detailed analytics is free on every plan, so it is listed unconditionally and
   // `analytics_enabled` is deliberately not read here.
-  const features = ['Unlimited photo food analysis', 'Manual meal planning', 'Detailed analytics'];
+  const analyses =
+    plan.analysis_daily_limit === null
+      ? 'Unlimited photo food analysis'
+      : `${plan.analysis_daily_limit} photo analyses a day`;
+  const features = [analyses, 'Manual meal planning', 'Detailed analytics'];
   if (plan.reports_enabled) features.push('Weekly health reports');
   if (plan.ai_planning_enabled) features.push('AI meal planning');
   if (plan.ai_cooking_enabled) features.push('AI cooking guide');
-  if (plan.ai_generation_limit > 0) features.push(`${plan.ai_generation_limit} AI credits/month`);
+  if (plan.ai_generation_limit === null) features.push('Unlimited AI credits');
+  else if (plan.ai_generation_limit > 0) features.push(`${plan.ai_generation_limit} AI credits/month`);
   return features;
 };
 
@@ -118,7 +129,18 @@ const Billing: React.FC = () => {
               </div>
               {usage && (
                 <div className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
-                  {usage.ai_generation_used}/{usage.ai_generation_limit} AI credits used
+                  {usage.unmetered ? (
+                    'Unlimited access'
+                  ) : (
+                    <div className="flex flex-col gap-0.5">
+                      <span>
+                        {usage.analysis_used_today}/{usage.analysis_daily_limit} photo analyses today
+                      </span>
+                      <span>
+                        {usage.ai_generation_used}/{usage.ai_generation_limit} AI credits used
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

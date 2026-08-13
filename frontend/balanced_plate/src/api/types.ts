@@ -107,6 +107,11 @@ export interface FileType {
   date_added: string;
   owner: number;
   analysis_id?: number;
+  /**
+   * Set when the upload succeeded but analysis did not start — most often because
+   * the daily photo-analysis allowance is used up. Carries the message to show.
+   */
+  analysis_error?: string;
 }
 
 export interface FilesContextType {
@@ -348,7 +353,10 @@ export interface BillingPlan {
   price_naira: number;
   currency: 'NGN';
   interval: 'monthly';
-  ai_generation_limit: number;
+  // null on demo access, which is unmetered and so has no limit to report.
+  ai_generation_limit: number | null;
+  analysis_daily_limit: number | null;
+  analysis_monthly_limit: number | null;
   analytics_enabled: boolean;
   reports_enabled: boolean;
   ai_planning_enabled: boolean;
@@ -368,11 +376,23 @@ export interface Subscription {
   cancelled_at: string | null;
 }
 
+/**
+ * Two separate meters. AI generation credits are a monthly pool for meal plans
+ * and cooking guides; photo analyses have their own daily allowance so the daily
+ * logging habit can never eat the monthly credits. Every limit is null when
+ * `unmetered` is true (active demo invite).
+ */
 export interface BillingUsage {
   billing_month: string;
-  ai_generation_limit: number;
+  unmetered: boolean;
+  ai_generation_limit: number | null;
   ai_generation_used: number;
-  ai_generation_remaining: number;
+  ai_generation_remaining: number | null;
+  analysis_daily_limit: number | null;
+  analysis_used_today: number;
+  analysis_remaining_today: number | null;
+  analysis_monthly_limit: number | null;
+  analysis_used_this_month: number;
 }
 
 export interface InitializePaymentResponse {

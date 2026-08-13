@@ -46,37 +46,53 @@ class ListCreateFile(PaginationMixin, views.APIView):
         file_obj = serializer.save()
         logger.success(f"successfully created file with id {file_obj.id}")
         
-        # Auto-trigger food analysis for food images
+        # Auto-trigger food analysis for food images. This is the path most users
+        # actually take, so it goes through the same metered dispatch as the
+        # explicit trigger endpoint rather than queueing the task directly.
         analysis_id = None
+        analysis_error = None
         if file_obj.purpose == enums.FilePurposeType.FOOD_IMAGE.value:
             try:
-                from core.results.tasks import analyze_food_image_task
-                from core.results.models import FoodAnalysis
-                
-                # Create the analysis record first
-                analysis = FoodAnalysis.objects.create(
-                    owner=file_obj.owner,
-                    food_image=file_obj,
+                from core.results.dispatch import (
+                    AnalysisAlreadyExists,
+                    AnalysisAlreadyRunning,
+                    dispatch_food_analysis,
                 )
+
+                try:
+                    analysis = dispatch_food_analysis(file_obj.owner, file_obj)
+                except (AnalysisAlreadyExists, AnalysisAlreadyRunning) as already:
+                    # Nothing to do and nothing to charge; point the client at the
+                    # analysis that is already there.
+                    analysis = already.analysis
                 analysis_id = analysis.id
-                
-                # Trigger async analysis task
-                task_result = analyze_food_image_task.delay(str(file_obj.id), use_mock=False)
                 logger.info(
                     f"Auto-triggered food analysis for file {file_obj.id}, "
-                    f"analysis_id={analysis_id}, task_id={task_result.id}"
+                    f"analysis_id={analysis_id}"
+                )
+            except exceptions.CustomException as quota_err:
+                # Out of daily allowance. The upload itself succeeded, so report the
+                # reason instead of failing the request — the client shows it and
+                # offers the upgrade.
+                analysis_error = quota_err.message
+                logger.info(
+                    f"Analysis not started for file {file_obj.id}: {quota_err.message}"
                 )
             except Exception as e:
                 logger.error(f"Failed to dispatch analysis task for file {file_obj.id}: {e}")
-                # Don't fail the upload — the file was saved successfully
-        
+                analysis_error = (
+                    "We couldn't start the analysis for this photo. Please try again."
+                )
+
         serializer = serializers.FileSerializer.ListRetrieve(instance=file_obj)
         response_data = serializer.data
-        
+
         # Include analysis_id in response if analysis was triggered
         if analysis_id:
             response_data["analysis_id"] = analysis_id
-            
+        if analysis_error:
+            response_data["analysis_error"] = analysis_error
+
         return response.Response(data=response_data, status=status.HTTP_201_CREATED)
 
 

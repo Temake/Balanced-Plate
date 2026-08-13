@@ -103,10 +103,20 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
     setUploadStatus('uploading');
     setShowNutritionDetails(false);
     try {
-      await uploadFile(file, 'food image');
+      const uploaded = await uploadFile(file, 'food image');
+
+      // The upload can succeed while analysis is refused — the usual reason is a
+      // spent daily allowance. Without this the status would sit on "analyzing"
+      // and the timeout below would announce a completed analysis that never ran.
+      if (uploaded?.analysis_error) {
+        setUploadStatus('error');
+        toast.error(uploaded.analysis_error);
+        return;
+      }
+
       setUploadStatus('analyzing');
       toast.success('Image uploaded! Analyzing...');
-      
+
       analysisTimeoutRef.current = setTimeout(() => {
         setUploadStatus((currentStatus) => {
           if (currentStatus === 'analyzing') {
