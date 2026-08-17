@@ -26,7 +26,11 @@ export default defineConfig({
         display: "standalone",
         orientation: "portrait",
         scope: "/",
-        start_url: "/",
+        // The installed app opens on the dashboard, not the marketing landing page.
+        // An unauthenticated launch is bounced to /login by ProtectedRoute.
+        // (This previously read "/dashbaord" — a typo, so the installed app opened
+        // on the catch-all redirect instead.)
+        start_url: "/dashboard",
         icons: [
           {
             src: "pwa-192x192.png",

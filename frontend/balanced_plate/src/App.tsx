@@ -27,7 +27,24 @@ import { FilesProvider } from "./context/FilesContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import ProtectedRoute from './components/ProtectedRoute';
 import InstallAppPrompt from './components/InstallAppPrompt';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from './api/constants';
 import { Toaster } from 'sonner';
+
+
+/**
+ * "/" serves the marketing page to visitors and the dashboard to anyone signed in.
+ *
+ * The token check reads localStorage synchronously — deriving this from auth context
+ * would render the landing page for a beat before redirecting, which a signed-in user
+ * sees as a flash of the wrong screen every time they open the installed app. A stale
+ * token is harmless here: /dashboard is protected and bounces to /login.
+ */
+const RootRoute = () => {
+  const hasSession = Boolean(
+    localStorage.getItem(ACCESS_TOKEN) && localStorage.getItem(REFRESH_TOKEN)
+  );
+  return hasSession ? <Navigate to="/dashboard" replace /> : <LandingPage />;
+};
 
 
 const Loading = (
@@ -50,8 +67,8 @@ function App() {
         <Toaster position="top-right" richColors />
         <InstallAppPrompt />
         <Routes>
-          {/* Public Landing Page */}
-          <Route path="/" element={<LandingPage/>}/>
+          {/* Landing page for visitors, dashboard for signed-in users */}
+          <Route path="/" element={<RootRoute/>}/>
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
