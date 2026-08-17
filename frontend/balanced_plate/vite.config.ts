@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       // Without this the service worker and manifest are only emitted by `vite build`,
-      // so `npm run dev` can never satisfy the install criteria and no prompt appears.
+      // so `npm run dev` can never satisfy the install cnddriteria and no prompt appears.
       devOptions: {
         enabled: true,
         type: "module",
