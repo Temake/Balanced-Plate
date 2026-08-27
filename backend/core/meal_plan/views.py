@@ -1,3 +1,4 @@
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from loguru import logger
 from rest_framework import response, status, views
@@ -12,6 +13,8 @@ from core.billing.entitlements import (
 )
 from core.billing.models import AIFeatureType
 
+from core.pricing.services import resolve_area, resolve_weekly_budget_kobo
+
 from .models import MealPlan, MealEntry
 from .serializers import (
     MealPlanSerializer,
@@ -19,7 +22,67 @@ from .serializers import (
     GenerateAIDayPlanSerializer,
     UpsertMealEntrySerializer,
 )
-from .services import meal_plan_service
+from .services import generate_costed_meal_plan
+
+
+def _budget_context(validated_data, user):
+    """Turn the request's budget preset or custom amount into a weekly kobo target."""
+    household_size = validated_data.get("household_size") or 1
+    budget_naira = validated_data.get("budget_naira")
+    explicit_kobo = int(budget_naira * 100) if budget_naira else None
+
+    weekly_kobo = resolve_weekly_budget_kobo(
+        validated_data["budget_level"],
+        household_size=household_size,
+        explicit_kobo=explicit_kobo,
+    )
+    return {
+        "household_size": household_size,
+        "weekly_kobo": weekly_kobo,
+        "is_custom": bool(explicit_kobo),
+        "area": resolve_area(user=user),
+    }
+
+
+def _recost_plan_from_entries(meal_plan, context):
+    """Recompute a plan's cost from the entries actually stored against it.
+
+    Used after a single day is regenerated: the AI produced a whole throwaway week,
+    but only one day of it was kept, so costing that response would be wrong.
+    """
+    from core.pricing.services import cost_meals
+
+    area = context["area"]
+    if area is None:
+        _apply_cost_to_plan(meal_plan, context, None)
+        return
+
+    entries = list(meal_plan.entries.all())
+    payload = [{"ingredients": entry.ingredients or []} for entry in entries]
+    plan_cost = cost_meals(payload, area)
+
+    for entry, costed in zip(entries, payload):
+        entry.estimated_cost_kobo = costed.get("estimated_cost_kobo")
+    MealEntry.objects.bulk_update(entries, ["estimated_cost_kobo"])
+
+    _apply_cost_to_plan(meal_plan, context, plan_cost)
+
+
+def _apply_cost_to_plan(meal_plan, context, plan_cost):
+    """Freeze the cost onto the plan so a saved plan does not change value later."""
+    meal_plan.household_size = context["household_size"]
+    meal_plan.budget_kobo = context["weekly_kobo"]
+    meal_plan.is_custom_budget = context["is_custom"]
+    fields = ["household_size", "budget_kobo", "is_custom_budget", "date_last_modified"]
+
+    if plan_cost is not None:
+        meal_plan.estimated_cost_kobo = plan_cost.total_kobo
+        meal_plan.price_area = context["area"]
+        meal_plan.priced_at = timezone.now()
+        meal_plan.unpriced_items = plan_cost.unknown_items
+        fields += ["estimated_cost_kobo", "price_area", "priced_at", "unpriced_items"]
+
+    meal_plan.save(update_fields=fields)
 
 
 @extend_schema(tags=["Meal Plans"])
@@ -115,6 +178,7 @@ class GenerateAIMealPlan(views.APIView):
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),
         }
+        budget = _budget_context(serializer.validated_data, user)
 
         # Consumed up front, under lock, so parallel requests cannot all clear the same
         # remaining balance; refunded below if generation fails. This has to happen
@@ -134,12 +198,15 @@ class GenerateAIMealPlan(views.APIView):
             meal_plan.save(update_fields=["budget_level", "date_last_modified"])
             meal_plan.entries.all().delete()
 
-        # Generate the meal plan via AI service
+        # Generate the meal plan via AI service, costed against our own price table
         try:
-            result, is_mock = meal_plan_service.generate_meal_plan(
+            result, is_mock, plan_cost = generate_costed_meal_plan(
                 user_profile=user_profile,
                 week_start_date=week_start_date,
                 budget_level=budget_level,
+                weekly_budget_kobo=budget["weekly_kobo"],
+                household_size=budget["household_size"],
+                area=budget["area"],
             )
         except Exception:
             release_ai_generation_credit(reservation)
@@ -161,10 +228,13 @@ class GenerateAIMealPlan(views.APIView):
                     description=meal.get("description", ""),
                     prep_time_minutes=meal.get("prep_time_minutes"),
                     health_notes=meal.get("health_notes", ""),
+                    ingredients=meal.get("ingredients", []) or [],
+                    estimated_cost_kobo=meal.get("estimated_cost_kobo"),
                     is_ai_generated=True,
                 )
             )
         MealEntry.objects.bulk_create(entries)
+        _apply_cost_to_plan(meal_plan, budget, plan_cost)
         finalize_ai_generation_usage(
             reservation,
             metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
@@ -204,6 +274,7 @@ class GenerateAIDayMealPlan(views.APIView):
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),
         }
+        budget = _budget_context(serializer.validated_data, user)
 
         # Consumed up front, under lock, before the selected day is cleared below.
         reservation = reserve_ai_generation_credit(user, AIFeatureType.MEAL_PLAN_DAY)
@@ -219,10 +290,13 @@ class GenerateAIDayMealPlan(views.APIView):
             meal_plan.save(update_fields=["budget_level", "date_last_modified"])
 
         try:
-            result, is_mock = meal_plan_service.generate_meal_plan(
+            result, is_mock, _plan_cost = generate_costed_meal_plan(
                 user_profile=user_profile,
                 week_start_date=week_start_date,
                 budget_level=budget_level,
+                weekly_budget_kobo=budget["weekly_kobo"],
+                household_size=budget["household_size"],
+                area=budget["area"],
             )
         except Exception:
             release_ai_generation_credit(reservation)
@@ -243,11 +317,16 @@ class GenerateAIDayMealPlan(views.APIView):
                 description=meal.get("description", ""),
                 prep_time_minutes=meal.get("prep_time_minutes"),
                 health_notes=meal.get("health_notes", ""),
+                ingredients=meal.get("ingredients", []) or [],
+                estimated_cost_kobo=meal.get("estimated_cost_kobo"),
                 is_ai_generated=True,
             )
             for meal in day_meals
         ]
         MealEntry.objects.bulk_create(entries)
+        # Only this day changed, so recost the whole plan from what is now stored
+        # rather than from the throwaway week the model just generated.
+        _recost_plan_from_entries(meal_plan, budget)
         finalize_ai_generation_usage(
             reservation,
             metadata={

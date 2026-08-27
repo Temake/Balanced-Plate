@@ -24,6 +24,7 @@ urlpatterns = [
     path("api/", include("core.meal_plan.urls")),
     path("api/", include("core.cooking.urls")),
     path("api/", include("core.billing.urls")),
+    path("api/pricing/", include("core.pricing.urls")),
 ]
 
 if not settings.PRODUCTION:

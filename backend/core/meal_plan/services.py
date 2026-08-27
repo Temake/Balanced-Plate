@@ -105,15 +105,53 @@ def get_mock_meal_plan():
     }
 
 
-def build_meal_plan_prompt(user_profile, week_start_date, budget_level):
+def build_meal_plan_prompt(
+    user_profile,
+    week_start_date,
+    budget_level,
+    weekly_budget_naira=None,
+    household_size=1,
+    catalogue_text=None,
+):
     """
     Build the AI prompt for generating a 7-day Nigerian meal plan.
+
+    When a budget and a priced catalogue are supplied, the plan is constrained to a
+    real naira figure and every meal must come back with a costable ingredient list.
+    Previously the budget was the word "low", "medium" or "flexible", which meant the
+    model decided what those meant and nothing downstream could check the answer.
     """
     health_conditions = user_profile.get("health_conditions", [])
     if isinstance(health_conditions, list):
         health_conditions_str = ", ".join(health_conditions) if health_conditions else "None"
     else:
         health_conditions_str = str(health_conditions) if health_conditions else "None"
+
+    budget_section = ""
+    if weekly_budget_naira and catalogue_text:
+        per_person_per_day = weekly_budget_naira / (7 * max(household_size, 1))
+        budget_section = f"""
+
+HARD BUDGET CONSTRAINT — THIS IS THE MOST IMPORTANT RULE:
+- Total food budget for the week: N{weekly_budget_naira:,.0f} for {household_size} person(s).
+- That is about N{per_person_per_day:,.0f} per person per day. Plan to it.
+- The full week of meals MUST cost at or under N{weekly_budget_naira:,.0f} at the prices below.
+- Ingredients repeat across meals in real cooking. Buy once, use across several meals —
+  a tuber of yam or a bag of rice spans multiple days. Plan the week as a shop, not as
+  28 unrelated meals.
+- If the budget is tight, lean on beans, garri, eggs, groundnut, seasonal vegetables and
+  smaller portions of meat rather than dropping protein altogether.
+
+PRICED INGREDIENT CATALOGUE (current prices, per unit shown):
+{catalogue_text}
+
+INGREDIENT RULES:
+- You may ONLY use ingredients from the catalogue above. Do not invent ingredients.
+- Use the EXACT ingredient name and the EXACT unit shown for that ingredient.
+- For every meal, return an `ingredients` list of {{"name", "qty", "unit"}} covering the
+  whole meal for all {household_size} person(s). `qty` is a number in that ingredient's unit
+  and may be fractional (e.g. 0.25 kg).
+- Also return `estimated_cost_naira` per meal, computed from the catalogue prices."""
 
     prompt = f"""Generate a complete 7-day meal plan (Monday to Sunday) with 3 meals and 1 snack per day.
 
@@ -122,7 +160,8 @@ USER PROFILE:
 - Dietary Preference: {user_profile.get('dietary_preference', 'none')}
 - Health Conditions: {health_conditions_str}
 - Budget Level: {budget_level}
-- Week Starting: {week_start_date}
+- Household Size: {household_size}
+- Week Starting: {week_start_date}{budget_section}
 
 CRITICAL REQUIREMENTS:
 1. ALL meals MUST be Nigerian / West African foods. Use common local names.
@@ -139,7 +178,7 @@ HEALTH-AWARE RULES:
 - If user goal is 'muscle_gain': Focus on protein-rich meals (beans, eggs, fish, meat).
 - If user goal is 'energy_focus': Focus on complex carbs and balanced meals for sustained energy.
 
-BUDGET-AWARE RULES:
+BUDGET-AWARE RULES (used only when no naira budget is given above):
 - "low": Use the most affordable ingredients (beans, yam, garri, local vegetables, eggs, sardines). Avoid expensive proteins.
 - "medium": Balanced mix — can include chicken, fish, and moderate variety.
 - "flexible": Include premium options (goat meat, prawns, assorted meats, wider variety).
@@ -153,7 +192,13 @@ Return ONLY valid JSON in this exact format:
             "food_name": "Akara with Pap",
             "description": "Fried bean cakes served with smooth corn pap",
             "prep_time_minutes": 25,
-            "health_notes": "Good protein source to start the day"
+            "health_notes": "Good protein source to start the day",
+            "ingredients": [
+                {{"name": "Beans (honey)", "qty": 0.3, "unit": "kg"}},
+                {{"name": "Palm oil", "qty": 0.1, "unit": "litre"}},
+                {{"name": "Pap (ogi)", "qty": 1, "unit": "sachet"}}
+            ],
+            "estimated_cost_naira": 1280
         }}
     ]
 }}
@@ -171,7 +216,15 @@ class MealPlanGenerationService(GeminiBaseService):
     def __init__(self):
         super().__init__()
 
-    def generate_meal_plan(self, user_profile: dict, week_start_date, budget_level: str) -> Tuple[dict, bool]:
+    def generate_meal_plan(
+        self,
+        user_profile: dict,
+        week_start_date,
+        budget_level: str,
+        weekly_budget_naira=None,
+        household_size: int = 1,
+        catalogue_text=None,
+    ) -> Tuple[dict, bool]:
         """
         Generate a 7-day meal plan using Gemini AI.
         Returns tuple of (response_data, is_mock_data).
@@ -181,7 +234,14 @@ class MealPlanGenerationService(GeminiBaseService):
             return get_mock_meal_plan(), True
 
         try:
-            prompt = build_meal_plan_prompt(user_profile, week_start_date, budget_level)
+            prompt = build_meal_plan_prompt(
+                user_profile,
+                week_start_date,
+                budget_level,
+                weekly_budget_naira=weekly_budget_naira,
+                household_size=household_size,
+                catalogue_text=catalogue_text,
+            )
             return self.call_gemini([prompt])
 
         except json.JSONDecodeError as e:
@@ -193,3 +253,82 @@ class MealPlanGenerationService(GeminiBaseService):
 
 
 meal_plan_service = MealPlanGenerationService()
+
+
+# How far over budget a plan may land before it is worth spending a second
+# generation on. Under this, the overage is within our own pricing error anyway.
+BUDGET_OVERSHOOT_TOLERANCE = 0.15
+
+
+def generate_costed_meal_plan(
+    user_profile,
+    week_start_date,
+    budget_level,
+    weekly_budget_kobo=None,
+    household_size=1,
+    area=None,
+):
+    """Generate a plan, cost it against our prices, and retry once if it overshoots.
+
+    Returns (result, is_mock, plan_cost). `plan_cost` is None when there is nothing to
+    cost against — no area configured, no budget, or an empty catalogue — in which case
+    this degrades to the old unpriced behaviour rather than failing.
+
+    The AI returns its own `estimated_cost_naira` and we deliberately ignore it. Model
+    arithmetic is not something to hold a user's grocery budget to.
+    """
+    from core.pricing.services import (
+        cost_meals,
+        format_catalogue_for_prompt,
+        get_priced_catalogue,
+    )
+
+    catalogue_text = None
+    weekly_budget_naira = None
+    if area is not None and weekly_budget_kobo:
+        catalogue = get_priced_catalogue(area)
+        if catalogue:
+            catalogue_text = format_catalogue_for_prompt(catalogue)
+            weekly_budget_naira = weekly_budget_kobo / 100
+
+    result, is_mock = meal_plan_service.generate_meal_plan(
+        user_profile=user_profile,
+        week_start_date=week_start_date,
+        budget_level=budget_level,
+        weekly_budget_naira=weekly_budget_naira,
+        household_size=household_size,
+        catalogue_text=catalogue_text,
+    )
+
+    if catalogue_text is None or area is None:
+        return result, is_mock, None
+
+    plan_cost = cost_meals(result.get("meals", []), area)
+
+    over_by = plan_cost.total_kobo - weekly_budget_kobo
+    if not is_mock and over_by > weekly_budget_kobo * BUDGET_OVERSHOOT_TOLERANCE:
+        logger.info(
+            f"Meal plan came in {over_by / 100:,.0f} naira over a "
+            f"{weekly_budget_kobo / 100:,.0f} naira budget; regenerating once"
+        )
+        retry_text = (
+            f"{catalogue_text}\n\nYOUR PREVIOUS ATTEMPT COST "
+            f"N{plan_cost.total_kobo / 100:,.0f}, which is over the "
+            f"N{weekly_budget_naira:,.0f} budget. Cut it back: smaller meat portions, "
+            f"cheaper proteins (beans, eggs, groundnut), and reuse ingredients across days."
+        )
+        retry_result, retry_is_mock = meal_plan_service.generate_meal_plan(
+            user_profile=user_profile,
+            week_start_date=week_start_date,
+            budget_level=budget_level,
+            weekly_budget_naira=weekly_budget_naira,
+            household_size=household_size,
+            catalogue_text=retry_text,
+        )
+        if not retry_is_mock:
+            retry_cost = cost_meals(retry_result.get("meals", []), area)
+            # Keep the retry only if it actually helped.
+            if retry_cost.total_kobo < plan_cost.total_kobo:
+                return retry_result, retry_is_mock, retry_cost
+
+    return result, is_mock, plan_cost

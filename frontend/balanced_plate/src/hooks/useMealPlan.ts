@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/api/axios';
 import type {
+  BudgetTier,
   MealPlan,
   GenerateMealPlanRequest,
   GenerateDayMealPlanRequest,
@@ -8,6 +9,30 @@ import type {
 } from '@/api/types';
 
 const MEAL_PLANS_KEY = ['mealPlans'] as const;
+
+interface BudgetTiersResponse {
+  tiers: BudgetTier[];
+  household_size: number;
+  price_area: { id: number; name: string; state: string } | null;
+}
+
+/**
+ * Budget presets with the naira figure each works out to for this household size.
+ * Keeps the tier amounts on the server so they can be retuned as food prices move,
+ * rather than hardcoded in the UI.
+ */
+export const useBudgetTiers = (householdSize: number) => {
+  return useQuery<BudgetTiersResponse>({
+    queryKey: ['budgetTiers', householdSize],
+    queryFn: async () => {
+      const { data } = await api.get('/pricing/budget-tiers/', {
+        params: { household_size: householdSize },
+      });
+      return data;
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+};
 
 /**
  * Fetch all meal plans

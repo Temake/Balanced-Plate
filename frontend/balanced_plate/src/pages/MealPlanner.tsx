@@ -3,6 +3,7 @@ import Header, { BOTTOM_NAV_HEIGHT } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import {
   useMealPlans,
+  useBudgetTiers,
   useGenerateMealPlan,
   useGenerateDayMealPlan,
   useUpsertMealEntry,
@@ -62,6 +63,12 @@ const BUDGET_OPTIONS: { value: BudgetLevel; label: string; icon: React.ElementTy
   { value: 'medium', label: 'Medium', icon: Banknote },
   { value: 'flexible', label: 'Flexible', icon: Landmark },
 ];
+
+/** Naira with no kobo — food prices are never quoted to the kobo in a market. */
+const formatNaira = (amount?: number | null) => {
+  if (amount == null) return '—';
+  return `₦${Math.round(amount).toLocaleString('en-NG')}`;
+};
 
 type EditingSlot = {
   day: string;
@@ -211,13 +218,18 @@ const MealCard: React.FC<{
   const colors = MEAL_COLORS[mealType] ?? MEAL_COLORS.snack;
 
   return (
-    <div className="group relative rounded-xl border border-gray-200/80 dark:border-gray-700/50 bg-white dark:bg-gray-800/60 p-3.5 transition-all duration-200 hover:shadow-md hover:shadow-emerald-500/5 hover:border-emerald-300/50 dark:hover:border-emerald-600/30">
+    <div className="group relative overflow-hidden rounded-xl border border-gray-200/80 dark:border-gray-700/50 bg-white dark:bg-gray-800/60 p-3.5 transition-all duration-200 hover:shadow-md hover:shadow-emerald-500/5 hover:border-emerald-300/50 dark:hover:border-emerald-600/30">
+      {/* The badge must be allowed to shrink and the actions must not. Flex items
+          default to min-width:auto, so on a narrow day column the meal-type label
+          held its full width and pushed the edit/delete buttons outside the card. */}
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className={cn('inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-0.5', colors.bg, colors.text)}>
-          <span className={cn('w-1.5 h-1.5 rounded-full', colors.dot)} />
-          {MEAL_TYPES.find((m) => m.value === mealType)?.label ?? entry.meal_type}
+        <span className={cn('inline-flex min-w-0 shrink items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-0.5', colors.bg, colors.text)}>
+          <span className={cn('w-1.5 h-1.5 shrink-0 rounded-full', colors.dot)} />
+          <span className="truncate">
+            {MEAL_TYPES.find((m) => m.value === mealType)?.label ?? entry.meal_type}
+          </span>
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {entry.is_ai_generated && (
             <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 opacity-80" />
           )}
@@ -287,6 +299,10 @@ const EmptySlot: React.FC<{
 const MealPlanner: React.FC = () => {
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [budget, setBudget] = useState<BudgetLevel>('medium');
+  const [householdSize, setHouseholdSize] = useState<number>(1);
+  // Empty string means "use the tier". Held as a string so the field can be cleared
+  // without it snapping back to 0 mid-typing.
+  const [customBudget, setCustomBudget] = useState<string>('');
   const [mobileDay, setMobileDay] = useState<number>(() => {
     const today = new Date().getDay();
     return today === 0 ? 6 : today - 1;
@@ -296,6 +312,7 @@ const MealPlanner: React.FC = () => {
   const [aiPaywallMessage, setAiPaywallMessage] = useState<string | null>(null);
 
   const { data: mealPlans, isLoading } = useMealPlans();
+  const { data: budgetData } = useBudgetTiers(householdSize);
   const generateWeekMutation = useGenerateMealPlan();
   const generateDayMutation = useGenerateDayMealPlan();
   const upsertEntryMutation = useUpsertMealEntry();
@@ -319,6 +336,26 @@ const MealPlanner: React.FC = () => {
     });
     return map;
   }, [currentPlan]);
+
+  const parsedCustomBudget = useMemo(() => {
+    const value = Number(customBudget.replace(/[^0-9.]/g, ''));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }, [customBudget]);
+
+  /** What the AI will be held to: the typed amount if there is one, else the tier. */
+  const effectiveBudgetNaira = useMemo(() => {
+    if (parsedCustomBudget) return parsedCustomBudget;
+    return budgetData?.tiers.find((t) => t.key === budget)?.weekly_naira ?? null;
+  }, [parsedCustomBudget, budgetData, budget]);
+
+  const budgetParams = useMemo(
+    () => ({
+      budget_level: budget,
+      household_size: householdSize,
+      budget_naira: parsedCustomBudget,
+    }),
+    [budget, householdSize, parsedCustomBudget],
+  );
 
   const startEditing = (day: string, mealType: string, entry?: MealEntry) => {
     setEditingSlot({ day, mealType, entry });
@@ -356,7 +393,7 @@ const MealPlanner: React.FC = () => {
   const generateDay = (day: string) => {
     setAiPaywallMessage(null);
     generateDayMutation.mutate(
-      { week_start_date: weekStartDate, budget_level: budget, day },
+      { week_start_date: weekStartDate, ...budgetParams, day },
       {
         onSuccess: () => toast.success(`${DAYS.find((d) => d.value === day)?.label} meals generated.`),
         onError: (error) => {
@@ -373,7 +410,7 @@ const MealPlanner: React.FC = () => {
   const generateWeek = () => {
     setAiPaywallMessage(null);
     generateWeekMutation.mutate(
-      { week_start_date: weekStartDate, budget_level: budget },
+      { week_start_date: weekStartDate, ...budgetParams },
       {
         onSuccess: () => toast.success('Weekly meal plan generated.'),
         onError: (error) => {
@@ -496,25 +533,79 @@ const MealPlanner: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          {/* The tiers used to be bare adjectives, so nobody — including the AI —
+              knew what "Low" meant. Each chip now carries the naira figure it
+              actually resolves to for this household. */}
+          <div className="flex flex-wrap items-center gap-1.5">
             {BUDGET_OPTIONS.map((opt) => {
               const Icon = opt.icon;
+              const tier = budgetData?.tiers.find((t) => t.key === opt.value);
+              const isSelected = budget === opt.value && !parsedCustomBudget;
               return (
                 <button
                   key={opt.value}
-                  onClick={() => setBudget(opt.value)}
+                  onClick={() => {
+                    setBudget(opt.value);
+                    setCustomBudget('');
+                  }}
+                  title={tier?.description}
                   className={cn(
-                    'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 border flex items-center gap-1',
-                    budget === opt.value
+                    'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 border flex items-center gap-1.5',
+                    isSelected
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-500/20'
                       : 'bg-transparent text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-600',
                   )}
                 >
-                  {opt.label}
                   <Icon className="w-3.5 h-3.5" />
+                  {opt.label}
+                  {tier && (
+                    <span className={cn('font-normal', isSelected ? 'text-emerald-50' : 'text-gray-400 dark:text-gray-500')}>
+                      {formatNaira(tier.weekly_naira)}
+                    </span>
+                  )}
                 </button>
               );
             })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+              Feeding
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={householdSize}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  setHouseholdSize(Number.isFinite(next) && next > 0 ? Math.min(next, 20) : 1);
+                }}
+                className="w-14 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                aria-label="Household size"
+              />
+            </label>
+
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+              or ₦
+              <input
+                type="text"
+                inputMode="numeric"
+                value={customBudget}
+                onChange={(event) => setCustomBudget(event.target.value)}
+                placeholder="your weekly budget"
+                className="w-36 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                aria-label="Custom weekly budget in naira"
+              />
+            </label>
+
+            {parsedCustomBudget && (
+              <button
+                onClick={() => setCustomBudget('')}
+                className="text-[11px] font-medium text-gray-400 underline underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                use a preset
+              </button>
+            )}
           </div>
 
           <Button
@@ -535,6 +626,60 @@ const MealPlanner: React.FC = () => {
             )}
           </Button>
         </div>
+
+        {/* What the plan actually costs, shown as a band. A single figure would be
+            false precision: error compounds across ~30 ingredients. */}
+        {currentPlan?.estimated_cost_naira != null && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800/60">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                {formatNaira(currentPlan.estimated_cost_low_naira)} – {formatNaira(currentPlan.estimated_cost_high_naira)}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                this week, {currentPlan.household_size} {currentPlan.household_size === 1 ? 'person' : 'people'}
+              </span>
+            </div>
+
+            {currentPlan.budget_naira != null && (
+              <span
+                className={cn(
+                  'rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+                  currentPlan.is_within_budget
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
+                )}
+              >
+                {currentPlan.is_within_budget ? 'Within' : 'Over'} your {formatNaira(currentPlan.budget_naira)} budget
+              </span>
+            )}
+
+            {currentPlan.price_area_name && (
+              <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                {currentPlan.price_area_name} prices
+                {currentPlan.priced_at
+                  ? `, ${new Date(currentPlan.priced_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}`
+                  : ''}
+              </span>
+            )}
+
+            {currentPlan.unpriced_items?.length > 0 && (
+              <span
+                className="text-[11px] text-gray-400 dark:text-gray-500"
+                title={currentPlan.unpriced_items.join(', ')}
+              >
+                {currentPlan.unpriced_items.length} item
+                {currentPlan.unpriced_items.length === 1 ? '' : 's'} not priced
+              </span>
+            )}
+          </div>
+        )}
+
+        {effectiveBudgetNaira != null && currentPlan?.estimated_cost_naira == null && (
+          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+            Planning to {formatNaira(effectiveBudgetNaira)} for the week
+            {householdSize > 1 ? `, feeding ${householdSize}` : ''}.
+          </p>
+        )}
 
         {aiPaywallMessage && (
           <div className="mb-6">

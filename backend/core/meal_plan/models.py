@@ -49,6 +49,56 @@ class MealPlan(BaseModelMixin):
         max_length=20,
         choices=BUDGET_LEVEL_CHOICES,
         default="medium",
+        help_text=_("Preset used when the owner did not name their own figure."),
+    )
+    household_size = models.PositiveSmallIntegerField(
+        _("Household Size"),
+        default=1,
+        help_text=_("How many people this plan feeds. Budgets scale with it."),
+    )
+    budget_kobo = models.PositiveIntegerField(
+        _("Weekly Budget (kobo)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "What the owner has to spend on food this week, for the whole household. "
+            "Set from the budget tier unless they entered their own amount."
+        ),
+    )
+    is_custom_budget = models.BooleanField(
+        _("Custom Budget"),
+        default=False,
+        help_text=_("True when the owner typed an amount instead of picking a tier."),
+    )
+    estimated_cost_kobo = models.PositiveIntegerField(
+        _("Estimated Cost (kobo)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Recomputed from our own price table, never taken from the AI's arithmetic. "
+            "Frozen at generation time so a saved plan does not change value later."
+        ),
+    )
+    price_area = models.ForeignKey(
+        "pricing.PriceArea",
+        on_delete=models.SET_NULL,
+        related_name="meal_plans",
+        null=True,
+        blank=True,
+        verbose_name=_("Price Area"),
+        help_text=_("Which city's prices this plan was costed against."),
+    )
+    priced_at = models.DateTimeField(
+        _("Priced At"),
+        null=True,
+        blank=True,
+        help_text=_("When the cost was last computed, so staleness can be shown."),
+    )
+    unpriced_items = models.JSONField(
+        _("Unpriced Items"),
+        default=list,
+        blank=True,
+        help_text=_("Ingredients the AI used that are not in the priced catalogue."),
     )
     is_ai_generated = models.BooleanField(
         _("AI Generated"),
@@ -103,6 +153,20 @@ class MealEntry(BaseModelMixin):
         _("Health Notes"),
         blank=True,
         default="",
+    )
+    ingredients = models.JSONField(
+        _("Ingredients"),
+        default=list,
+        blank=True,
+        help_text=_(
+            "Costable breakdown as [{name, qty, unit}]. This is what makes a budget "
+            "real — without quantities there is nothing to multiply by a price."
+        ),
+    )
+    estimated_cost_kobo = models.PositiveIntegerField(
+        _("Estimated Cost (kobo)"),
+        null=True,
+        blank=True,
     )
     is_ai_generated = models.BooleanField(
         _("AI Generated"),

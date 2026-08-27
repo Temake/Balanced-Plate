@@ -187,6 +187,16 @@ export interface MealEntry {
   health_notes: string;
   is_ai_generated: boolean;
   date_added: string;
+  /** Costable breakdown. Without quantities there is nothing to price. */
+  ingredients: MealIngredient[];
+  estimated_cost_kobo: number | null;
+  estimated_cost_naira: number | null;
+}
+
+export interface MealIngredient {
+  name: string;
+  qty: number;
+  unit: string;
 }
 
 export interface MealPlan {
@@ -196,11 +206,46 @@ export interface MealPlan {
   is_ai_generated: boolean;
   entries: MealEntry[];
   date_added: string;
+
+  /** How many people the plan feeds. Budgets scale with it. */
+  household_size: number;
+  /** The week's food budget for the whole household. Null when none was set. */
+  budget_kobo: number | null;
+  budget_naira: number | null;
+  /** True when the user typed an amount rather than picking a tier. */
+  is_custom_budget: boolean;
+  /**
+   * Recomputed server-side from the price table, never taken from the AI's own
+   * arithmetic, and frozen at generation time. Null when nothing could be costed.
+   */
+  estimated_cost_kobo: number | null;
+  estimated_cost_naira: number | null;
+  /** Show the band, not the point estimate — error compounds across ~30 ingredients. */
+  estimated_cost_low_naira: number | null;
+  estimated_cost_high_naira: number | null;
+  is_within_budget: boolean | null;
+  /** Which city's prices this was costed against, for the provenance line. */
+  price_area_name: string | null;
+  priced_at: string | null;
+  /** Ingredients the AI used that aren't in the priced catalogue. */
+  unpriced_items: string[];
+}
+
+/** A budget preset, e.g. "Low — about ₦28,000/week for 4". */
+export interface BudgetTier {
+  key: 'low' | 'medium' | 'flexible';
+  label: string;
+  description: string;
+  naira_per_person_per_day: number;
+  weekly_naira: number;
 }
 
 export interface GenerateMealPlanRequest {
   week_start_date: string;
   budget_level: string;
+  household_size?: number;
+  /** The user's own weekly figure. Overrides the tier when present. */
+  budget_naira?: number | null;
 }
 
 export interface GenerateDayMealPlanRequest extends GenerateMealPlanRequest {

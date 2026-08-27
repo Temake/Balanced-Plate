@@ -79,6 +79,7 @@ CORE_APPS = [
     "core.meal_plan.apps.MealPlanConfig",
     "core.cooking.apps.CookingConfig",
     "core.billing.apps.BillingConfig",
+    "core.pricing.apps.PricingConfig",
 ]
 
 INSTALLED_APPS += CORE_APPS
