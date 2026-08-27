@@ -7,24 +7,24 @@ const steps = [
     icon: Camera,
     title: 'Scan Your Meal',
     description: 'Take a quick photo of your food. NutriLens identifies the meal and starts your daily accountability record.',
-    color: 'from-blue-500 to-cyan-500',
-    bgColor: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
+    color: 'from-emerald-500 to-green-600',
+    bgColor: 'from-emerald-50/70 to-green-50/50 dark:from-emerald-950/30 dark:to-green-900/20',
   },
   {
     number: '02',
     icon: MessageCircle,
     title: 'Get a Useful Nudge',
     description: 'Receive short, conversational feedback based on your goal, diet preference, and health conditions.',
-    color: 'from-purple-500 to-indigo-500',
-    bgColor: 'from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20',
+    color: 'from-emerald-500 to-green-600',
+    bgColor: 'from-emerald-50/70 to-green-50/50 dark:from-emerald-950/30 dark:to-green-900/20',
   },
   {
     number: '03',
     icon: CalendarDays,
     title: 'Plan, Cook, and Share',
     description: 'Build weekly meal plans, generate cooking steps for any dish, and download weekly food summaries from your profile.',
-    color: 'from-green-500 to-emerald-500',
-    bgColor: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
+    color: 'from-emerald-500 to-green-600',
+    bgColor: 'from-emerald-50/70 to-green-50/50 dark:from-emerald-950/30 dark:to-green-900/20',
   },
 ];
 
@@ -32,7 +32,7 @@ const HowItWorksSection: React.FC = () => {
   return (
     <section id="how-it-works" className="relative py-20 lg:py-32 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-green-50/50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
       
       {/* Decorative Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -40,9 +40,9 @@ const HowItWorksSection: React.FC = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 mb-6">
-            <Sparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-300">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 mb-6">
+            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               Simple Process
             </span>
           </div>
@@ -58,7 +58,7 @@ const HowItWorksSection: React.FC = () => {
         {/* Steps */}
         <div className="relative">
           {/* Connection Line - Desktop */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-purple-200 to-green-200 dark:from-blue-800 dark:via-purple-800 dark:to-green-800 -translate-y-1/2" style={{ top: '120px' }} />
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-300 dark:from-emerald-800 dark:via-green-700 dark:to-emerald-800 -translate-y-1/2" style={{ top: '120px' }} />
 
           <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
             {steps.map((step, idx) => (

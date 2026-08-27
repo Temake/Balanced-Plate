@@ -26,10 +26,12 @@ import {
   Pencil,
   Save,
   X,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import PaywallPrompt from '@/components/billing/PaywallPrompt';
+import { LocationSelectorModal } from '@/components/pricing/LocationSelectorModal';
 import { getApiErrorMessage, isPaymentRequiredError } from '@/utils/billing';
 
 const DAYS = [
@@ -310,6 +312,7 @@ const MealPlanner: React.FC = () => {
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null);
   const [form, setForm] = useState<MealEntryFormState>(() => emptyForm());
   const [aiPaywallMessage, setAiPaywallMessage] = useState<string | null>(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const { data: mealPlans, isLoading } = useMealPlans();
   const { data: budgetData } = useBudgetTiers(householdSize);
@@ -569,6 +572,15 @@ const MealPlanner: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsLocationModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all shadow-sm"
+              title="Change market price location"
+            >
+              <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{budgetData?.price_area?.name ?? 'Lagos'} prices</span>
+            </button>
+
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
               Feeding
               <input
@@ -654,12 +666,17 @@ const MealPlanner: React.FC = () => {
             )}
 
             {currentPlan.price_area_name && (
-              <span className="text-[11px] text-gray-400 dark:text-gray-500">
+              <button
+                onClick={() => setIsLocationModalOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors underline-offset-2 hover:underline"
+                title="Change pricing city"
+              >
+                <MapPin className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 {currentPlan.price_area_name} prices
                 {currentPlan.priced_at
                   ? `, ${new Date(currentPlan.priced_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}`
                   : ''}
-              </span>
+              </button>
             )}
 
             {currentPlan.unpriced_items?.length > 0 && (
@@ -814,6 +831,12 @@ const MealPlanner: React.FC = () => {
           </>
         )}
       </main>
+
+      <LocationSelectorModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        currentArea={budgetData?.price_area}
+      />
     </div>
   );
 };

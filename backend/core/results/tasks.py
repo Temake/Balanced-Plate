@@ -58,6 +58,7 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False, reservat
         # Build user health profile for personalized AI feedback
         user = file_obj.owner
         user_profile = {
+            "age_range": getattr(user, "effective_age_range", "Not specified"),
             "dietary_goal": getattr(user, "dietary_goal", "general_health"),
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),

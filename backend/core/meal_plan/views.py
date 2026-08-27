@@ -174,6 +174,7 @@ class GenerateAIMealPlan(views.APIView):
         # Build user profile context from the authenticated user
         user = request.user
         user_profile = {
+            "age_range": getattr(user, "effective_age_range", "Not specified"),
             "dietary_goal": getattr(user, "dietary_goal", "general_health"),
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),
@@ -270,6 +271,7 @@ class GenerateAIDayMealPlan(views.APIView):
         user = request.user
 
         user_profile = {
+            "age_range": getattr(user, "effective_age_range", "Not specified"),
             "dietary_goal": getattr(user, "dietary_goal", "general_health"),
             "dietary_preference": getattr(user, "dietary_preference", "none"),
             "health_conditions": getattr(user, "health_conditions", []),

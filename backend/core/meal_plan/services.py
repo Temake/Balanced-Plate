@@ -153,9 +153,12 @@ INGREDIENT RULES:
   and may be fractional (e.g. 0.25 kg).
 - Also return `estimated_cost_naira` per meal, computed from the catalogue prices."""
 
+    age_range = user_profile.get("age_range", "Not specified")
+
     prompt = f"""Generate a complete 7-day meal plan (Monday to Sunday) with 3 meals and 1 snack per day.
 
 USER PROFILE:
+- Age Group: {age_range}
 - Dietary Goal: {user_profile.get('dietary_goal', 'general_health')}
 - Dietary Preference: {user_profile.get('dietary_preference', 'none')}
 - Health Conditions: {health_conditions_str}
@@ -170,7 +173,9 @@ CRITICAL REQUIREMENTS:
 4. DO NOT suggest Western, expensive, or hard-to-find foods (no quinoa, kale, salmon, chia seeds, avocado, blueberries, etc.).
 5. Use ingredients like: Jollof rice, Eba, Fufu, Amala, Semo, Pounded Yam, Egusi, Efo Riro, Okra soup, Akara, Moi Moi, Pap/Ogi, Suya, Dodo, Ofada rice, Garden egg, Groundnut, Ugu, Ewedu, Titus fish, Locust beans (Iru), Bitterleaf, Pawpaw, Mango, Tiger nut, Zobo.
 
-HEALTH-AWARE RULES:
+AGE & HEALTH-AWARE RULES:
+- If age group is 'under_18' or '18-24': Ensure ample calories, protein, and energy for growing or highly active users.
+- If age group is '45-54', '55-64', or '65+': Favor easier-to-digest swallows (e.g. wheat, unripe plantain flour), lower oil/salt, and heart-healthy local greens.
 - If user has 'diabetes': Focus on low-carb options, avoid excessive starchy swallows, suggest lighter alternatives.
 - If user has 'hypertension': Reduce salt and oil, suggest lighter preparation methods.
 - If user preference is 'keto': Minimize carbs, focus on protein and fat-rich Nigerian foods.

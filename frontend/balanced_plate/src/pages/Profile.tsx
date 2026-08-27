@@ -9,20 +9,20 @@ import {
   MapPin, 
   Calendar, 
   Edit3, 
-  Camera,
-  Check,
-  X,
-  Mail,
-  Phone,
-  User,
-  Globe,
-  Shield,
-  Sparkles,
-  Leaf,
-  Target,
-  Utensils,
-  HeartPulse,
-  ChevronDown,
+  Camera, 
+  Check, 
+  X, 
+  Mail, 
+  Phone, 
+  User, 
+  Globe, 
+  Shield, 
+  Sparkles, 
+  Leaf, 
+  Target, 
+  Utensils, 
+  HeartPulse, 
+  ChevronDown, 
   Loader2,
   FileText,
   Download,
@@ -33,6 +33,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentSubscription } from '@/hooks/useBilling';
+
+// ─── Editable Text Field ──────────────────────────────────────────────────────
 
 interface EditableFieldProps {
   label: string;
@@ -168,6 +170,7 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, value, field, icon, op
               disabled={isSaving}
               className="w-full appearance-none bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 pr-9 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all cursor-pointer disabled:opacity-60"
             >
+              <option value="" disabled>Select {label.toLowerCase()}</option>
               {options.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -270,6 +273,16 @@ const ChipSelector: React.FC<ChipSelectorProps> = ({ label, icon, options, selec
 };
 
 // ─── Option Maps ─────────────────────────────────────────────────────────────
+
+const AGE_RANGE_OPTIONS: SelectOption[] = [
+  { label: 'Under 18', value: 'under_18' },
+  { label: '18 – 24 years', value: '18_24' },
+  { label: '25 – 34 years', value: '25_34' },
+  { label: '35 – 44 years', value: '35_44' },
+  { label: '45 – 54 years', value: '45_54' },
+  { label: '55 – 64 years', value: '55_64' },
+  { label: '65+ years', value: '65_plus' },
+];
 
 const DIETARY_GOAL_OPTIONS: SelectOption[] = [
   { label: 'Weight Loss', value: 'weight_loss' },
@@ -494,7 +507,9 @@ const WeeklyFoodSummaries: React.FC = () => {
   );
 };
 
-const Profile = () => {
+// ─── Main Profile Component ──────────────────────────────────────────────────
+
+const Profile: React.FC = () => {
   const { user, loadCurrentUser } = useAuth();
   const { uploadFile } = useFiles();
   const { data: subscription } = useCurrentSubscription();
@@ -505,9 +520,9 @@ const Profile = () => {
     try {
       await api.patch(`/accounts/${user?.id}/`, { [field]: value });
       await loadCurrentUser();
-      toast.success(`${field.replace('_', ' ')} updated successfully!`);
+      toast.success(`${field.replace(/_/g, ' ')} updated successfully!`);
     } catch {
-      toast.error(`Failed to update ${field.replace('_', ' ')}`);
+      toast.error(`Failed to update ${field.replace(/_/g, ' ')}`);
       throw new Error('Update failed');
     }
   };
@@ -612,9 +627,10 @@ const Profile = () => {
 
         {/* Editable Fields Grid */}
         <div className="grid gap-4 md:grid-cols-2">
+          {/* Personal Information */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <User className="w-4 h-4 text-green-500" />
+              <User className="w-4 h-4 text-emerald-500" />
               Personal Information
             </h2>
             <div className="space-y-3">
@@ -645,7 +661,6 @@ const Profile = () => {
 
           {/* Health & Diet Preferences */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-            {/* Subtle decorative gradient */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-bl-full pointer-events-none" />
 
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -674,6 +689,14 @@ const Profile = () => {
 
             <div className="space-y-3">
               <SelectField
+                label="Age Group"
+                value={user.age_range || ''}
+                field="age_range"
+                icon={<Calendar className="w-5 h-5" />}
+                options={AGE_RANGE_OPTIONS}
+                onSave={handleFieldSave}
+              />
+              <SelectField
                 label="Dietary Goal"
                 value={user.dietary_goal || 'general_health'}
                 field="dietary_goal"
@@ -701,12 +724,13 @@ const Profile = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700">
+          {/* Location */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 md:col-span-2">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-500" />
               Location
             </h2>
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-3">
               <EditableField
                 label="City"
                 value={user.city || ''}

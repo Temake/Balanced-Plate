@@ -191,6 +191,12 @@ class WeeklyRecommendationHelper:
         return {
             "week_start_date": self.start_date.isoformat(),
             "week_end_date": self.end_date.isoformat(),
+            "user_profile": {
+                "age_group": getattr(self.user, "effective_age_range", "Not specified"),
+                "dietary_goal": getattr(self.user, "dietary_goal", "general_health"),
+                "dietary_preference": getattr(self.user, "dietary_preference", "none"),
+                "health_conditions": getattr(self.user, "health_conditions", []),
+            },
             "meal_type_percentage": self.get_meal_type_percentages(),
             "balance_score": self.get_weekly_balance_score(),
             "total_nutrition_consumption": self.get_nutrition_totals_and_percentages(),

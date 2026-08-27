@@ -74,6 +74,7 @@ class GenerateCookingGuide(views.APIView):
 
         dietary_preference = getattr(user, "dietary_preference", "none")
         health_conditions = getattr(user, "health_conditions", None)
+        age_range = getattr(user, "effective_age_range", "Not specified")
 
         # The credit is consumed up front, under lock, so parallel requests cannot all
         # clear the same remaining balance. It is refunded below if generation fails.
@@ -84,6 +85,7 @@ class GenerateCookingGuide(views.APIView):
                 dish_name=dish_name,
                 dietary_preference=dietary_preference,
                 health_conditions=health_conditions,
+                age_range=age_range,
             )
         except Exception as e:
             release_ai_generation_credit(reservation)

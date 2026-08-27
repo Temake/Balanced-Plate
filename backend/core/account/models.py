@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
 from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils import timezone
 from core.utils import enums
 from core.utils.mixins import BaseModelMixin
 from .models_manager.queryset import UserQuerySet
@@ -99,6 +100,22 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
         max_length=20,
     )
     dob = models.DateField(_("Date of Birth"), null=True, blank=True)
+    age_range = models.CharField(
+        _("Age Range"),
+        choices=[
+            ("under_18", "Under 18"),
+            ("18_24", "18-24"),
+            ("25_34", "25-34"),
+            ("35_44", "35-44"),
+            ("45_54", "45-54"),
+            ("55_64", "55-64"),
+            ("65_plus", "65+"),
+        ],
+        null=True,
+        blank=True,
+        default=None,
+        max_length=20,
+    )
     gender = models.CharField(
         _("Gender"),
         choices=enums.UserGenderType.choices(),
@@ -156,6 +173,14 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
     country = models.CharField(_("Country"), null=True, blank=True, max_length=255)
     state = models.CharField(_("State"), null=True, blank=True, max_length=255)
     city = models.CharField(_("City"), null=True, blank=True, max_length=255)
+    price_area = models.ForeignKey(
+        "pricing.PriceArea",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts",
+        verbose_name=_("Price Area"),
+    )
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
@@ -191,6 +216,29 @@ class Account(AbstractBaseUser, PermissionsMixin, BaseModelMixin):
     @property
     def push_notification_channel_id(self):
         return f"user_{self.id}_push_notification_channel"
+
+    @property
+    def effective_age_range(self) -> str:
+        if self.age_range:
+            return self.get_age_range_display() if hasattr(self, "get_age_range_display") else self.age_range
+        if self.dob:
+            today = timezone.localdate()
+            age = today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
+            if age < 18:
+                return "Under 18"
+            elif 18 <= age <= 24:
+                return "18-24"
+            elif 25 <= age <= 34:
+                return "25-34"
+            elif 35 <= age <= 44:
+                return "35-44"
+            elif 45 <= age <= 54:
+                return "45-54"
+            elif 55 <= age <= 64:
+                return "55-64"
+            else:
+                return "65+"
+        return "Not specified"
 
     def __str__(self):
         return f"< {type(self).__name__}({self.id}) ({self.first_name})  {self.email}>"

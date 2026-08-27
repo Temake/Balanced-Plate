@@ -22,6 +22,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 class UserSerializer:
     class Retrieve(serializers.ModelSerializer):
+        effective_age_range = serializers.CharField(read_only=True)
+
         class Meta:
             model = Account
             exclude = [
@@ -37,6 +39,8 @@ class UserSerializer:
             ]
     
     class Create(serializers.ModelSerializer):
+        dob = serializers.DateField(required=False, allow_null=True)
+        age_range = serializers.CharField(required=False, allow_null=True)
         password2 = serializers.CharField(
             write_only=True,
             required=True,
@@ -53,6 +57,7 @@ class UserSerializer:
                 "phone_number",
                 "gender",
                 "dob",
+                "age_range",
                 "country",
                 "state",
                 "city",
@@ -100,6 +105,8 @@ class UserSerializer:
                 "last_name",
                 "phone_number",
                 "gender",
+                "dob",
+                "age_range",
                 "country",
                 "state",
                 "city",
@@ -136,6 +143,7 @@ class UserSerializer:
         class Meta:
             model = Account
             fields = [
+                "age_range",
                 "dietary_goal",
                 "dietary_preference",
                 "health_conditions",

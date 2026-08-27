@@ -1,5 +1,7 @@
 import json
 from typing import Tuple
+import json
+from typing import Tuple
 
 from loguru import logger
 
@@ -9,6 +11,7 @@ from core.utils.services import GeminiBaseService
 COOKING_GUIDE_PROMPT = """
 You are a friendly Nigerian cooking assistant. Generate a detailed step-by-step cooking guide for the dish: {dish_name}.
 
+USER AGE GROUP: {age_range}
 USER DIETARY PREFERENCE: {dietary_preference}
 USER HEALTH CONDITIONS: {health_conditions}
 
@@ -17,7 +20,9 @@ INSTRUCTIONS:
 - Use local Nigerian measurements (cups, handfuls, cooking spoons, derica, paint rubber) where appropriate.
 - Use local Nigerian ingredient names and common cooking methods (e.g., parboiling rice, blending pepper, frying in palm oil or groundnut oil).
 - Keep instructions warm, friendly, and conversational — like a Nigerian auntie teaching someone to cook.
-- If the user has health conditions, adapt the recipe accordingly:
+- Adapt based on age group and health conditions:
+  - Older age brackets (45+) or heart conditions: emphasize moderate palm oil usage, lighter salt, steaming/boiling techniques, and natural spices like locust beans (iru), garlic, and ginger.
+  - Younger age brackets (under 25): emphasize clean sustained energy, iron, and adequate protein portions.
   - Diabetes: reduce carbohydrate portions, suggest alternatives like unripe plantain or ofada rice
   - Hypertension: reduce salt and seasoning cubes, use natural spices like locust beans (iru/dawadawa), garlic, and ginger instead
   - Keto: minimize carbs, increase healthy fats and protein
@@ -42,7 +47,7 @@ Return your response in the following JSON format ONLY (no additional text):
             "tip": "This removes excess starch and prevents the rice from being sticky"
         }}
     ],
-    "health_notes": "Optional notes based on user's health conditions — leave empty string if no conditions"
+    "health_notes": "Optional notes based on user's health conditions and age group — leave empty string if none"
 }}
 
 Return ONLY valid JSON, no additional text.
@@ -60,6 +65,7 @@ class CookingAssistantService(GeminiBaseService):
         dish_name: str,
         dietary_preference: str = "none",
         health_conditions: list = None,
+        age_range: str = "Not specified",
     ) -> Tuple[dict, bool]:
         """Generate a cooking guide for a Nigerian dish.
 
@@ -67,6 +73,7 @@ class CookingAssistantService(GeminiBaseService):
             dish_name: The name of the dish to generate a guide for.
             dietary_preference: User's dietary preference (e.g., 'none', 'vegetarian', 'vegan', 'keto').
             health_conditions: List of user's health conditions (e.g., ['diabetes', 'hypertension']).
+            age_range: User's age range bracket.
 
         Returns:
             Tuple of (cooking_guide_dict, is_mock_bool)
@@ -81,11 +88,11 @@ class CookingAssistantService(GeminiBaseService):
         try:
             prompt = COOKING_GUIDE_PROMPT.format(
                 dish_name=dish_name,
+                age_range=age_range,
                 dietary_preference=dietary_preference,
                 health_conditions=", ".join(health_conditions) if health_conditions else "None",
             )
             return self.call_gemini([prompt])
-
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Gemini response for cooking guide: {e}")
             return self.get_mock_cooking_guide(dish_name), True

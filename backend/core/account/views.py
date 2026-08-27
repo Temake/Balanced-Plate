@@ -445,6 +445,14 @@ class FinalizeEmailVerification(views.APIView):
             ):
                 account.is_email_verified = True
                 account.save(update_fields=["is_email_verified"])
+
+                # Send Welcome Email to newly verified user
+                welcome_message = mailer.MessageTemplates.welcome_email(name=account.first_name)
+                mail_tasks.send_email_to_address.apply_async(
+                    (account.email, "Welcome to NutriLens! 🥗", welcome_message, account.first_name),
+                    queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+                )
+
                 return response.Response(
                     data={"message": "email verified"},
                     status=status.HTTP_200_OK,

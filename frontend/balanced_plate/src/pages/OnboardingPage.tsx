@@ -5,12 +5,21 @@ import {
   Leaf, ArrowRight, ArrowLeft, Check, Loader2,
   TrendingDown, Dumbbell, Zap, HeartPulse,
   Utensils, Carrot, Egg, WheatOff,
-  Droplet, Activity, Stethoscope, Pill, AlertTriangle, AlertCircle, MapPin
+  Droplet, Activity, Stethoscope, Pill, AlertTriangle, AlertCircle, MapPin,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { OnboardingData } from '@/api/types';
 
-
+const ageRanges = [
+  { id: 'under_18', label: 'Under 18', desc: 'Growing & active lifestyle' },
+  { id: '18_24', label: '18 – 24 years', desc: 'Young adult & student life' },
+  { id: '25_34', label: '25 – 34 years', desc: 'Busy career & active routine' },
+  { id: '35_44', label: '35 – 44 years', desc: 'Balanced wellness & fitness' },
+  { id: '45_54', label: '45 – 54 years', desc: 'Heart health & steady energy' },
+  { id: '55_64', label: '55 – 64 years', desc: 'Vitality & blood pressure focus' },
+  { id: '65_plus', label: '65+ years', desc: 'Longevity & gentle nutrition' },
+];
 
 const goals = [
   { id: 'weight_loss', icon: TrendingDown, label: 'Lose weight', desc: 'Shed excess body fat while eating Nigerian meals you love' },
@@ -45,11 +54,12 @@ const OnboardingPage: React.FC = () => {
   const { completeOnboarding, isLoading } = useAuth();
 
   const [step, setStep] = useState(0);
+  const [selectedAgeRange, setSelectedAgeRange] = useState('');
   const [selectedGoal, setSelectedGoal] = useState('');
   const [selectedDiet, setSelectedDiet] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
-  const totalSteps = 5; // Welcome, Goal, Diet, Health, All Set
+  const totalSteps = 6; // Welcome, Age Range, Goal, Diet, Health, All Set
 
   const toggleCondition = (id: string) => {
     if (id === 'none') {
@@ -64,15 +74,17 @@ const OnboardingPage: React.FC = () => {
 
   const canProceed = () => {
     if (step === 0) return true; // Welcome
-    if (step === 1) return !!selectedGoal;
-    if (step === 2) return !!selectedDiet;
-    if (step === 3) return selectedConditions.length > 0;
-    if (step === 4) return true;
+    if (step === 1) return !!selectedAgeRange; // Age Range
+    if (step === 2) return !!selectedGoal; // Goal
+    if (step === 3) return !!selectedDiet; // Diet
+    if (step === 4) return selectedConditions.length > 0; // Health
+    if (step === 5) return true; // All set
     return false;
   };
 
   const handleComplete = async () => {
     const data: OnboardingData = {
+      age_range: selectedAgeRange || undefined,
       dietary_goal: selectedGoal,
       dietary_preference: selectedDiet,
       health_conditions: selectedConditions.filter((c) => c !== 'none'),
@@ -88,6 +100,7 @@ const OnboardingPage: React.FC = () => {
 
   const handleSkip = async () => {
     const data: OnboardingData = {
+      age_range: undefined,
       dietary_goal: 'general_health',
       dietary_preference: 'none',
       health_conditions: [],
@@ -130,7 +143,7 @@ const OnboardingPage: React.FC = () => {
 
         {step > 0 && (
           <div className="flex items-center gap-1">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -163,8 +176,48 @@ const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 1: Goal */}
+          {/* Step 1: Age Range */}
           {step === 1 && (
+            <div className="animate-fade-in">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                What is your age range?
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                This helps us calibrate metabolic needs, daily energy, and nutrient focus.
+              </p>
+              <div className="space-y-2.5">
+                {ageRanges.map((range) => (
+                  <button
+                    key={range.id}
+                    onClick={() => setSelectedAgeRange(range.id)}
+                    className={`w-full flex items-center gap-4 p-3.5 rounded-xl border text-left transition-all duration-200 ${
+                      selectedAgeRange === range.id
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-500/30'
+                        : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-700'
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      selectedAgeRange === range.id
+                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                    }`}>
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">{range.label}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{range.desc}</div>
+                    </div>
+                    {selectedAgeRange === range.id && (
+                      <Check className="w-4 h-4 text-emerald-600 ml-auto flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Goal */}
+          {step === 2 && (
             <div className="animate-fade-in">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                 What's your main goal?
@@ -201,8 +254,8 @@ const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 2: Diet Preference */}
-          {step === 2 && (
+          {/* Step 3: Diet Preference */}
+          {step === 3 && (
             <div className="animate-fade-in">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                 Any dietary preferences?
@@ -239,8 +292,8 @@ const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 3: Health Conditions */}
-          {step === 3 && (
+          {/* Step 4: Health Conditions */}
+          {step === 4 && (
             <div className="animate-fade-in">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                 Any health conditions?
@@ -277,8 +330,8 @@ const OnboardingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 4: All Set */}
-          {step === 4 && (
+          {/* Step 5: All Set */}
+          {step === 5 && (
             <div className="text-center animate-fade-in">
               <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-6">
                 <Check className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />

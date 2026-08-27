@@ -1,8 +1,10 @@
+import React, { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { Home, Camera, CalendarDays, User, User2Icon, LogOut, ChefHat, CreditCard } from 'lucide-react'
+import { Home, Camera, CalendarDays, User, User2Icon, LogOut, ChefHat, CreditCard, MessageSquarePlus } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { FeedbackDialog } from '@/components/feedback/FeedbackDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +41,7 @@ const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const isActivePath = (path: string) => location.pathname === path
 
@@ -129,6 +132,11 @@ const Header: React.FC = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setFeedbackOpen(true)} className="flex items-center cursor-pointer">
+                    <MessageSquarePlus className="mr-2 h-4 w-4" />
+                    Feedback
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
@@ -188,6 +196,9 @@ const Header: React.FC = () => {
           </div>
         </nav>
       )}
+
+      {/* ─── In-App Feedback Dialog ─── */}
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
   )
 }

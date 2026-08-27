@@ -13,7 +13,7 @@ from core.utils.services import GeminiBaseService
 def build_analysis_prompt(user_profile=None):
     """
     Build the AI analysis prompt, optionally injecting user health context
-    for personalized feedback.
+    and age group for personalized feedback.
     """
     health_context = ""
     if user_profile:
@@ -23,14 +23,19 @@ def build_analysis_prompt(user_profile=None):
         else:
             health_conditions_str = str(health_conditions) if health_conditions else "None"
 
+        age_range = user_profile.get("age_range", "Not specified")
+
         health_context = f"""
 
-USER HEALTH CONTEXT (adjust your feedback accordingly):
+USER PROFILE & HEALTH CONTEXT (adjust your feedback accordingly):
+- Age Group: {age_range}
 - Dietary Goal: {user_profile.get('dietary_goal', 'general_health')}
 - Dietary Preference: {user_profile.get('dietary_preference', 'none')}
 - Health Conditions: {health_conditions_str}
 
-HEALTH-AWARE RULES:
+AGE & HEALTH-AWARE RULES:
+- If age group is 'under_18' or '18-24': Prioritize sufficient calories, growth-supporting protein, and iron/calcium for active lifestyles
+- If age group is '45-54', '55-64', or '65+': Advise on blood pressure/sugar balance, lighter oil usage, heart health, and joint/bone density (calcium/vitamin D)
 - If user has 'diabetes': Highlight sugar/carb impact, suggest lower-carb Nigerian alternatives
 - If user has 'hypertension': Highlight salt/oil concerns, suggest lighter preparation methods
 - If user is on 'keto': Warn when food is high-carb, suggest fat/protein-rich Nigerian alternatives

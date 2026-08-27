@@ -145,3 +145,40 @@ export const useDeleteMealPlan = () => {
     },
   });
 };
+
+/**
+ * Fetch all active price areas
+ */
+export const usePriceAreas = () => {
+  return useQuery<import('@/api/types').PriceArea[]>({
+    queryKey: ['priceAreas'],
+    queryFn: async () => {
+      const { data } = await api.get('/pricing/areas/');
+      return data;
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+};
+
+/**
+ * Resolve price area by GPS coordinates or explicit selection
+ */
+export const useLocatePriceArea = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    import('@/api/types').LocatePriceAreaResponse,
+    Error,
+    import('@/api/types').LocatePriceAreaRequest
+  >({
+    mutationFn: async (request) => {
+      const { data } = await api.post('/pricing/locate/', request);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgetTiers'] });
+      queryClient.invalidateQueries({ queryKey: MEAL_PLANS_KEY });
+    },
+  });
+};
+

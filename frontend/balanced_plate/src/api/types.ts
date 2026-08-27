@@ -5,16 +5,18 @@ export interface User {
   last_name: string;
   city?: string;
   is_verified?: boolean;
-  is_superuser?:boolean
-  phone_number:string
-  is_phone_number_verified:boolean
-  is_email_verified:boolean
-  gender:string
-  dob:Date
-  is_banned:boolean
-  account_type:string
-  country:string,
-  state?:string
+  is_superuser?: boolean;
+  phone_number: string;
+  is_phone_number_verified: boolean;
+  is_email_verified: boolean;
+  gender: string;
+  dob?: Date | string;
+  age_range?: string;
+  effective_age_range?: string;
+  is_banned: boolean;
+  account_type: string;
+  country: string;
+  state?: string;
   dietary_goal?: string;
   dietary_preference?: string;
   health_conditions?: string[];
@@ -34,42 +36,39 @@ export interface LoginResponse {
   };
 }
 
-export interface SignupCredentials{
-  first_name:string,
-  last_name:string,
-  email:string,
-  gender:string,
-  dob?: string,
-  phone_number:string,
-  password: string,
-  password2?:string,
-  country?:string
-
-
-
+export interface SignupCredentials {
+  first_name: string;
+  last_name: string;
+  email: string;
+  gender: string;
+  dob?: string;
+  age_range?: string;
+  phone_number: string;
+  password: string;
+  password2?: string;
+  country?: string;
 }
-export interface SignupResponse{
+
+export interface SignupResponse {
   user: User;
   message?: string | {
-    phone_number?: string | string[],
-    password?: string | string[],
-    email?: string | string[]
-  }
-
+    phone_number?: string | string[];
+    password?: string | string[];
+    email?: string | string[];
+  };
 }
 
-export interface ResponseError{
-  status:number
-    message:{
-      phone_number?:string,
-      password?:string
-      email?:string
-
-
-    }
-  
+export interface ResponseError {
+  status: number;
+  message: {
+    phone_number?: string;
+    password?: string;
+    email?: string;
+  };
 }
+
 export interface OnboardingData {
+  age_range?: string;
   dietary_goal: string;
   dietary_preference: string;
   health_conditions: string[];
@@ -229,6 +228,27 @@ export interface MealPlan {
   priced_at: string | null;
   /** Ingredients the AI used that aren't in the priced catalogue. */
   unpriced_items: string[];
+}
+
+export interface PriceArea {
+  id: number;
+  name: string;
+  state: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_default?: boolean;
+}
+
+export interface LocatePriceAreaRequest {
+  latitude?: number | null;
+  longitude?: number | null;
+  area_id?: number | null;
+}
+
+export interface LocatePriceAreaResponse {
+  price_area: PriceArea | null;
+  distance_km: number | null;
+  is_outside_nigeria: boolean;
 }
 
 /** A budget preset, e.g. "Low — about ₦28,000/week for 4". */

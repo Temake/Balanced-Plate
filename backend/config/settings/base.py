@@ -396,8 +396,11 @@ sentry_sdk.init(
 
 # Email settings
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="***")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 RESEND_API_KEY = env.str("RESEND_API_KEY", default="***")
+FEEDBACK_RECIPIENT_EMAIL = env.str("FEEDBACK_RECIPIENT_EMAIL", default="temedia005@gmail.com")
+
+
 
 
 # managed storage configurations

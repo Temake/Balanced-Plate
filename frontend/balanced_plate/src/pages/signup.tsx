@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Select,
@@ -24,13 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import CustomCalendar from "@/components/CustomCalendar";
-import { Calendar as CalendarIcon, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
 // import GoogleButton from "@/components/GoogleButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -42,9 +35,8 @@ const SignupformSchema = z.object({
   phone_number: z.string().min(10, { message: "Phone number is required" }),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   password2: z.string().min(8, { message: "Please confirm your password" }),
-  dob: z.string().min(5, { message: "Please select a date of birth" }),
   gender: z.enum(["Male", "Female"], { message: "Please select a gender" }),
-  country:z.string().min(2,{message:"Please Enter Valid Country"})
+  country: z.string().min(2, { message: "Please enter a valid country" })
 }).refine((data) => data.password === data.password2, {
   message: "Passwords must match",
   path: ["password2"],
@@ -61,21 +53,18 @@ export default function SignUp() {
   const genderOptions = [
     { value: "Male", label: "Male" },
     { value: "Female", label: "Female" },
- 
   ];
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(SignupformSchema),
     defaultValues: {
-      dob:"",
       first_name: "",
       last_name: "",
       email: "",
       phone_number: "",
       password: "",
       password2: "",
-      country:""
-  
+      country: "Nigeria",
     },
   });
 
@@ -91,8 +80,7 @@ export default function SignUp() {
         email: data.email,
         phone_number: data.phone_number,
         password: data.password,
-        password2:data.password2,
-        dob: data.dob,
+        password2: data.password2,
         gender: data.gender,
         country: data.country
       });
@@ -252,41 +240,6 @@ export default function SignUp() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="dob"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of Birth</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start pl-3 text-left font-normal text-gray-900 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 dark:hover:bg-gray-700",
-                                !field.value && "text-gray-500 dark:text-gray-300"
-                              )}
-                              disabled={isSubmitting}
-                            >
-                              {field.value ? field.value : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 text-gray-500 opacity-100 dark:text-gray-300" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 dark:border-gray-700" align="start">
-                          {/* Custom Calendar with Year/Month Dropdowns */}
-                          <CustomCalendar
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
@@ -309,9 +262,7 @@ export default function SignUp() {
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="country"
@@ -325,8 +276,6 @@ export default function SignUp() {
                     </FormItem>
                   )}
                 />
-               
-                
               </div>
 
               <Button

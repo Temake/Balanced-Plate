@@ -1,10 +1,3 @@
-"""Resolving prices, costing meals, and turning budget tiers into naira.
-
-The one rule that shapes this module: a price is an observation with a date, and
-"the current price" is a query result, never a stored field. Everything here takes
-an `as_of` date and reports how stale the underlying observation was.
-"""
-
 from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
@@ -65,6 +58,81 @@ class PlanCost:
     unknown_items: list = field(default_factory=list)
     area_name: str = ""
     oldest_observation: object = None
+
+
+import math
+from typing import Optional, Tuple
+
+# Nigeria geographic bounding box
+NIGERIA_LAT_RANGE = (4.0, 14.0)
+NIGERIA_LON_RANGE = (2.5, 15.0)
+
+
+def is_within_nigeria(lat: float, lon: float) -> bool:
+    """Check if coordinates fall within Nigeria's approximate boundaries."""
+    if lat is None or lon is None:
+        return False
+    return (
+        NIGERIA_LAT_RANGE[0] <= lat <= NIGERIA_LAT_RANGE[1]
+        and NIGERIA_LON_RANGE[0] <= lon <= NIGERIA_LON_RANGE[1]
+    )
+
+
+def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate the great-circle distance between two points on the Earth in kilometers."""
+    radius_earth_km = 6371.0
+    d_lat = math.radians(lat2 - lat1)
+    d_lon = math.radians(lon2 - lon1)
+    a = (
+        math.sin(d_lat / 2.0) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(d_lon / 2.0) ** 2
+    )
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    return radius_earth_km * c
+
+
+def find_nearest_price_area(
+    lat: Optional[float], lon: Optional[float]
+) -> Tuple[PriceArea, Optional[float], bool]:
+    """
+    Find the nearest active PriceArea given GPS coordinates.
+
+    Returns:
+        (price_area, distance_km, is_outside_nigeria)
+    """
+    default_area = get_default_area()
+    if lat is None or lon is None:
+        return default_area, None, False
+
+    if not is_within_nigeria(lat, lon):
+        logger.info(
+            f"Coordinates ({lat}, {lon}) are outside Nigeria bounding box; falling back to {default_area}"
+        )
+        return default_area, None, True
+
+    areas = list(
+        PriceArea.objects.filter(
+            is_active=True,
+            latitude__isnull=False,
+            longitude__isnull=False,
+        )
+    )
+
+    if not areas:
+        return default_area, None, False
+
+    best_area = None
+    min_distance = float("inf")
+
+    for area in areas:
+        dist = haversine_distance_km(lat, lon, area.latitude, area.longitude)
+        if dist < min_distance:
+            min_distance = dist
+            best_area = area
+
+    return best_area or default_area, round(min_distance, 1), False
 
 
 def get_default_area():

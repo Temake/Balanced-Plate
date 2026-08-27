@@ -24,4 +24,17 @@ class BudgetTierSerializer(serializers.ModelSerializer):
 class PriceAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = PriceArea
-        fields = ["id", "name", "state", "is_default"]
+        fields = ["id", "name", "state", "latitude", "longitude", "is_default"]
+
+
+class LocateRequestSerializer(serializers.Serializer):
+    latitude = serializers.FloatField(required=False, allow_null=True)
+    longitude = serializers.FloatField(required=False, allow_null=True)
+    area_id = serializers.IntegerField(required=False, allow_null=True)
+
+
+class LocateResponseSerializer(serializers.Serializer):
+    price_area = PriceAreaSerializer()
+    distance_km = serializers.FloatField(allow_null=True)
+    is_outside_nigeria = serializers.BooleanField(default=False)
+

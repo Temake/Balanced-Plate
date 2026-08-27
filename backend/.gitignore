@@ -35,7 +35,9 @@ image.jpg
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-test.py
+test.
+
+db.sqlite3
 
 # Installer logs
 pip-log.txt
