@@ -154,7 +154,7 @@ class RedeemDemoAccessInvite(views.APIView):
         output = RedeemDemoAccessInviteResponseSerializer(
             {
                 "message": "Demo access activated.",
-                "subscription": SubscriptionSerializer(subscription).data,
+                "subscription": subscription,
             }
         )
         return response.Response(output.data, status=status.HTTP_200_OK)

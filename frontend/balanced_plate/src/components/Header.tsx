@@ -19,16 +19,25 @@ import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu'
 /** Tailwind class for bottom padding to offset the mobile bottom nav */
 export const BOTTOM_NAV_HEIGHT = 'pb-20'
 
-const navItems = [
+interface NavItem {
+  name: string
+  mobileLabel?: string
+  icon: React.ElementType
+  path: string
+  activePaths?: string[]
+}
+
+const navItems: NavItem[] = [
   { name: 'Home', icon: Home, path: '/dashboard' },
   { name: 'Scan Food', mobileLabel: 'Scan', icon: Camera, path: '/analyze-food' },
   { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
+  { name: 'Recipes', icon: ChefHat, path: '/recipes', activePaths: ['/recipes', '/cook'] },
   // Explore is paused for now.
   // { name: 'Explore', icon: BookOpen, path: '/learn' },
   { name: 'Profile', icon: User, path: '/profile' },
 ]
 
-const mobileNavItems = [
+const mobileNavItems: NavItem[] = [
   { name: 'Home', icon: Home, path: '/dashboard' },
   { name: 'Scan', icon: Camera, path: '/analyze-food' },
   { name: 'Meal Plan', mobileLabel: 'Plan', icon: CalendarDays, path: '/meal-plan' },
@@ -43,7 +52,12 @@ const Header: React.FC = () => {
   const navigate = useNavigate()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
 
-  const isActivePath = (path: string) => location.pathname === path
+  const isActivePath = (item: NavItem) => {
+    if (item.activePaths) {
+      return item.activePaths.some((p) => location.pathname === p || location.pathname.startsWith(p + '/'))
+    }
+    return location.pathname === item.path
+  }
 
   const handleLogout = async () => {
     await logout()
@@ -68,7 +82,7 @@ const Header: React.FC = () => {
             <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex">
               {navItems.map((item) => {
                 const Icon = item.icon
-                const active = isActivePath(item.path)
+                const active = isActivePath(item)
                 return (
                   <Link
                     key={item.path}
@@ -163,9 +177,7 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-around h-16 px-2 pb-[env(safe-area-inset-bottom)]">
             {mobileNavItems.map((item) => {
               const Icon = item.icon
-              const active = item.activePaths
-                ? item.activePaths.some((path) => location.pathname.startsWith(path))
-                : isActivePath(item.path)
+              const active = isActivePath(item)
               const label = item.mobileLabel || item.name
               return (
                 <Link

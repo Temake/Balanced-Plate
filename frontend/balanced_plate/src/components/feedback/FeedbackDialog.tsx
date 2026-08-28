@@ -248,22 +248,6 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({ open, onOpenChan
               />
             </div>
 
-            {/* Contact Email if not signed in or needs editing */}
-            <div className="space-y-1.5">
-              <Label htmlFor="feedback-email" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                Your Email Address
-              </Label>
-              <Input
-                id="feedback-email"
-                type="email"
-                placeholder="your.email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-10 text-sm focus-visible:ring-emerald-500 dark:focus-visible:ring-emerald-500"
-              />
-            </div>
-
             {/* Actions */}
             <div className="flex items-center justify-end gap-2.5 pt-2">
               <Button
