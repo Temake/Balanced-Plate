@@ -1,10 +1,9 @@
 import Header, { BOTTOM_NAV_HEIGHT } from "@/components/Header"
-import React from "react";
 import FoodUploadSection from "@/components/FoodUploadSection";
 import RecentAnalysis from "@/components/RecentAnalysis";
 import { FoodGallery } from "@/components/dashboard";
 import { ErrorBoundary, SectionErrorFallback } from "@/components/common/ErrorBoundary";
-import { Camera, Images } from "lucide-react";
+import { Camera } from "lucide-react";
 // import { History, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -21,7 +20,7 @@ const AnalyseFood: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20">
                   <Camera className="w-5 h-5 text-white" />
                 </div>
                 Analyse Food
@@ -86,15 +85,6 @@ const AnalyseFood: React.FC = () => {
             
             {/* Food Gallery - Below Upload Section */}
             <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <Images className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Food Gallery</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Your analyzed food images with results</p>
-                </div>
-              </div>
               <ErrorBoundary fallback={<SectionErrorFallback title="Unable to load food gallery" />}>
                 <FoodGallery />
               </ErrorBoundary>

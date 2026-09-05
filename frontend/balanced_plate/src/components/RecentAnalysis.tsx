@@ -69,42 +69,41 @@ const getScoreConfig = (score: string, balanced: number) => {
     icon: Trophy
   };
   if (score === 'Good' || balanced >= 70) return {
-    gradient: 'from-blue-400 to-cyan-500',
-    bgLight: 'bg-blue-50 dark:bg-blue-900/20',
-    text: 'text-blue-600 dark:text-blue-400',
-    ring: 'ring-blue-500/20',
+    gradient: 'from-teal-400 to-emerald-500',
+    bgLight: 'bg-teal-50 dark:bg-teal-900/20',
+    text: 'text-teal-600 dark:text-teal-400',
+    ring: 'ring-teal-500/20',
     icon: TrendingUp
   };
   if (score === 'Fair' || balanced >= 50) return {
-    gradient: 'from-amber-400 to-orange-500',
+    gradient: 'from-amber-400 to-emerald-500',
     bgLight: 'bg-amber-50 dark:bg-amber-900/20',
     text: 'text-amber-600 dark:text-amber-400',
     ring: 'ring-amber-500/20',
     icon: Activity
   };
   return {
-    gradient: 'from-red-400 to-rose-500',
-    bgLight: 'bg-red-50 dark:bg-red-900/20',
-    text: 'text-red-600 dark:text-red-400',
-    ring: 'ring-red-500/20',
+    gradient: 'from-rose-400 to-red-500',
+    bgLight: 'bg-rose-50 dark:bg-rose-900/20',
+    text: 'text-rose-600 dark:text-rose-400',
+    ring: 'ring-rose-500/20',
     icon: Zap
   };
 };
 
 const getMealGradient = (index: number) => {
   const gradients = [
-    'from-emerald-500 via-teal-500 to-cyan-500',
-    'from-violet-500 via-purple-500 to-fuchsia-500',
-    'from-amber-500 via-orange-500 to-red-500',
-    'from-blue-500 via-indigo-500 to-violet-500',
-    'from-rose-500 via-pink-500 to-fuchsia-500',
+    'from-emerald-500 via-teal-500 to-cyan-600',
+    'from-teal-600 via-emerald-600 to-green-600',
+    'from-emerald-600 via-teal-700 to-slate-800',
+    'from-teal-500 via-cyan-600 to-emerald-700',
+    'from-emerald-500 via-green-600 to-teal-700',
   ];
   return gradients[index % gradients.length];
 };
 
 // Get meal name from food_name or detected foods
 const getMealName = (analysis: FoodAnalysis): string => {
-  // Prefer the new AI-generated food_name
   if (analysis.food_name) {
     return analysis.food_name;
   }
@@ -137,7 +136,7 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-orange-500" />
+            <Activity className="w-5 h-5 text-emerald-500" />
             {analysis.food_name || 'Analysis Details'}
           </DialogTitle>
         </DialogHeader>
@@ -181,30 +180,30 @@ const AnalysisDetailModal: React.FC<AnalysisDetailModalProps> = ({ analysis, ope
 
           {/* Alternative Suggestion */}
           {analysis.alternative_suggestion && (
-            <div className="bg-blue-50 dark:bg-blue-900/15 rounded-lg p-3 border border-blue-100 dark:border-blue-800/30">
-              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-0.5">🔄 Healthier Swap</p>
+            <div className="bg-teal-50 dark:bg-teal-900/15 rounded-lg p-3 border border-teal-100 dark:border-teal-800/30">
+              <p className="text-xs font-semibold text-teal-700 dark:text-teal-400 mb-0.5">🔄 Healthier Swap</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{analysis.alternative_suggestion}</p>
             </div>
           )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl text-center">
-              <Flame className="w-5 h-5 text-orange-500 mx-auto mb-1" />
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-center border border-emerald-100/50 dark:border-emerald-800/30">
+              <Flame className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {parseFloat(analysis.total_calories).toFixed(0)}
               </div>
               <div className="text-xs text-gray-500">Calories</div>
             </div>
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-center">
-              <TrendingUp className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+            <div className="p-3 bg-teal-50 dark:bg-teal-900/20 rounded-xl text-center border border-teal-100/50 dark:border-teal-800/30">
+              <TrendingUp className="w-5 h-5 text-teal-500 mx-auto mb-1" />
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {parseFloat(analysis.total_protein).toFixed(0)}g
               </div>
               <div className="text-xs text-gray-500">Protein</div>
             </div>
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-center">
-              <Activity className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
+            <div className="p-3 bg-emerald-50/70 dark:bg-emerald-900/30 rounded-xl text-center border border-emerald-100/50 dark:border-emerald-800/30">
+              <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-1" />
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {parseFloat(analysis.total_carbs).toFixed(0)}g
               </div>
@@ -261,21 +260,21 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
   });
 
   // Calculate stats from real data
-  const completedAnalyses = analyses.filter(a => a.analysis_status === 'analysis_completed');
+  const completedAnalyses = analyses.filter((a) => a.analysis_status === 'analysis_completed');
   const averageBalance = completedAnalyses.length > 0
     ? Math.round(completedAnalyses.reduce((acc, a) => acc + normalizeScore(a.balance_score), 0) / completedAnalyses.length)
     : 0;
   const totalCalories = completedAnalyses.reduce((acc, a) => acc + parseFloat(a.total_calories), 0);
-  const excellentCount = completedAnalyses.filter(a => normalizeScore(a.balance_score) >= 85).length;
+  const excellentCount = completedAnalyses.filter((a) => normalizeScore(a.balance_score) >= 85).length;
 
   // Loading state
   if (isLoading) {
     return (
       <div className={`relative overflow-hidden rounded-2xl ${className}`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/20 via-white to-teal-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
         <div className="relative border border-gray-200/60 dark:border-gray-700/60 rounded-2xl p-6">
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
           </div>
         </div>
       </div>
@@ -285,7 +284,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
   return (
     <div className={`relative overflow-hidden rounded-2xl ${className}`}>
       {/* Decorative Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900" />
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/20 via-white to-teal-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
 
       <div className="relative border border-gray-200/60 dark:border-gray-700/60 rounded-2xl backdrop-blur-sm">
         {/* Header Section */}
@@ -293,11 +292,11 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-orange-500 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-3 h-3 text-emerald-500" />
                 </div>
               </div>
               <div>
@@ -320,7 +319,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
 
           {/* Stats Cards - Glassmorphism Style */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 sm:p-4 group cursor-pointer">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 sm:p-4 group cursor-pointer shadow-sm shadow-emerald-500/10">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative">
@@ -332,25 +331,25 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 p-3 sm:p-4 group cursor-pointer">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 p-3 sm:p-4 group cursor-pointer shadow-sm shadow-teal-600/10">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative">
                 <div className="flex items-center gap-1 mb-1">
-                  <Flame className="w-3.5 h-3.5 text-orange-100" />
-                  <span className="text-[10px] sm:text-xs font-medium text-orange-100 uppercase tracking-wide">Calories</span>
+                  <Flame className="w-3.5 h-3.5 text-teal-100" />
+                  <span className="text-[10px] sm:text-xs font-medium text-teal-100 uppercase tracking-wide">Calories</span>
                 </div>
                 <p className="text-xl sm:text-2xl font-bold text-white">{Math.round(totalCalories).toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 p-3 sm:p-4 group cursor-pointer">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 p-3 sm:p-4 group cursor-pointer shadow-sm shadow-emerald-700/10">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative">
                 <div className="flex items-center gap-1 mb-1">
-                  <Star className="w-3.5 h-3.5 text-violet-100" />
-                  <span className="text-[10px] sm:text-xs font-medium text-violet-100 uppercase tracking-wide">Excellent</span>
+                  <Star className="w-3.5 h-3.5 text-emerald-200" />
+                  <span className="text-[10px] sm:text-xs font-medium text-emerald-200 uppercase tracking-wide">Excellent</span>
                 </div>
                 <p className="text-xl sm:text-2xl font-bold text-white">{excellentCount}</p>
               </div>
@@ -475,7 +474,7 @@ const RecentAnalysis: React.FC<RecentAnalysisProps> = ({ className = '', limit =
           <div className="px-4 sm:px-5 pb-4 sm:pb-5">
             <button
               onClick={onViewAll}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-700/50 hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-900/20 dark:hover:to-teal-900/20 border border-gray-200/50 dark:border-gray-600/50 transition-all duration-300 group"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-700/50 hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-900/20 dark:hover:to-teal-900/20 border border-gray-200/50 dark:border-gray-600/50 transition-all duration-300 group cursor-pointer"
             >
               <Eye className="w-4 h-4 text-gray-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
               <span className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
