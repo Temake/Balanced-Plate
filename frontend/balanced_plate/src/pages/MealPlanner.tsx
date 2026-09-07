@@ -5,6 +5,7 @@ import {
   useMealPlans,
   useBudgetTiers,
   useGenerateMealPlan,
+  useGenerateMealPlanStream,
   useGenerateDayMealPlan,
   useUpsertMealEntry,
   useDeleteMealEntry,
@@ -317,6 +318,7 @@ const MealPlanner: React.FC = () => {
   const { data: mealPlans, isLoading } = useMealPlans();
   const { data: budgetData } = useBudgetTiers(householdSize);
   const generateWeekMutation = useGenerateMealPlan();
+  const { generateStream, isStreaming: isGeneratingStream, progress: streamProgress } = useGenerateMealPlanStream();
   const generateDayMutation = useGenerateDayMealPlan();
   const upsertEntryMutation = useUpsertMealEntry();
   const deleteEntryMutation = useDeleteMealEntry();
@@ -410,21 +412,27 @@ const MealPlanner: React.FC = () => {
     );
   };
 
-  const generateWeek = () => {
+  const generateWeek = async () => {
     setAiPaywallMessage(null);
-    generateWeekMutation.mutate(
-      { week_start_date: weekStartDate, ...budgetParams },
-      {
-        onSuccess: () => toast.success('Weekly meal plan generated.'),
-        onError: (error) => {
-          if (isPaymentRequiredError(error)) {
-            setAiPaywallMessage(getApiErrorMessage(error, 'AI meal planning requires Plus or Pro.'));
-            return;
-          }
-          toast.error('Failed to generate weekly meal plan.');
+    try {
+      await generateStream(
+        { week_start_date: weekStartDate, ...budgetParams },
+        {
+          onSuccess: () => toast.success('Weekly meal plan generated.'),
+          onError: (error: any) => {
+            if (isPaymentRequiredError(error)) {
+              setAiPaywallMessage(getApiErrorMessage(error, 'AI meal planning requires Plus or Pro.'));
+              return;
+            }
+            toast.error('Failed to generate weekly meal plan.');
+          },
         },
-      },
-    );
+      );
+    } catch (err: any) {
+      if (isPaymentRequiredError(err)) {
+        setAiPaywallMessage(getApiErrorMessage(err, 'AI meal planning requires Plus or Pro.'));
+      }
+    }
   };
 
   const deleteEntry = (entry: MealEntry) => {

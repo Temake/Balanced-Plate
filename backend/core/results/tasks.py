@@ -100,9 +100,8 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False, reservat
         # Save detected foods
         DetectedFood.objects.filter(analysis=analysis).delete()
 
-        for food_data in result.get("detected_foods", []):
-            nutritional_info = food_data.get("nutritional_info", {})
-            DetectedFood.objects.create(
+        detected_food_instances = [
+            DetectedFood(
                 analysis=analysis,
                 name=food_data.get("name", "Unknown"),
                 confidence=food_data.get("confidence"),
@@ -116,6 +115,11 @@ def analyze_food_image_task(self, file_id: str, use_mock: bool = False, reservat
                 fruit=nutritional_info.get("fruit"),
                 micronutrients=food_data.get("micronutrients", {}),
             )
+            for food_data in result.get("detected_foods", [])
+            for nutritional_info in [food_data.get("nutritional_info", {})]
+        ]
+        if detected_food_instances:
+            DetectedFood.objects.bulk_create(detected_food_instances)
 
         file_obj.currently_under_processing = False
         file_obj.save(update_fields=["currently_under_processing"])

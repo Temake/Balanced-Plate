@@ -29,7 +29,7 @@ USING_MANAGED_STORAGE = env.bool("USING_MANAGED_STORAGE", False)
 
 # Gemini AI Configuration
 GEMINI_API_KEY = env.str("GEMINI_API_KEY", "")
-GEMINI_MODEL = env.str("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = env.str("GEMINI_MODEL", "gemini-2.0-flash")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str(

@@ -216,10 +216,123 @@ Return ONLY valid JSON, no additional text.
     return prompt
 
 
+def build_single_day_prompt(
+    day: str,
+    user_profile: dict,
+    budget_level: str,
+    daily_budget_naira: float = None,
+    household_size: int = 1,
+    catalogue_text: str = None,
+):
+    """Build the AI prompt for generating 4 meals for a single Nigerian day."""
+    health_conditions = user_profile.get("health_conditions", [])
+    if isinstance(health_conditions, list):
+        health_conditions_str = ", ".join(health_conditions) if health_conditions else "None"
+    else:
+        health_conditions_str = str(health_conditions) if health_conditions else "None"
+
+    budget_section = ""
+    if daily_budget_naira and catalogue_text:
+        budget_section = f"""
+
+DAILY BUDGET CONSTRAINT:
+- Food budget for {day.upper()}: N{daily_budget_naira:,.0f} for {household_size} person(s).
+- The 4 meals MUST cost at or under N{daily_budget_naira:,.0f} using catalogue prices below.
+
+PRICED INGREDIENT CATALOGUE:
+{catalogue_text}
+
+INGREDIENT RULES:
+- ONLY use ingredients from the catalogue above. Use EXACT ingredient name and unit.
+- Return an `ingredients` list of {{"name", "qty", "unit"}} for each meal covering all {household_size} person(s)."""
+
+    age_range = user_profile.get("age_range", "Not specified")
+
+    prompt = f"""Generate 4 Nigerian meals (breakfast, lunch, dinner, snack) for {day.upper()}.
+
+USER PROFILE:
+- Age Group: {age_range}
+- Dietary Goal: {user_profile.get('dietary_goal', 'general_health')}
+- Dietary Preference: {user_profile.get('dietary_preference', 'none')}
+- Health Conditions: {health_conditions_str}
+- Budget Level: {budget_level}
+- Household Size: {household_size}{budget_section}
+
+CRITICAL REQUIREMENTS:
+1. ALL meals MUST be Nigerian / West African foods (e.g. Jollof rice, Eba, Amala, Egusi, Efo Riro, Akara, Moi Moi, Pap, Titus fish, Beans, Dodo, Okra, Suya).
+2. Culturally authentic, affordable, and practical.
+3. NO Western/imported luxury ingredients (no quinoa, kale, salmon, chia seeds, blueberries).
+
+Return ONLY valid JSON in this exact format:
+{{
+    "meals": [
+        {{
+            "day": "{day.lower()}",
+            "meal_type": "breakfast",
+            "food_name": "Akara with Pap",
+            "description": "Fried bean cakes served with smooth corn pap",
+            "prep_time_minutes": 25,
+            "health_notes": "Good protein source to start the day",
+            "ingredients": [
+                {{"name": "Beans (honey)", "qty": 0.3, "unit": "kg"}},
+                {{"name": "Palm oil", "qty": 0.1, "unit": "litre"}},
+                {{"name": "Pap (ogi)", "qty": 1, "unit": "sachet"}}
+            ]
+        }}
+    ]
+}}
+
+Include exactly 4 entries for {day.lower()} (breakfast, lunch, dinner, snack).
+Day must be lowercase: {day.lower()}.
+Meal types must be lowercase: breakfast, lunch, dinner, snack.
+Return ONLY valid JSON, no additional text."""
+    return prompt
+
+
 class MealPlanGenerationService(GeminiBaseService):
 
     def __init__(self):
         super().__init__()
+
+    def generate_single_day(
+        self,
+        day: str,
+        user_profile: dict,
+        budget_level: str,
+        daily_budget_naira: float = None,
+        household_size: int = 1,
+        catalogue_text: str = None,
+    ) -> Tuple[list, bool]:
+        """Generate 4 meals for a single day using Gemini AI."""
+        if not self.client:
+            logger.warning("Gemini client not configured, using mock meal data")
+            day_meals = [
+                m for m in get_mock_meal_plan()["meals"]
+                if m.get("day", "").lower() == day.lower()
+            ]
+            return day_meals, True
+
+        try:
+            prompt = build_single_day_prompt(
+                day=day,
+                user_profile=user_profile,
+                budget_level=budget_level,
+                daily_budget_naira=daily_budget_naira,
+                household_size=household_size,
+                catalogue_text=catalogue_text,
+            )
+            result, is_mock = self.call_gemini([prompt])
+            meals = result.get("meals", [])
+            for m in meals:
+                m["day"] = day.lower()
+            return meals, is_mock
+        except Exception as e:
+            logger.error(f"Gemini single day generation failed for {day}: {e}")
+            day_meals = [
+                m for m in get_mock_meal_plan()["meals"]
+                if m.get("day", "").lower() == day.lower()
+            ]
+            return day_meals, True
 
     def generate_meal_plan(
         self,
@@ -337,3 +450,99 @@ def generate_costed_meal_plan(
                 return retry_result, retry_is_mock, retry_cost
 
     return result, is_mock, plan_cost
+
+
+DAYS_OF_WEEK = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+
+def generate_costed_day_plan(
+    day: str,
+    user_profile: dict,
+    budget_level: str,
+    daily_budget_kobo: int = None,
+    household_size: int = 1,
+    area=None,
+):
+    """Generate meals for a single day, costed against area pricing."""
+    from core.pricing.services import (
+        cost_meal,
+        format_catalogue_for_prompt,
+        get_priced_catalogue,
+        resolve_prices_for_area,
+    )
+
+    catalogue_text = None
+    daily_budget_naira = None
+    if area is not None and daily_budget_kobo:
+        catalogue = get_priced_catalogue(area)
+        if catalogue:
+            catalogue_text = format_catalogue_for_prompt(catalogue)
+            daily_budget_naira = daily_budget_kobo / 100
+
+    meals, is_mock = meal_plan_service.generate_single_day(
+        day=day,
+        user_profile=user_profile,
+        budget_level=budget_level,
+        daily_budget_naira=daily_budget_naira,
+        household_size=household_size,
+        catalogue_text=catalogue_text,
+    )
+
+    if area is not None:
+        price_cache = resolve_prices_for_area(area)
+        for meal in meals:
+            meal_cost = cost_meal(
+                meal.get("ingredients"),
+                area,
+                price_cache=price_cache,
+            )
+            meal["estimated_cost_kobo"] = meal_cost.total_kobo
+
+    return meals, is_mock
+
+
+def generate_progressive_meal_plan(
+    user_profile: dict,
+    week_start_date,
+    budget_level: str,
+    weekly_budget_kobo: int = None,
+    household_size: int = 1,
+    area=None,
+    max_workers: int = 4,
+):
+    """Concurrently generates all 7 days of the week using a thread pool.
+    
+    Yields (day_name, meals_list, is_mock) progressively as each day completes.
+    """
+    import concurrent.futures
+
+    daily_budget_kobo = None
+    if weekly_budget_kobo:
+        daily_budget_kobo = weekly_budget_kobo // 7
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_day = {
+            executor.submit(
+                generate_costed_day_plan,
+                day=day,
+                user_profile=user_profile,
+                budget_level=budget_level,
+                daily_budget_kobo=daily_budget_kobo,
+                household_size=household_size,
+                area=area,
+            ): day
+            for day in DAYS_OF_WEEK
+        }
+
+        for future in concurrent.futures.as_completed(future_to_day):
+            day = future_to_day[future]
+            try:
+                meals, is_mock = future.result()
+                yield day, meals, is_mock
+            except Exception as e:
+                logger.error(f"Failed to generate meals for {day}: {e}")
+                day_meals = [
+                    m for m in get_mock_meal_plan()["meals"]
+                    if m.get("day", "").lower() == day.lower()
+                ]
+                yield day, day_meals, True

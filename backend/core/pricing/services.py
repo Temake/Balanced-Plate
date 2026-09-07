@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.utils import timezone
 from loguru import logger
 
@@ -215,6 +216,59 @@ def resolve_price(ingredient, area, as_of=None):
     )
 
 
+def resolve_prices_for_area(area, as_of=None):
+    """Batch-resolves prices for all active ingredients in an area in a single DB query."""
+    as_of = as_of or timezone.localdate()
+    cutoff = as_of - timedelta(days=MAX_PRICE_AGE_DAYS)
+
+    ingredients = get_active_ingredients()
+    ing_ids = [ing.pk for ing in ingredients]
+    if not ing_ids:
+        return {}
+
+    observations = list(
+        PriceObservation.objects.filter(
+            ingredient_id__in=ing_ids,
+            observed_on__lte=as_of,
+            observed_on__gte=cutoff,
+        )
+        .select_related("ingredient", "area")
+        .order_by("-observed_on")
+    )
+
+    resolved_by_ingredient = {}
+    fallback_by_ingredient = {}
+
+    for obs in observations:
+        ing_id = obs.ingredient_id
+        if area and obs.area_id == area.id:
+            if ing_id not in resolved_by_ingredient:
+                resolved_by_ingredient[ing_id] = obs
+        else:
+            if ing_id not in fallback_by_ingredient:
+                fallback_by_ingredient[ing_id] = obs
+
+    result = {}
+    for ing in ingredients:
+        obs = resolved_by_ingredient.get(ing.pk) or fallback_by_ingredient.get(ing.pk)
+        if obs is None:
+            continue
+        days_stale = (as_of - obs.observed_on).days
+        months = days_stale // 30
+        projected = _project_forward(obs.price_kobo, months)
+        result[ing.pk] = ResolvedPrice(
+            ingredient=ing,
+            price_kobo=projected,
+            unit=obs.unit,
+            observed_on=obs.observed_on,
+            days_stale=days_stale,
+            source=obs.source,
+            area_name=(obs.area.name if obs.area else (area.name if area else "")),
+            was_projected=months > 0,
+        )
+    return result
+
+
 def get_active_ingredients():
     return list(
         Ingredient.objects.filter(is_active=True, include_in_prompt=True).order_by(
@@ -231,9 +285,15 @@ def get_priced_catalogue(area, as_of=None):
     able to check its arithmetic afterwards.
     """
     as_of = as_of or timezone.localdate()
+    cache_key = f"priced_catalogue:{area.id if area else 'none'}:{as_of}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     catalogue = []
+    prices = resolve_prices_for_area(area, as_of=as_of)
     for ingredient in get_active_ingredients():
-        resolved = resolve_price(ingredient, area, as_of=as_of)
+        resolved = prices.get(ingredient.pk)
         if resolved is None:
             continue
         catalogue.append(
@@ -244,6 +304,7 @@ def get_priced_catalogue(area, as_of=None):
                 "category": ingredient.category,
             }
         )
+    cache.set(cache_key, catalogue, 3600)  # cache for 1 hour
     return catalogue
 
 
@@ -328,7 +389,7 @@ def cost_meals(meals, area, as_of=None):
     """Cost a whole plan. `meals` is the raw AI payload, each with an `ingredients` list."""
     as_of = as_of or timezone.localdate()
     index = _index_ingredients()
-    cache = {}
+    cache = resolve_prices_for_area(area, as_of=as_of)
     plan = PlanCost(area_name=area.name if area else "")
 
     for meal in meals or []:

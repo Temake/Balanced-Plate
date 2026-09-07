@@ -17,7 +17,7 @@ from django.conf import settings
 class GeminiBaseService:
     def __init__(self):
         self.api_key = getattr(settings, 'GEMINI_API_KEY', None)
-        self.model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')
+        self.model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
         
         if GENAI_AVAILABLE and self.api_key:
             self.client = genai.Client(api_key=self.api_key)
@@ -31,12 +31,17 @@ class GeminiBaseService:
         return types.Part.from_bytes(data=image_data, mime_type=mime_type)
 
     def call_gemini(self, contents: Any):
+        config = None
+        if types:
+            config = types.GenerateContentConfig(
+                response_mime_type="application/json",
+                http_options=types.HttpOptions(timeout=60_000),  # 60 second timeout
+            )
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=contents,
-            config=types.GenerateContentConfig(
-                http_options=types.HttpOptions(timeout=60_000),  # 60 second timeout
-            ) if types else None,
+            config=config,
         )
 
         response_text = response.text.strip()

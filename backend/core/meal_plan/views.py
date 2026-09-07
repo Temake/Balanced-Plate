@@ -1,3 +1,5 @@
+import json
+from django.http import StreamingHttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from loguru import logger
@@ -18,11 +20,16 @@ from core.pricing.services import resolve_area, resolve_weekly_budget_kobo
 from .models import MealPlan, MealEntry
 from .serializers import (
     MealPlanSerializer,
+    MealEntrySerializer,
     GenerateAIPlanSerializer,
     GenerateAIDayPlanSerializer,
     UpsertMealEntrySerializer,
 )
-from .services import generate_costed_meal_plan
+from .services import (
+    generate_costed_meal_plan,
+    generate_costed_day_plan,
+    generate_progressive_meal_plan,
+)
 
 
 def _budget_context(validated_data, user):
@@ -199,56 +206,155 @@ class GenerateAIMealPlan(views.APIView):
             meal_plan.save(update_fields=["budget_level", "date_last_modified"])
             meal_plan.entries.all().delete()
 
-        # Generate the meal plan via AI service, costed against our own price table
+        # Concurrently generate all 7 days in parallel using fast thread pool
         try:
-            result, is_mock, plan_cost = generate_costed_meal_plan(
+            all_entries = []
+            is_mock_any = False
+            for day, day_meals, is_mock in generate_progressive_meal_plan(
                 user_profile=user_profile,
                 week_start_date=week_start_date,
                 budget_level=budget_level,
                 weekly_budget_kobo=budget["weekly_kobo"],
                 household_size=budget["household_size"],
                 area=budget["area"],
+            ):
+                if is_mock:
+                    is_mock_any = True
+                for meal in day_meals:
+                    all_entries.append(
+                        MealEntry(
+                            meal_plan=meal_plan,
+                            day=day,
+                            meal_type=str(meal.get("meal_type", "")).lower(),
+                            food_name=meal.get("food_name", ""),
+                            description=meal.get("description", ""),
+                            prep_time_minutes=meal.get("prep_time_minutes"),
+                            health_notes=meal.get("health_notes", ""),
+                            ingredients=meal.get("ingredients", []) or [],
+                            estimated_cost_kobo=meal.get("estimated_cost_kobo"),
+                            is_ai_generated=True,
+                        )
+                    )
+            MealEntry.objects.bulk_create(all_entries)
+            _recost_plan_from_entries(meal_plan, budget)
+            finalize_ai_generation_usage(
+                reservation,
+                metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
             )
+            meal_plan.is_ai_generated = True
+            meal_plan.save(update_fields=["is_ai_generated", "date_last_modified"])
+            logger.info(
+                f"Generated {'mock' if is_mock_any else 'AI'} meal plan for user {user.id}, "
+                f"week {week_start_date}, {len(all_entries)} entries"
+            )
+
+            # Return the complete plan
+            meal_plan.refresh_from_db()
+            output = MealPlanSerializer.Detail(instance=meal_plan)
+            return response.Response(data=output.data, status=status.HTTP_201_CREATED)
         except Exception:
             release_ai_generation_credit(reservation)
             raise
 
-        meal_plan.is_ai_generated = True
-        meal_plan.save(update_fields=["is_ai_generated"])
 
-        # Bulk-create meal entries from the AI response
-        meals_data = result.get("meals", [])
-        entries = []
-        for meal in meals_data:
-            entries.append(
-                MealEntry(
-                    meal_plan=meal_plan,
-                    day=meal.get("day", ""),
-                    meal_type=meal.get("meal_type", ""),
-                    food_name=meal.get("food_name", ""),
-                    description=meal.get("description", ""),
-                    prep_time_minutes=meal.get("prep_time_minutes"),
-                    health_notes=meal.get("health_notes", ""),
-                    ingredients=meal.get("ingredients", []) or [],
-                    estimated_cost_kobo=meal.get("estimated_cost_kobo"),
-                    is_ai_generated=True,
+@extend_schema(tags=["Meal Plans"])
+class GenerateAIMealPlanStream(views.APIView):
+    http_method_names = ["post"]
+
+    @extend_schema(
+        description="Generate an AI-powered 7-day meal plan with real-time SSE streaming as each day is generated.",
+        request=GenerateAIPlanSerializer,
+    )
+    def post(self, request):
+        serializer = GenerateAIPlanSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        week_start_date = serializer.validated_data["week_start_date"]
+        budget_level = serializer.validated_data["budget_level"]
+        user = request.user
+
+        user_profile = {
+            "age_range": getattr(user, "effective_age_range", "Not specified"),
+            "dietary_goal": getattr(user, "dietary_goal", "general_health"),
+            "dietary_preference": getattr(user, "dietary_preference", "none"),
+            "health_conditions": getattr(user, "health_conditions", []),
+        }
+        budget = _budget_context(serializer.validated_data, user)
+
+        reservation = reserve_ai_generation_credit(user, AIFeatureType.MEAL_PLAN)
+
+        meal_plan, created = MealPlan.objects.get_or_create(
+            owner=user,
+            week_start_date=week_start_date,
+            defaults={"budget_level": budget_level},
+        )
+
+        if not created:
+            meal_plan.budget_level = budget_level
+            meal_plan.save(update_fields=["budget_level", "date_last_modified"])
+            meal_plan.entries.all().delete()
+
+        def stream_generator():
+            completed_days = 0
+            try:
+                yield f"event: start\ndata: {json.dumps({'meal_plan_id': meal_plan.id, 'week_start_date': str(week_start_date)})}\n\n"
+
+                for day, day_meals, is_mock in generate_progressive_meal_plan(
+                    user_profile=user_profile,
+                    week_start_date=week_start_date,
+                    budget_level=budget_level,
+                    weekly_budget_kobo=budget["weekly_kobo"],
+                    household_size=budget["household_size"],
+                    area=budget["area"],
+                ):
+                    completed_days += 1
+                    day_entries = [
+                        MealEntry(
+                            meal_plan=meal_plan,
+                            day=day,
+                            meal_type=str(meal.get("meal_type", "")).lower(),
+                            food_name=meal.get("food_name", ""),
+                            description=meal.get("description", ""),
+                            prep_time_minutes=meal.get("prep_time_minutes"),
+                            health_notes=meal.get("health_notes", ""),
+                            ingredients=meal.get("ingredients", []) or [],
+                            estimated_cost_kobo=meal.get("estimated_cost_kobo"),
+                            is_ai_generated=True,
+                        )
+                        for meal in day_meals
+                    ]
+                    MealEntry.objects.bulk_create(day_entries)
+                    serialized_entries = MealEntrySerializer(day_entries, many=True).data
+
+                    day_payload = {
+                        "day": day,
+                        "entries": serialized_entries,
+                        "completed_days": completed_days,
+                        "total_days": 7,
+                    }
+                    yield f"event: day\ndata: {json.dumps(day_payload)}\n\n"
+
+                _recost_plan_from_entries(meal_plan, budget)
+                finalize_ai_generation_usage(
+                    reservation,
+                    metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
                 )
-            )
-        MealEntry.objects.bulk_create(entries)
-        _apply_cost_to_plan(meal_plan, budget, plan_cost)
-        finalize_ai_generation_usage(
-            reservation,
-            metadata={"meal_plan_id": meal_plan.id, "week_start_date": str(week_start_date)},
-        )
-        logger.info(
-            f"Generated {'mock' if is_mock else 'AI'} meal plan for user {user.id}, "
-            f"week {week_start_date}, {len(entries)} entries"
-        )
+                meal_plan.is_ai_generated = True
+                meal_plan.save(update_fields=["is_ai_generated", "date_last_modified"])
+                meal_plan.refresh_from_db()
 
-        # Return the complete plan
-        meal_plan.refresh_from_db()
-        output = MealPlanSerializer.Detail(instance=meal_plan)
-        return response.Response(data=output.data, status=status.HTTP_201_CREATED)
+                output = MealPlanSerializer.Detail(instance=meal_plan).data
+                yield f"event: complete\ndata: {json.dumps({'meal_plan': output})}\n\n"
+
+            except Exception as e:
+                logger.error(f"SSE Meal plan generation failed: {e}")
+                release_ai_generation_credit(reservation)
+                yield f"event: error\ndata: {json.dumps({'message': 'Failed to generate meal plan. Please try again.'})}\n\n"
+
+        resp = StreamingHttpResponse(stream_generator(), content_type="text/event-stream")
+        resp["Cache-Control"] = "no-cache"
+        resp["X-Accel-Buffering"] = "no"
+        return resp
 
 
 @extend_schema(tags=["Meal Plans"])
@@ -291,23 +397,19 @@ class GenerateAIDayMealPlan(views.APIView):
             meal_plan.budget_level = budget_level
             meal_plan.save(update_fields=["budget_level", "date_last_modified"])
 
+        daily_budget_kobo = (budget["weekly_kobo"] // 7) if budget.get("weekly_kobo") else None
         try:
-            result, is_mock, _plan_cost = generate_costed_meal_plan(
+            day_meals, is_mock = generate_costed_day_plan(
+                day=selected_day,
                 user_profile=user_profile,
-                week_start_date=week_start_date,
                 budget_level=budget_level,
-                weekly_budget_kobo=budget["weekly_kobo"],
+                daily_budget_kobo=daily_budget_kobo,
                 household_size=budget["household_size"],
                 area=budget["area"],
             )
         except Exception:
             release_ai_generation_credit(reservation)
             raise
-
-        day_meals = [
-            meal for meal in result.get("meals", [])
-            if str(meal.get("day", "")).lower() == selected_day
-        ]
 
         meal_plan.entries.filter(day=selected_day).delete()
         entries = [
@@ -327,7 +429,6 @@ class GenerateAIDayMealPlan(views.APIView):
         ]
         MealEntry.objects.bulk_create(entries)
         # Only this day changed, so recost the whole plan from what is now stored
-        # rather than from the throwaway week the model just generated.
         _recost_plan_from_entries(meal_plan, budget)
         finalize_ai_generation_usage(
             reservation,
@@ -341,7 +442,7 @@ class GenerateAIDayMealPlan(views.APIView):
         meal_plan.is_ai_generated = True
         meal_plan.save(update_fields=["is_ai_generated", "date_last_modified"])
         logger.info(
-            f"Generated {'mock' if is_mock else 'AI'} meal plan for user {user.id}, "
+            f"Generated {'mock' if is_mock else 'AI'} single-day meals for user {user.id}, "
             f"week {week_start_date}, day {selected_day}, {len(entries)} entries"
         )
 
