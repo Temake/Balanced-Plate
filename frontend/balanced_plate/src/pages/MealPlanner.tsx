@@ -490,7 +490,7 @@ const MealPlanner: React.FC = () => {
     );
   };
 
-  const generatingWeek = generateWeekMutation.isPending;
+  const generatingWeek = isGeneratingStream || generateWeekMutation.isPending;
   const generatingDay = generateDayMutation.isPending;
 
   return (
@@ -715,11 +715,39 @@ const MealPlanner: React.FC = () => {
           </div>
         )}
 
-        {(generatingWeek || generatingDay) && (
+        {generatingWeek && (
+          <div className="mb-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-4 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin flex-shrink-0" />
+                <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                  {streamProgress?.day
+                    ? `Generated ${streamProgress.day.charAt(0).toUpperCase() + streamProgress.day.slice(1)} meals (${streamProgress.completed_days} of ${streamProgress.total_days} days ready)...`
+                    : 'AI is preparing Nigerian meal ideas for your plan...'}
+                </p>
+              </div>
+              {streamProgress && streamProgress.completed_days > 0 && (
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  {Math.round((streamProgress.completed_days / streamProgress.total_days) * 100)}%
+                </span>
+              )}
+            </div>
+            {streamProgress && streamProgress.completed_days > 0 && (
+              <div className="w-full bg-emerald-200/60 dark:bg-emerald-900/60 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${(streamProgress.completed_days / streamProgress.total_days) * 100}%` }}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {!generatingWeek && generatingDay && (
           <div className="mb-6 flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">
             <Loader2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin" />
             <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-              AI is preparing Nigerian meal ideas for your plan...
+              AI is preparing Nigerian meals for that day...
             </p>
           </div>
         )}
