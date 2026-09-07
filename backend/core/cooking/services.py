@@ -1,8 +1,8 @@
-import json
-from typing import Tuple
+import hashlib
 import json
 from typing import Tuple
 
+from django.core.cache import cache
 from loguru import logger
 
 from core.utils.services import GeminiBaseService
@@ -54,8 +54,24 @@ Return ONLY valid JSON, no additional text.
 """
 
 
+def get_cooking_guide_cache_key(
+    dish_name: str,
+    dietary_preference: str = "none",
+    health_conditions: list = None,
+    age_range: str = "Not specified",
+) -> str:
+    """Generate a consistent cache key for a cooking guide based on dish and user profile."""
+    conditions_str = ",".join(sorted(health_conditions or []))
+    raw_key = f"{dish_name.strip().lower()}:{dietary_preference.strip().lower()}:{conditions_str.lower()}:{age_range.strip().lower()}"
+    hashed = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()[:16]
+    clean_dish = "".join(c if c.isalnum() else "_" for c in dish_name.strip().lower())[:24]
+    return f"cooking_guide:{clean_dish}:{hashed}"
+
+
 class CookingAssistantService(GeminiBaseService):
     """Service for generating step-by-step cooking guides using Gemini AI."""
+
+    CACHE_TIMEOUT = 60 * 60 * 24 * 14  # 14 days
 
     def __init__(self):
         super().__init__()
@@ -67,7 +83,7 @@ class CookingAssistantService(GeminiBaseService):
         health_conditions: list = None,
         age_range: str = "Not specified",
     ) -> Tuple[dict, bool]:
-        """Generate a cooking guide for a Nigerian dish.
+        """Generate a cooking guide for a Nigerian dish with Redis caching.
 
         Args:
             dish_name: The name of the dish to generate a guide for.
@@ -81,6 +97,22 @@ class CookingAssistantService(GeminiBaseService):
         if health_conditions is None:
             health_conditions = []
 
+        cache_key = get_cooking_guide_cache_key(
+            dish_name=dish_name,
+            dietary_preference=dietary_preference,
+            health_conditions=health_conditions,
+            age_range=age_range,
+        )
+
+        # Check Redis cache first
+        try:
+            cached_result = cache.get(cache_key)
+            if cached_result:
+                logger.info(f"Cooking guide cache hit for '{dish_name}' (key: {cache_key})")
+                return cached_result, False
+        except Exception as e:
+            logger.warning(f"Cache get failed for cooking guide: {e}")
+
         if not self.client:
             logger.warning("Gemini client not configured, using mock data")
             return self.get_mock_cooking_guide(dish_name), True
@@ -92,7 +124,17 @@ class CookingAssistantService(GeminiBaseService):
                 dietary_preference=dietary_preference,
                 health_conditions=", ".join(health_conditions) if health_conditions else "None",
             )
-            return self.call_gemini([prompt])
+            result, is_mock = self.call_gemini([prompt])
+
+            # Cache the successful AI result for 14 days
+            if not is_mock and result:
+                try:
+                    cache.set(cache_key, result, timeout=self.CACHE_TIMEOUT)
+                    logger.info(f"Cooking guide cached for '{dish_name}' (TTL: 14 days)")
+                except Exception as e:
+                    logger.warning(f"Cache set failed for cooking guide: {e}")
+
+            return result, is_mock
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Gemini response for cooking guide: {e}")
             return self.get_mock_cooking_guide(dish_name), True

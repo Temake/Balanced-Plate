@@ -7,6 +7,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '@/api/axios';
 import type { FoodAnalysis, PaginatedResponse } from '@/api/types';
 import {  normalizeScore } from '@/utils/imageUrl';
+import { compressImage } from '@/utils/imageCompression';
 import { queryKeys } from '@/api/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -92,18 +93,21 @@ const FoodUploadSection: React.FC<FoodUploadSectionProps> = ({ className = '', o
   const handleFileSelect = async (file: File) => {
     if (!file) return;
 
+    // Compress image client-side to max 1024px to speed up upload & AI analysis
+    const compressedFile = await compressImage(file);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
         setPreviewImage(e.target.result as string);
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(compressedFile);
 
     setUploadStatus('uploading');
     setShowNutritionDetails(false);
     try {
-      const uploaded = await uploadFile(file, 'food image');
+      const uploaded = await uploadFile(compressedFile, 'food image');
 
       // The upload can succeed while analysis is refused — the usual reason is a
       // spent daily allowance. Without this the status would sit on "analyzing"

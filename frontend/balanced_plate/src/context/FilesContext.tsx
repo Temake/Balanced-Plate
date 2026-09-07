@@ -3,6 +3,7 @@ import api from '@/api/axios';
 import type { ReactNode } from "react";
 import type { FileType, FilesContextType } from '@/api/types';
 import { useAuth } from '@/hooks/useAuth';
+import { compressImage } from '@/utils/imageCompression';
 
 const FilesContext = createContext<FilesContextType | undefined>(undefined);
 
@@ -48,8 +49,10 @@ export const FilesProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setError(null);
 
     try {
+      const fileToUpload = purpose === 'food image' ? await compressImage(file) : file;
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
       formData.append('purpose', purpose);
 
       const response = await api.post('/files/', formData, {

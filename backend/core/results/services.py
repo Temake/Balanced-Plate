@@ -106,6 +106,32 @@ Return ONLY valid JSON, no additional text.
     return prompt
 
 
+def optimize_image_bytes(image_data: bytes, max_dimension: int = 1024, quality: int = 82) -> bytes:
+    """
+    Downscale and compress image bytes to avoid sending excessively large payloads
+    to Gemini Vision API, significantly improving inference and network latency.
+    """
+    try:
+        import io
+        from PIL import Image
+
+        with Image.open(io.BytesIO(image_data)) as img:
+            # Convert RGBA/P to RGB for JPEG encoding
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            width, height = img.size
+            if width > max_dimension or height > max_dimension:
+                img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+
+            output = io.BytesIO()
+            img.save(output, format="JPEG", quality=quality, optimize=True)
+            return output.getvalue()
+    except Exception as e:
+        logger.warning(f"Image optimization skipped due to error: {e}")
+        return image_data
+
+
 class AnalysisUnavailable(Exception):
     """Raised when a real analysis could not be produced.
 
@@ -141,8 +167,10 @@ class GeminiAnalysisService(GeminiBaseService):
             with open(image_path, 'rb') as f:
                 image_data = f.read()
 
+            optimized_data = optimize_image_bytes(image_data)
+
             # Use the new SDK format with types.Part
-            image_part = self.create_image_part(image_data, "image/jpeg")
+            image_part = self.create_image_part(optimized_data, "image/jpeg")
 
             prompt = build_analysis_prompt(user_profile=user_profile)
             return self.call_gemini([prompt, image_part])
@@ -172,8 +200,10 @@ class GeminiAnalysisService(GeminiBaseService):
             response.raise_for_status()
             image_data = response.content
 
+            optimized_data = optimize_image_bytes(image_data)
+
             # Use the new SDK format with types.Part
-            image_part = self.create_image_part(image_data, "image/jpeg")
+            image_part = self.create_image_part(optimized_data, "image/jpeg")
 
             prompt = build_analysis_prompt(user_profile=user_profile)
             return self.call_gemini([prompt, image_part])

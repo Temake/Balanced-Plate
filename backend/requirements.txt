@@ -69,6 +69,7 @@ msgpack==1.1.2
 oauthlib==3.3.1
 packaging==25.0
 phonenumbers==9.0.10
+Pillow>=10.0.0
 pluggy==1.6.0
 prompt_toolkit==3.0.51
 proto-plus==1.27.0
