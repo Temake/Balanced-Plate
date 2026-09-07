@@ -1,5 +1,4 @@
-import React from 'react';
-import { Camera, MessageCircle, CalendarDays, Sparkles, ArrowRight } from 'lucide-react';
+import { Camera, MessageCircle, CalendarDays, Sparkles } from 'lucide-react';
 
 const steps = [
   {
@@ -56,54 +55,31 @@ const HowItWorksSection: React.FC = () => {
         </div>
 
         {/* Steps */}
-        <div className="relative">
-          {/* Connection Line - Desktop */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-300 dark:from-emerald-800 dark:via-green-700 dark:to-emerald-800 -translate-y-1/2" style={{ top: '120px' }} />
-
-          <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
-            {steps.map((step, idx) => (
-              <div key={idx} className="relative">
-                {/* Card */}
-                <div className={`relative bg-gradient-to-br ${step.bgColor} rounded-3xl p-8 lg:p-10 border border-gray-100 dark:border-gray-700 group transition-all duration-300`}>
-                  {/* Step Number */}
-                  <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white font-bold text-lg`}>
-                    {step.number}
-                  </div>
-
-                  {/* Icon */}
-                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                    <step.icon className="w-10 h-10 text-white" />
-                  </div>
-
-                  {/* Content */}
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {step.description}
-                  </p>
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+          {steps.map((step, idx) => (
+            <div key={idx} className="relative">
+              {/* Card */}
+              <div className={`relative bg-gradient-to-br ${step.bgColor} rounded-3xl p-8 lg:p-10 border border-gray-100 dark:border-gray-700 group transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/5`}>
+                {/* Step Number */}
+                <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white font-bold text-lg shadow-md shadow-emerald-500/20`}>
+                  {step.number}
                 </div>
 
-                {/* Arrow - Desktop */}
-                {idx < steps.length - 1 && (
-                  <div className="hidden lg:flex absolute top-28 -right-6 w-12 h-12 items-center justify-center z-10">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700">
-                      <ArrowRight className="w-5 h-5 text-gray-400" />
-                    </div>
-                  </div>
-                )}
+                {/* Icon */}
+                <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-emerald-500/20`}>
+                  <step.icon className="w-10 h-10 text-white" />
+                </div>
 
-                {/* Arrow - Mobile */}
-                {idx < steps.length - 1 && (
-                  <div className="lg:hidden flex justify-center my-4">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700 rotate-90">
-                      <ArrowRight className="w-5 h-5 text-gray-400" />
-                    </div>
-                  </div>
-                )}
+                {/* Content */}
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {step.description}
+                </p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -79,8 +79,15 @@ const VerifyAccount = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
+        {/* Logo and Header */}
         <div className="text-center mb-8">
-          <img src="/logo.png" className="mx-auto w-20 h-20 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+          <div className="flex justify-center mb-4">
+            <img
+              src="/logo.png"
+              className="h-10 w-10 rounded-2xl object-contain"
+              alt="NutriLens Logo"
+            />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
           </h1>

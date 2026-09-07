@@ -36,7 +36,6 @@ const SignupformSchema = z.object({
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   password2: z.string().min(8, { message: "Please confirm your password" }),
   gender: z.enum(["Male", "Female"], { message: "Please select a gender" }),
-  country: z.string().min(2, { message: "Please enter a valid country" })
 }).refine((data) => data.password === data.password2, {
   message: "Passwords must match",
   path: ["password2"],
@@ -64,7 +63,6 @@ export default function SignUp() {
       phone_number: "",
       password: "",
       password2: "",
-      country: "Nigeria",
     },
   });
 
@@ -82,7 +80,6 @@ export default function SignUp() {
         password: data.password,
         password2: data.password2,
         gender: data.gender,
-        country: data.country
       });
       setSuccessMessage("Sign up successful! Check your email for the verification code.");
       form.reset();
@@ -100,7 +97,11 @@ export default function SignUp() {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-          <img src="/logo.png" className="align-center mr-9 mb-[0px] h-24 w-24 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+            <img
+              src="/logo.png"
+              className="h-10 w-10 rounded-2xl object-contain"
+              alt="NutriLens Logo"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
@@ -237,46 +238,30 @@ export default function SignUp() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {genderOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country</FormLabel>
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input placeholder="Country" {...field} disabled={isSubmitting} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <SelectContent>
+                        {genderOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button
                 type="submit"

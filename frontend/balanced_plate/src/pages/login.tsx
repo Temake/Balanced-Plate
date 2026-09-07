@@ -84,7 +84,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <img
               src="/logo.png"
-              className="block align-center mr-9 h-10 w-10 rounded-2xl object-contain"
+              className="h-10 w-10 rounded-2xl object-contain"
               alt="NutriLens Logo"
             />
           </div>

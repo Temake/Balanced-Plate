@@ -51,8 +51,12 @@ const Otp = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="flex justify-content mb-4">
-          <img src="/logo.png" className="block align-center mr-9 mb-[0px] w-24 h-24 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+          <div className="flex justify-center mb-4">
+            <img
+              src="/logo.png"
+              className="h-10 w-10 rounded-2xl object-contain"
+              alt="NutriLens Logo"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens

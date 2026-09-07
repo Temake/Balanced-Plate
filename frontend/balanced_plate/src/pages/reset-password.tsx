@@ -90,7 +90,11 @@ const ResetPassword = () => {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-          <img src="/logo.png" className="block align-center mr-9 mb-[0px] w-24 h-24 rounded-2xl object-contain mb-4" alt="NutriLens Logo" />
+            <img
+              src="/logo.png"
+              className="h-10 w-10 rounded-2xl object-contain"
+              alt="NutriLens Logo"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             NutriLens
