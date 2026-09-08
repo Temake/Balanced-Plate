@@ -14,7 +14,7 @@ const InstallAppPrompt: React.FC = () => {
   if (dismissed || (!canInstall && !needsIOSInstructions)) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md rounded-2xl border border-border bg-card p-4 shadow-lg sm:inset-x-auto sm:right-4">
+    <div className="no-print fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md rounded-2xl border border-border bg-card p-4 shadow-lg sm:inset-x-auto sm:right-4">
       <div className="flex items-start gap-3">
         <img src="/logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
         <div className="min-w-0 flex-1">

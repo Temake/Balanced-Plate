@@ -124,7 +124,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ meals, days, balance, strea
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="summary-cards-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[...Array(4)].map((_, i) => (
           <CardSkeleton key={i} />
         ))}
@@ -133,14 +133,14 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ meals, days, balance, strea
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="summary-cards-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {summaryCardConfig.map((card, idx) => {
         const Icon = card.icon;
         return (
           <div
             key={card.key}
             className={`
-              group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800
+              summary-card-item group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800
               ${card.bg} p-4 sm:p-5
               transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20
               hover:-translate-y-0.5 animate-fade-in-up
@@ -398,7 +398,7 @@ const HealthRiskCard: React.FC<{ flag: HealthFlag; index: number }> = ({ flag, i
   return (
     <div
       className={`
-        rounded-2xl border p-4 sm:p-5 animate-fade-in-up
+        health-risk-item rounded-2xl border p-4 sm:p-5 animate-fade-in-up
         ${isDanger
           ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/60'
           : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60'
@@ -480,7 +480,7 @@ const RecommendedActions: React.FC<{ recommendation: WeeklyRecommendation | null
             {recommendation.priority_actions.map((action, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 animate-fade-in-up"
+                className="recommendation-item flex items-start gap-3 p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 animate-fade-in-up"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-amber-400 dark:border-amber-500 flex items-center justify-center mt-0.5">
@@ -510,7 +510,7 @@ const RecommendedActions: React.FC<{ recommendation: WeeklyRecommendation | null
             {recommendation.weekly_goals.map((goal, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 animate-fade-in-up"
+                className="recommendation-item flex items-start gap-3 p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 animate-fade-in-up"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div className="flex-shrink-0 p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 mt-0.5">
@@ -541,7 +541,7 @@ const Section: React.FC<{
   <section
     id={id}
     className={`
-      rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800
+      report-section rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800
       p-5 sm:p-6 animate-fade-in-up ${className}
     `}
   >
@@ -602,25 +602,114 @@ const HealthReport: React.FC = () => {
       {/* Print-specific styles */}
       <style>{`
         @media print {
-          /* Hide non-content elements */
-          header, nav, .no-print, button { display: none !important; }
-          /* Reset background */
-          body, .dark { background: white !important; color: black !important; }
-          /* Full width */
-          .print-content { max-width: 100% !important; padding: 0 !important; }
-          /* Clean card styling */
-          .print-content section,
-          .print-content > div { 
-            border: 1px solid #e5e7eb !important; 
-            background: white !important;
-            color: #111 !important;
-            break-inside: avoid;
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 12mm 12mm;
           }
+
+          /* Hide non-content and fixed overlay elements */
+          header, nav, .no-print, button, [role="dialog"], [data-sonner-toaster], .fixed {
+            display: none !important;
+          }
+
+          /* Reset page body & background */
+          body, html, #root, .dark, .bg-background {
+            background: #ffffff !important;
+            color: #111827 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Full width and reset containers */
+          .print-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+
+          /* Allow content container to flow naturally across pages */
+          .print-content > div {
+            display: block !important;
+            break-inside: auto !important;
+            page-break-inside: auto !important;
+            border: none !important;
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Header styling in print */
+          .report-header {
+            margin-bottom: 16px !important;
+            padding-bottom: 12px !important;
+            border-bottom: 2px solid #e5e7eb !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+
+          /* Summary cards grid in print */
+          .summary-cards-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 14px !important;
+          }
+
+          .summary-card-item {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            padding: 12px !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: none !important;
+            background-color: #f8fafc !important;
+          }
+
+          /* Patterns 2-column grid in print */
+          .patterns-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 14px !important;
+          }
+
+          /* Individual sections avoid awkward page-split */
+          section.report-section,
+          .health-risk-item,
+          .recommendation-item {
+            border: 1px solid #e5e7eb !important;
+            background: #ffffff !important;
+            border-radius: 12px !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 14px !important;
+            padding: 14px 16px !important;
+            box-shadow: none !important;
+          }
+
+          /* Typography colors */
           .print-content h1, .print-content h2, .print-content h3, .print-content h4 {
-            color: #111 !important;
+            color: #111827 !important;
           }
           .print-content p, .print-content span {
             color: #374151 !important;
+          }
+
+          /* Disable CSS animations on print */
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            opacity: 1 !important;
+            transform: none !important;
           }
         }
       `}</style>
@@ -632,7 +721,7 @@ const HealthReport: React.FC = () => {
 
         <main className="print-content container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-grow max-w-5xl">
           {/* ─── Page Header ─── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 animate-fade-in">
+          <div className="report-header flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 animate-fade-in">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40">
@@ -680,12 +769,12 @@ const HealthReport: React.FC = () => {
           {/* ─── Loading State ─── */}
           {isLoading ? (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="summary-cards-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[...Array(4)].map((_, i) => (
                   <CardSkeleton key={i} />
                 ))}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="patterns-grid grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SectionSkeleton />
                 <SectionSkeleton />
               </div>
@@ -704,7 +793,7 @@ const HealthReport: React.FC = () => {
               />
 
               {/* ─── Eating Patterns Row ─── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="patterns-grid grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Section title="Most Common Foods" id="common-foods">
                   <MostCommonFoods
                     foods={data.mostCommonFoods}
@@ -729,7 +818,7 @@ const HealthReport: React.FC = () => {
 
               {/* ─── Health Risk Indicators (conditional) ─── */}
               {data.healthFlags.length > 0 && (
-                <div id="health-alerts">
+                <div id="health-alerts" className="report-section rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800 p-5 sm:p-6 animate-fade-in-up">
                   <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-500" />
                     Health Risk Indicators
