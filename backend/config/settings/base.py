@@ -45,6 +45,11 @@ ALLOWED_HOSTS = env.list(
     ],
 )
 
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["https://balanced-plate-production.up.railway.app"],
+)
+
 
 # Application definition
 
