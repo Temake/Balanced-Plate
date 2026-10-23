@@ -9,10 +9,16 @@ from loguru import logger
 from .models import BudgetTier, Ingredient, PriceArea, PriceObservation
 
 
-# Beyond this, an observation is too old to project forward from. Nigerian food
-# inflation has been running around 16% a year, so a price this stale is wrong by
+# Beyond this, an observation is too old to project forward from. Until then, the
+# last known price keeps being used, aged forward by MONTHLY_INFLATION_RATE.
+#
+# NBS publishes its Food Price Watch one to two months after the month it covers,
+# and a release can slip further, so a 90-day limit would drop most of the
+# catalogue right before each new release lands. Six months covers a late release
+# with room to spare; at ~16% annual food inflation, a price this stale is wrong by
 # enough that quoting it does more damage than admitting we don't know.
-MAX_PRICE_AGE_DAYS = 90
+# check_price_freshness emails an alert well before prices reach this age.
+MAX_PRICE_AGE_DAYS = 180
 
 # Applied when projecting an older observation forward to today. Derived from ~16%
 # annual food inflation; replace with per-commodity rates once the RTFP importer

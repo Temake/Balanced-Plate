@@ -6,16 +6,22 @@ from loguru import logger
 
 from core.account.models import Account
 from core.billing.entitlements import has_active_paid_subscription
+from core.recommendations.models import WeeklyRecommendation
 from core.recommendations.services import weekly_recommendation_service
+from core.utils import enums
 from core.utils.tasks.schedule import once_per_slot
 
 
-@db_periodic_task(crontab(day_of_week="1", hour="6", minute="0"))
+# Daily rather than only on Mondays, so a run missed during a deploy (or a user
+# whose generation failed) is caught up the next morning. Users who already have
+# last week's recommendation are skipped, so each user is generated and notified
+# once per week.
+@db_periodic_task(crontab(hour="6", minute="0"))
 @once_per_slot
 def generate_weekly_recommendations_for_all_users():
     """
-    Generate weekly recommendations for all active users.
-    Runs every Monday to process the previous week (Monday-Sunday).
+    Generate last week's (Monday-Sunday) recommendation for every active paid user
+    who doesn't have one yet.
 
     One user's failure is logged and skipped. Retrying the whole run used to
     regenerate — and pay Gemini for — every user who had already succeeded.
@@ -28,7 +34,11 @@ def generate_weekly_recommendations_for_all_users():
 
     logger.info(f"Generating weekly recommendations for {start_date} to {end_date}")
 
-    users = Account.objects.filter(is_active=True)
+    already_done = WeeklyRecommendation.objects.filter(
+        week_start_date=start_date,
+        status=enums.WeeklyRecommendationStatus.COMPLETED.value,
+    ).values("owner_id")
+    users = Account.objects.filter(is_active=True).exclude(id__in=already_done)
     success_count = 0
     error_count = 0
 

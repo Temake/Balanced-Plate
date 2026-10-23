@@ -394,7 +394,9 @@ DEFAULT_FROM_EMAIL = env.str(
     "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER or "noreply@nutrilens.site"
 )
 RESEND_API_KEY = env.str("RESEND_API_KEY", default="")
-FEEDBACK_RECIPIENT_EMAIL = env.str("FEEDBACK_RECIPIENT_EMAIL", default="temedia005@gmail.com")
+FEEDBACK_RECIPIENT_EMAIL = "temedia005@gmail.com"
+# Who hears when food prices are overdue for their monthly update.
+PRICE_ALERT_EMAIL = FEEDBACK_RECIPIENT_EMAIL
 
 
 
