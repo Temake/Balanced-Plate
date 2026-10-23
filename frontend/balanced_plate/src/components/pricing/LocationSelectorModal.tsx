@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePriceAreas, useLocatePriceArea } from '@/hooks/useMealPlan';
-import type { PriceArea } from '@/api/types';
+import type { LocatePriceAreaResponse, PriceArea } from '@/api/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -77,6 +77,13 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Most cities don't have their own price data yet, so say which prices will
+  // really be used rather than implying local ones.
+  const fallbackNotice = (data: LocatePriceAreaResponse) =>
+    data.is_price_fallback && data.price_area
+      ? `We don't have local prices for ${data.price_area.name} yet, so plans use ${data.price_source_label}.`
+      : null;
+
   const handleSelectArea = (area: PriceArea) => {
     locateMutation.mutate(
       { area_id: area.id },
@@ -84,7 +91,12 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
         onSuccess: (data) => {
           if (data.price_area) {
             onSelectArea?.(data.price_area);
-            toast.success(`Market prices set to ${data.price_area.name}.`);
+            const notice = fallbackNotice(data);
+            if (notice) {
+              toast.info(notice);
+            } else {
+              toast.success(`Market prices set to ${data.price_area.name}.`);
+            }
           }
           onClose();
         },
@@ -112,14 +124,20 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({
               setIsLocatingGPS(false);
               if (data.is_outside_nigeria) {
                 toast.info(
-                  'Detected location is outside Nigeria. Using Lagos market prices.'
+                  `Detected location is outside Nigeria. Using ${
+                    data.price_source_label || 'default market prices'
+                  }.`
                 );
               } else if (data.price_area) {
-                toast.success(
-                  `📍 Located nearest market hub: ${data.price_area.name}${
-                    data.distance_km != null ? ` (${data.distance_km} km)` : ''
-                  }`
-                );
+                const notice = fallbackNotice(data);
+                const hub = `📍 Located nearest market hub: ${data.price_area.name}${
+                  data.distance_km != null ? ` (${data.distance_km} km)` : ''
+                }`;
+                if (notice) {
+                  toast.info(`${hub}. ${notice}`);
+                } else {
+                  toast.success(hub);
+                }
               }
               if (data.price_area) {
                 onSelectArea?.(data.price_area);

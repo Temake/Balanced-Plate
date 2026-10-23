@@ -37,4 +37,6 @@ class LocateResponseSerializer(serializers.Serializer):
     price_area = PriceAreaSerializer()
     distance_km = serializers.FloatField(allow_null=True)
     is_outside_nigeria = serializers.BooleanField(default=False)
+    price_source_label = serializers.CharField(allow_blank=True)
+    is_price_fallback = serializers.BooleanField(default=False)
 

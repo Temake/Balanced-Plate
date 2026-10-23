@@ -225,6 +225,9 @@ export interface MealPlan {
   is_within_budget: boolean | null;
   /** Which city's prices this was costed against, for the provenance line. */
   price_area_name: string | null;
+  /** Where the prices really came from, e.g. "Lagos estimates" for a city with none of its own. */
+  price_source_label: string | null;
+  is_price_fallback: boolean;
   priced_at: string | null;
   /** Ingredients the AI used that aren't in the priced catalogue. */
   unpriced_items: string[];
@@ -249,6 +252,8 @@ export interface LocatePriceAreaResponse {
   price_area: PriceArea | null;
   distance_km: number | null;
   is_outside_nigeria: boolean;
+  price_source_label: string;
+  is_price_fallback: boolean;
 }
 
 /** A budget preset, e.g. "Low — about ₦28,000/week for 4". */

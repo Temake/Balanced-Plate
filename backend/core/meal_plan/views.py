@@ -87,7 +87,16 @@ def _apply_cost_to_plan(meal_plan, context, plan_cost):
         meal_plan.price_area = context["area"]
         meal_plan.priced_at = timezone.now()
         meal_plan.unpriced_items = plan_cost.unknown_items
-        fields += ["estimated_cost_kobo", "price_area", "priced_at", "unpriced_items"]
+        meal_plan.price_source_label = plan_cost.price_source_label
+        meal_plan.is_price_fallback = plan_cost.is_price_fallback
+        fields += [
+            "estimated_cost_kobo",
+            "price_area",
+            "priced_at",
+            "unpriced_items",
+            "price_source_label",
+            "is_price_fallback",
+        ]
 
     meal_plan.save(update_fields=fields)
 

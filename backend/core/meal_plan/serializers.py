@@ -45,6 +45,7 @@ class MealPlanCostMixin(serializers.Serializer):
     estimated_cost_high_naira = serializers.SerializerMethodField()
     is_within_budget = serializers.SerializerMethodField()
     price_area_name = serializers.SerializerMethodField()
+    price_source_label = serializers.SerializerMethodField()
 
     def get_budget_naira(self, obj):
         return round(obj.budget_kobo / 100, 2) if obj.budget_kobo else None
@@ -72,6 +73,12 @@ class MealPlanCostMixin(serializers.Serializer):
     def get_price_area_name(self, obj):
         return obj.price_area.name if obj.price_area_id else None
 
+    def get_price_source_label(self, obj):
+        # Plans costed before the label existed only know the area they were asked for.
+        if obj.price_source_label:
+            return obj.price_source_label
+        return f"{obj.price_area.name} prices" if obj.price_area_id else None
+
 
 COST_FIELDS = [
     "household_size",
@@ -84,6 +91,8 @@ COST_FIELDS = [
     "estimated_cost_high_naira",
     "is_within_budget",
     "price_area_name",
+    "price_source_label",
+    "is_price_fallback",
     "priced_at",
     "unpriced_items",
 ]

@@ -583,10 +583,17 @@ const MealPlanner: React.FC = () => {
             <button
               onClick={() => setIsLocationModalOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-900 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all shadow-sm"
-              title="Change market price location"
+              title={
+                budgetData?.is_price_fallback && budgetData.price_area
+                  ? `No local prices for ${budgetData.price_area.name} yet. Change market price location`
+                  : 'Change market price location'
+              }
             >
               <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{budgetData?.price_area?.name ?? 'Lagos'} prices</span>
+              <span>
+                {budgetData?.price_source_label ||
+                  (budgetData?.price_area ? `${budgetData.price_area.name} prices` : 'Market prices')}
+              </span>
             </button>
 
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -680,7 +687,7 @@ const MealPlanner: React.FC = () => {
                 title="Change pricing city"
               >
                 <MapPin className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                {currentPlan.price_area_name} prices
+                {currentPlan.price_source_label ?? `${currentPlan.price_area_name} prices`}
                 {currentPlan.priced_at
                   ? `, ${new Date(currentPlan.priced_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}`
                   : ''}

@@ -17,6 +17,8 @@ interface BudgetTiersResponse {
   tiers: BudgetTier[];
   household_size: number;
   price_area: { id: number; name: string; state: string } | null;
+  price_source_label: string;
+  is_price_fallback: boolean;
 }
 
 /**

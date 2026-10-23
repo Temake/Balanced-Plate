@@ -59,6 +59,27 @@ class PlanCost:
     unknown_items: list = field(default_factory=list)
     area_name: str = ""
     oldest_observation: object = None
+    price_source_label: str = ""
+    is_price_fallback: bool = False
+
+
+def describe_price_source(requested_area, source_area_names):
+    """Say where the prices really came from, not where we were asked to price.
+
+    An area with no observations of its own is costed from another city's figures,
+    and calling that "Kano prices" claims local knowledge we don't have.
+
+    Returns (label, is_fallback).
+    """
+    requested = requested_area.name if requested_area else ""
+    names = {name for name in source_area_names if name}
+    others = sorted(names - {requested})
+
+    if not others:
+        return (f"{requested} prices" if requested else ""), False
+    if requested not in names:
+        return f"{' & '.join(others)} estimates", True
+    return f"{requested} prices, some {' & '.join(others)} estimates", True
 
 
 import math
@@ -269,6 +290,12 @@ def resolve_prices_for_area(area, as_of=None):
     return result
 
 
+def describe_area_coverage(area, as_of=None):
+    """The price-source label for an area before anything is costed against it."""
+    prices = resolve_prices_for_area(area, as_of=as_of)
+    return describe_price_source(area, [resolved.area_name for resolved in prices.values()])
+
+
 def get_active_ingredients():
     return list(
         Ingredient.objects.filter(is_active=True, include_in_prompt=True).order_by(
@@ -379,6 +406,7 @@ def cost_meal(meal_ingredients, area, as_of=None, ingredient_index=None, price_c
                 "qty": float(quantity),
                 "unit": resolved.unit,
                 "line_kobo": line_kobo,
+                "area_name": resolved.area_name,
             }
         )
 
@@ -391,6 +419,7 @@ def cost_meals(meals, area, as_of=None):
     index = _index_ingredients()
     cache = resolve_prices_for_area(area, as_of=as_of)
     plan = PlanCost(area_name=area.name if area else "")
+    source_area_names = []
 
     for meal in meals or []:
         meal_cost = cost_meal(
@@ -407,6 +436,11 @@ def cost_meals(meals, area, as_of=None):
         else:
             plan.unpriced_meals += 1
         plan.unknown_items.extend(meal_cost.unknown_items)
+        source_area_names.extend(item["area_name"] for item in meal_cost.priced_items)
+
+    plan.price_source_label, plan.is_price_fallback = describe_price_source(
+        area, source_area_names
+    )
 
     observed_dates = [r.observed_on for r in cache.values() if r is not None]
     plan.oldest_observation = min(observed_dates) if observed_dates else None

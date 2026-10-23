@@ -88,6 +88,21 @@ class MealPlan(BaseModelMixin):
         verbose_name=_("Price Area"),
         help_text=_("Which city's prices this plan was costed against."),
     )
+    price_source_label = models.CharField(
+        _("Price Source"),
+        max_length=150,
+        blank=True,
+        default="",
+        help_text=_(
+            "Where the prices actually came from, e.g. 'Lagos estimates' when the "
+            "chosen city has no prices of its own yet."
+        ),
+    )
+    is_price_fallback = models.BooleanField(
+        _("Priced From Another Area"),
+        default=False,
+        help_text=_("True when some or all prices were borrowed from another city."),
+    )
     priced_at = models.DateTimeField(
         _("Priced At"),
         null=True,

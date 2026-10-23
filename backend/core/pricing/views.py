@@ -9,6 +9,7 @@ from .serializers import (
     PriceAreaSerializer,
 )
 from .services import (
+    describe_area_coverage,
     find_nearest_price_area,
     get_budget_tiers,
     get_default_area,
@@ -48,11 +49,16 @@ class ListBudgetTiers(views.APIView):
         )
         user = request.user if request.user.is_authenticated else None
         area = resolve_area(user=user)
+        price_source_label, is_price_fallback = (
+            describe_area_coverage(area) if area else ("", False)
+        )
         return response.Response(
             data={
                 "tiers": serializer.data,
                 "household_size": household_size,
                 "price_area": PriceAreaSerializer(area).data if area else None,
+                "price_source_label": price_source_label,
+                "is_price_fallback": is_price_fallback,
             },
             status=status.HTTP_200_OK,
         )
@@ -109,11 +115,16 @@ class LocatePriceAreaView(views.APIView):
             request.user.price_area = area
             request.user.save(update_fields=["price_area"])
 
+        price_source_label, is_price_fallback = (
+            describe_area_coverage(area) if area else ("", False)
+        )
         return response.Response(
             data={
                 "price_area": PriceAreaSerializer(area).data if area else None,
                 "distance_km": distance_km,
                 "is_outside_nigeria": is_outside_nigeria,
+                "price_source_label": price_source_label,
+                "is_price_fallback": is_price_fallback,
             },
             status=status.HTTP_200_OK,
         )
