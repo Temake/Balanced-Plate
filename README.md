@@ -68,7 +68,7 @@
 | **Django 5.0** & **DRF** | Robust REST API backend |
 | **Google Gemini 1.5 Vision / Pro** | Multimodal food analysis, meal planning & cooking intelligence |
 | **Django Channels & Daphne** | Asynchronous WebSockets for real-time analysis notifications |
-| **Celery & Redis** | Asynchronous background tasks, report generation & email dispatch |
+| **Huey & Redis** | Background tasks, scheduled jobs & email dispatch |
 | **PostgreSQL** | Primary relational database |
 | **Paystack API** | Recurring subscription billing & webhooks |
 
@@ -90,7 +90,6 @@
 Balanced-Plate/
 ├── backend/
 │   ├── config/                     # Project configuration & settings
-│   │   ├── celery/                 # Celery app & task queues
 │   │   ├── settings/               # Base, development & production settings
 │   │   ├── asgi.py                 # ASGI entrypoint for WebSockets
 │   │   └── urls.py                 # Root URL routing
@@ -185,13 +184,17 @@ npm run dev
 
 ---
 
-### 3. Celery Worker (Background Tasks)
+### 3. Huey Worker (Background Tasks)
 
 ```bash
 # In a separate terminal with virtualenv activated
 cd backend
-celery -A config.celery worker -l info -Q celery,email-notification,recommendations,beats --pool=solo
+python manage.py run_huey
 ```
+
+One process runs both the queued tasks and the scheduled jobs. In production,
+`devops/server.sh` starts it alongside Daphne in the same container. To skip the
+worker locally, set `HUEY_IMMEDIATE=True` and tasks run inline instead.
 
 ---
 

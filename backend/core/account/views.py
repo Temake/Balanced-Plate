@@ -36,7 +36,6 @@ from core.utils.permissions import IsGuestUser
 OTP_SENT_MESSAGE = "if an account exists for that email, an otp has been sent"
 from core.utils.helpers import  authenticators, message_templates as mailer
 from core.utils.tasks import mail as mail_tasks
-from config.celery.queue import CeleryQueue
 
 
 @extend_schema(tags=["Account"])
@@ -62,9 +61,8 @@ class CreateUser(views.APIView):
             settings.SIGNUP_OTP_TTL_SECONDS,
         )
         message = mailer.MessageTemplates.signup_email_verification_email(otp)
-        mail_tasks.send_email_to_address.apply_async(
-            (account.email, "Verify Your Email", message, account.first_name),
-            queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+        mail_tasks.send_email_to_address(
+            account.email, "Verify Your Email", message, account.first_name
         )
 
         serializer = UserSerializer.Retrieve(instance=account)
@@ -161,9 +159,8 @@ class Login(views.APIView):
                 settings.SIGNUP_OTP_TTL_SECONDS,
             )
             message = mailer.MessageTemplates.signup_email_verification_email(otp)
-            mail_tasks.send_email_to_address.apply_async(
-                (account.email, "Verify Your Email", message, account.first_name),
-                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            mail_tasks.send_email_to_address(
+                account.email, "Verify Your Email", message, account.first_name
             )
             raise exceptions.CustomException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -286,9 +283,8 @@ class InitiatePasswordReset(views.APIView):
                 settings.PASSWORD_RESET_OTP_TTL_SECONDS,
             )
             message = mailer.MessageTemplates.password_reset_email(otp)
-            mail_tasks.send_email_to_address.apply_async(
-                (user.email, "Reset Your Password", message, user.first_name),
-                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            mail_tasks.send_email_to_address(
+                user.email, "Reset Your Password", message, user.first_name
             )
         else:
             logger.info(f"password reset requested for unregistered email {email}")
@@ -448,9 +444,8 @@ class FinalizeEmailVerification(views.APIView):
 
                 # Send Welcome Email to newly verified user
                 welcome_message = mailer.MessageTemplates.welcome_email(name=account.first_name)
-                mail_tasks.send_email_to_address.apply_async(
-                    (account.email, "Welcome to NutriLens! 🥗", welcome_message, account.first_name),
-                    queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+                mail_tasks.send_email_to_address(
+                    account.email, "Welcome to NutriLens! 🥗", welcome_message, account.first_name
                 )
 
                 return response.Response(
@@ -511,9 +506,8 @@ class ResendSignupOtp(views.APIView):
                 message = mailer.MessageTemplates.password_reset_email(otp)
                 subject = "Reset Your Password"
 
-            mail_tasks.send_email_to_address.apply_async(
-                (account.email, subject, message, account.first_name),
-                queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
+            mail_tasks.send_email_to_address(
+                account.email, subject, message, account.first_name
             )
         else:
             logger.info(f"otp resend skipped for {email}")

@@ -1,21 +1,27 @@
-from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
+from huey import crontab
+from huey.contrib.djhuey import db_periodic_task
 from loguru import logger
 
 from core.account.models import Account
 from core.billing.entitlements import has_active_paid_subscription
 from core.recommendations.services import weekly_recommendation_service
+from core.utils.tasks.schedule import once_per_slot
 
 
-@shared_task(bind=True, max_retries=3, queue="recommendations")
-def generate_weekly_recommendations_for_all_users(self):
+@db_periodic_task(crontab(day_of_week="1", hour="6", minute="0"))
+@once_per_slot
+def generate_weekly_recommendations_for_all_users():
     """
     Generate weekly recommendations for all active users.
     Runs every Monday to process the previous week (Monday-Sunday).
+
+    One user's failure is logged and skipped. Retrying the whole run used to
+    regenerate — and pay Gemini for — every user who had already succeeded.
     """
     today = timezone.localdate()
-    
+
     days_since_monday = today.weekday()
     end_date = today - timedelta(days=days_since_monday + 1)
     start_date = end_date - timedelta(days=6)
@@ -38,14 +44,13 @@ def generate_weekly_recommendations_for_all_users(self):
                 end_date=end_date,
             )
             recommendation.emit_ready_event()
-            
+
             success_count += 1
             logger.info(f"Emitted recommendation for user {user.id}")
 
         except Exception as e:
             error_count += 1
             logger.error(f"Failed to emit recommendation for user {user.id}: {e}")
-            raise self.retry(exc=e, countdown=60)
 
     logger.info(
         f"Weekly recommendations complete. Success: {success_count}, Errors: {error_count}"

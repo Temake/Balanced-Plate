@@ -20,11 +20,8 @@ RUN addgroup --system django \
 COPY --chown=django:django ./devops/server.sh /server.sh
 RUN sed -i 's/\r$//g' /server.sh && chmod +x /server.sh
 
-COPY --chown=django:django ./devops/celery/celery_worker.sh /celery-worker.sh
-RUN sed -i 's/\r$//g' /celery-worker.sh && chmod +x /celery-worker.sh
-
-COPY --chown=django:django ./devops/celery/celery_beat.sh /celery-beat.sh
-RUN sed -i 's/\r$//g' /celery-beat.sh && chmod +x /celery-beat.sh
+COPY --chown=django:django ./devops/huey_worker.sh /huey-worker.sh
+RUN sed -i 's/\r$//g' /huey-worker.sh && chmod +x /huey-worker.sh
 
 
 USER django

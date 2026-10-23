@@ -17,7 +17,7 @@ class Command(BaseCommand):
             "--async",
             action="store_true",
             dest="send_async",
-            help="Send via Celery worker queue instead of direct synchronous call",
+            help="Send via the Huey worker queue instead of direct synchronous call",
         )
 
     def handle(self, *args, **options):
@@ -40,7 +40,7 @@ class Command(BaseCommand):
         self.stdout.write(f" RESEND_API_KEY     : {masked_key}")
         self.stdout.write(f" DEFAULT_FROM_EMAIL : {from_email}")
         self.stdout.write(f" Target Recipient   : {recipient}")
-        self.stdout.write(f" Dispatch Mode      : {'Celery Async' if send_async else 'Synchronous Direct'}")
+        self.stdout.write(f" Dispatch Mode      : {'Huey Async' if send_async else 'Synchronous Direct'}")
         self.stdout.write(self.style.NOTICE("───────────────────────────────────────────"))
 
         if not resend_key:
@@ -60,8 +60,8 @@ class Command(BaseCommand):
 
         try:
             if send_async:
-                self.stdout.write("Queueing test email to Celery (queue: email-notification)...")
-                send_email_to_address.delay(
+                self.stdout.write("Queueing test email to the Huey worker...")
+                send_email_to_address(
                     email_address=recipient,
                     subject=subject,
                     message=message,
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"✅ Task queued to Celery successfully! Check celery-worker logs to confirm dispatch."
+                        f"✅ Task queued successfully! Check the worker logs to confirm dispatch."
                     )
                 )
             else:

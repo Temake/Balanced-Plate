@@ -15,8 +15,6 @@ from django.utils.timezone import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from core.utils import enums
-from config.celery.queue import CeleryQueue
-from celery.schedules import crontab
 import sentry_sdk
 
 from .. import env
@@ -68,7 +66,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "django_celery_beat",
+    "huey.contrib.djhuey",
     "channels"
 ]
 
@@ -319,46 +317,37 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
-CELERY_BROKER = env.str("CELERY_BROKER")
-CELERY_BROKER_URL = CELERY_BROKER
-CELERY_RESULT_BACKEND = env.str("CELERY_BACKEND")
-CELERY_TIMEZONE = env.str("CELERY_TIMEZONE", default="UTC")
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_ACKS_LATE = True
-CELERY_TASK_REJECT_ON_WORKER_LOST = True
-CELERY_QUEUES = CeleryQueue.queues()
-CELERY_TASK_DEFAULT_QUEUE = "email-notification"
-
-CELERY_BEAT_SCHEDULE = {
-    "generate-weekly-recommendations": {
-        "task": "core.recommendations.tasks.generate_weekly_recommendations_for_all_users",
-        "schedule": crontab(hour=6, minute=0, day_of_week=1),
-        "options": {"queue": "recommendations"},
-    },
-    "send-subscription-renewal-reminders": {
-        "task": "core.billing.tasks.send_subscription_renewal_reminders",
-        "schedule": crontab(hour=8, minute=0),
-        "options": {"queue": "email-notification"},
-    },
-    "expire-subscription-grace-periods": {
-        "task": "core.billing.tasks.expire_subscription_grace_periods",
-        "schedule": crontab(minute=0),
-        "options": {"queue": "email-notification"},
-    },
-    "expire-lapsed-subscriptions": {
-        "task": "core.billing.tasks.expire_lapsed_subscriptions",
-        "schedule": crontab(minute=15),
-        "options": {"queue": "email-notification"},
-    },
-}
-
-
 REDIS_HOST = env.str("REDIS_HOST", default="localhost")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
 REDIS_URL = env.str("REDIS_URL", default="")
 REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="")
+
+# Background tasks. One `run_huey` process runs both the queued tasks and the
+# periodic schedule (each schedule lives on its task as a `db_periodic_task`).
+# Threads, not processes: the work is waiting on Gemini and email, and a process
+# per CPU is what made the old Celery worker expensive on Railway.
+HUEY = {
+    "huey_class": "huey.RedisHuey",
+    "name": "balanced-plate",
+    "connection": {"url": REDIS_URL or f"redis://{REDIS_HOST}:{REDIS_PORT}/0"},
+    # Nothing reads task return values, so don't store them in Redis.
+    "results": False,
+    # Run tasks inline instead of queueing them, e.g. for tests or a quick local
+    # run without a worker. Never enable in production.
+    "immediate": env.bool("HUEY_IMMEDIATE", default=False),
+    "utc": True,
+    "consumer": {
+        "workers": env.int("HUEY_WORKERS", default=4),
+        "worker_type": "thread",
+        "periodic": True,
+        # Railway stops services with SIGTERM. By default Huey treats that as
+        # "stop now"; this makes it let running tasks finish first, for up to
+        # shutdown_timeout seconds. Anything still running after that is put
+        # back on the queue (see requeue_interrupted_analysis).
+        "graceful_signal": "TERM",
+        "shutdown_timeout": env.int("HUEY_SHUTDOWN_TIMEOUT", default=60),
+    },
+}
 
 # if REDIS_PASSWORD:
 #     REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"

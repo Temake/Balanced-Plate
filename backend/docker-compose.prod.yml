@@ -12,7 +12,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # Runs Daphne and the Huey worker together (see devops/server.sh).
     command: /server.sh
+    # Give running background tasks time to finish on shutdown.
+    stop_grace_period: 75s
     networks:
       - app_network
     healthcheck:
@@ -21,34 +24,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 60s
-
-  celery-worker:
-    image: ghcr.io/temake/balanced-plate:latest
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: /celery-worker.sh
-    networks:
-      - app_network
-
-  celery-beat:
-    image: ghcr.io/temake/balanced-plate:latest
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: /celery-beat.sh
-    networks:
-      - app_network
 
   db:
     image: postgres:15-alpine

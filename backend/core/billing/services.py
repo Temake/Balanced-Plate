@@ -480,7 +480,7 @@ def start_subscription_grace(data):
     subscription.save(update_fields=["status", "grace_ends_at", "date_last_modified"])
     from .tasks import send_subscription_payment_failed_email
 
-    send_subscription_payment_failed_email.delay(subscription.id)
+    send_subscription_payment_failed_email(subscription.id)
     return subscription
 
 

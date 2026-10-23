@@ -229,7 +229,7 @@ def reserve_ai_generation_credit(user, feature_type, credits_used=1, metadata=No
 def reserve_analysis_credit(user, credits_used=1, metadata=None):
     """Consume a photo-analysis allowance under the same lock as the check.
 
-    Analysis runs in Celery, so the reservation is taken in the view before the
+    Analysis runs in a background task, so the reservation is taken in the view before the
     task is queued: reserving inside the task would let a queue backlog admit any
     number of requests before the first ledger row existed. The caller must
     release the reservation if the analysis never produces a real result.
@@ -253,7 +253,7 @@ def release_ai_generation_credit(reservation):
 
 
 def release_ai_generation_credit_by_id(reservation_id):
-    """Refund from a Celery task, which only carries the serialisable id.
+    """Refund from a background task, which only carries the serialisable id.
 
     Deleting an already-deleted row is a no-op, so a redelivered task cannot
     double-refund.

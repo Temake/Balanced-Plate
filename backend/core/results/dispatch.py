@@ -67,7 +67,8 @@ def dispatch_food_analysis(user, file_obj, use_mock=False):
         # genuinely made, so it is charged again.
         analysis.analysis_status = enums.FoodAnalysisStatus.ANALYSIS_PENDING.value
         analysis.error_message = ""
-        analysis.save(update_fields=["analysis_status", "error_message"])
+        # date_last_modified restarts the stuck-analysis clock for this retry.
+        analysis.save(update_fields=["analysis_status", "error_message", "date_last_modified"])
 
     # Reserve before queueing. The reservation is what serialises concurrent
     # requests; a task waiting in a backlog would let any number of them through
@@ -79,7 +80,7 @@ def dispatch_food_analysis(user, file_obj, use_mock=False):
     from .tasks import analyze_food_image_task  # local: avoids an import cycle
 
     try:
-        analyze_food_image_task.delay(
+        analyze_food_image_task(
             str(file_obj.id),
             use_mock=use_mock,
             reservation_id=str(reservation.pk) if reservation else None,

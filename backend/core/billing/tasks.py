@@ -1,23 +1,21 @@
-from celery import shared_task
 from django.utils import timezone
+from huey import crontab
+from huey.contrib.djhuey import db_periodic_task, db_task
 from loguru import logger
 
-from config.celery.queue import CeleryQueue
 from core.utils.helpers import message_templates as mailer
 from core.utils.tasks import mail as mail_tasks
+from core.utils.tasks.schedule import once_per_slot
 
 from .models import Subscription, SubscriptionStatus
 
 
 def _send_subscription_email(subscription, subject, message):
     owner = subscription.owner
-    mail_tasks.send_email_to_address.apply_async(
-        (owner.email, subject, message, owner.first_name),
-        queue=CeleryQueue.Definitions.EMAIL_AND_NOTIFICATION,
-    )
+    mail_tasks.send_email_to_address(owner.email, subject, message, owner.first_name)
 
 
-@shared_task(queue="email-notification")
+@db_task()
 def send_subscription_payment_failed_email(subscription_id):
     subscription = (
         Subscription.objects.select_related("owner", "plan")
@@ -35,7 +33,7 @@ def send_subscription_payment_failed_email(subscription_id):
     return {"sent": True, "subscription_id": subscription.id}
 
 
-@shared_task(queue="email-notification")
+@db_task()
 def send_subscription_grace_expired_email(subscription_id):
     subscription = (
         Subscription.objects.select_related("owner", "plan")
@@ -50,7 +48,7 @@ def send_subscription_grace_expired_email(subscription_id):
     return {"sent": True, "subscription_id": subscription.id}
 
 
-@shared_task(queue="email-notification")
+@db_task()
 def send_subscription_expired_email(subscription_id):
     subscription = (
         Subscription.objects.select_related("owner", "plan")
@@ -65,7 +63,8 @@ def send_subscription_expired_email(subscription_id):
     return {"sent": True, "subscription_id": subscription.id}
 
 
-@shared_task(queue="email-notification")
+@db_periodic_task(crontab(hour="8", minute="0"))
+@once_per_slot
 def send_subscription_renewal_reminders():
     now = timezone.now()
     today = timezone.localdate()
@@ -103,7 +102,8 @@ def send_subscription_renewal_reminders():
     return {"sent_7d": sent_7d, "sent_1d": sent_1d}
 
 
-@shared_task(queue="email-notification")
+@db_periodic_task(crontab(minute="15"))
+@once_per_slot
 def expire_lapsed_subscriptions():
     """Demote ACTIVE subscriptions whose paid period has ended.
 
@@ -121,14 +121,15 @@ def expire_lapsed_subscriptions():
     for subscription in subscriptions:
         subscription.status = SubscriptionStatus.EXPIRED
         subscription.save(update_fields=["status", "date_last_modified"])
-        send_subscription_expired_email.delay(subscription.id)
+        send_subscription_expired_email(subscription.id)
         expired_count += 1
 
     logger.info(f"Expired lapsed subscriptions: {expired_count}")
     return {"expired_count": expired_count}
 
 
-@shared_task(queue="email-notification")
+@db_periodic_task(crontab(minute="0"))
+@once_per_slot
 def expire_subscription_grace_periods():
     now = timezone.now()
     subscriptions = Subscription.objects.select_related("owner", "plan").filter(
@@ -139,7 +140,7 @@ def expire_subscription_grace_periods():
     for subscription in subscriptions:
         subscription.status = SubscriptionStatus.EXPIRED
         subscription.save(update_fields=["status", "date_last_modified"])
-        send_subscription_grace_expired_email.delay(subscription.id)
+        send_subscription_grace_expired_email(subscription.id)
         expired_count += 1
 
     logger.info(f"Expired subscription grace periods: {expired_count}")

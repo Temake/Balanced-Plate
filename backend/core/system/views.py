@@ -144,17 +144,17 @@ class FeedbackCreateView(generics.CreateAPIView):
         """
         try:
             from core.utils.tasks.mail import send_email_to_address
-            send_email_to_address.delay(
+            send_email_to_address(
                 email_address=recipient,
                 subject=email_subject,
                 message=email_content,
                 name="NutriLens Team",
             )
         except Exception as err:
-            logger.warning(f"Celery email dispatch failed, sending directly: {err}")
+            logger.warning(f"Queueing feedback email failed, sending directly: {err}")
             try:
                 from core.utils.tasks.mail import send_email_to_address
-                send_email_to_address(
+                send_email_to_address.call_local(
                     email_address=recipient,
                     subject=email_subject,
                     message=email_content,
