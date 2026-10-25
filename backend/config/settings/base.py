@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from botocore.config import Config
 from django.utils.timezone import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -412,27 +413,43 @@ if USING_MANAGED_STORAGE:
         },
     }
 
-    AWS_ACCESS_KEY_ID = env.str("DJANGO_AWS_ACCESS_KEY_ID", "*****")
-    AWS_SECRET_ACCESS_KEY = env.str("DJANGO_AWS_SECRET_ACCESS_KEY", "*****")
-    AWS_STORAGE_BUCKET_NAME = env.str("DJANGO_AWS_STORAGE_BUCKET_NAME", "*****")
+    # Cloudflare R2 (S3-compatible). Objects are written privately through the
+    # account API endpoint and served publicly from the bucket's public domain
+    # (a custom domain or the bucket's pub-*.r2.dev URL). Gemini fetches
+    # uploaded images from that public URL, so the bucket must be public.
+    R2_ACCOUNT_ID = env.str("R2_ACCOUNT_ID", "*****")
+    R2_PUBLIC_DOMAIN = (
+        env.str("R2_PUBLIC_DOMAIN", "*****")
+        .removeprefix("https://")
+        .removeprefix("http://")
+        .rstrip("/")
+    )
+
+    AWS_ACCESS_KEY_ID = env.str("R2_ACCESS_KEY_ID", "*****")
+    AWS_SECRET_ACCESS_KEY = env.str("R2_SECRET_ACCESS_KEY", "*****")
+    AWS_STORAGE_BUCKET_NAME = env.str("R2_BUCKET_NAME", "*****")
 
     AWS_S3_FILE_OVERWRITE = False
-    AWS_S3_REGION_NAME = env.str("DJANGO_AWS_S3_REGION_NAME", "lon1")
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_DEFAULT_ACL = "public-read"
-    AWS_S3_ADDRESSING_STYLE = "virtual"
-    AWS_S3_ENDPOINT_URL = "https://lon1.digitaloceanspaces.com"
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.lon1.digitaloceanspaces.com"
+    AWS_S3_REGION_NAME = "auto"
+    AWS_S3_ENDPOINT_URL = f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+    # R2 has no object ACLs; public access is a bucket-level setting.
+    AWS_DEFAULT_ACL = None
+    AWS_S3_CLIENT_CONFIG = Config(
+        signature_version="s3v4",
+        s3={"addressing_style": "path"},
+        # boto3 >= 1.36 adds CRC checksums to every upload by default, which
+        # R2 does not fully support. Only send them when an operation needs one.
+        request_checksum_calculation="when_required",
+        response_checksum_validation="when_required",
+    )
+    AWS_S3_CUSTOM_DOMAIN = R2_PUBLIC_DOMAIN
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_OBJECT_PARAMETERS = {
         "CacheControl": "max-age=86400",
     }
 
-    STATIC_LOCATION = "static"
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/"
-
-    PUBLIC_MEDIA_LOCATION = "media"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 
 GEMINI_API_KEY = env.str("GEMINI_API_KEY", default="**********")
